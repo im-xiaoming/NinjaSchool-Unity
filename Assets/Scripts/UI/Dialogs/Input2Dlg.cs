@@ -71,18 +71,11 @@ public class Input2Dlg : Dialog, IActionListener
 		base.paint(g);
 	}
 
-	public override void keyPress(int keyCode)
-	{
-		if (focus == 0)
-		{
-			tfInput.keyPressed(keyCode);
-		}
-		else
-		{
-			tfInput2.keyPressed(keyCode);
-		}
-		base.keyPress(keyCode);
-	}
+	// Key routing, field update/focus and button navigation live in Dialog; this dialog only says
+	// which field is focused. Up/Down switch between the two fields here, so they do not step numbers.
+	protected override TField FocusedField { get { return focus == 0 ? tfInput : tfInput2; } }
+
+	protected override bool UpDownStepsNumber { get { return false; } }
 
 	public override void update()
 	{
@@ -102,7 +95,6 @@ public class Input2Dlg : Dialog, IActionListener
 			{
 				right = tfInput.cmdClear;
 			}
-			tfInput.update();
 		}
 		else
 		{
@@ -112,7 +104,6 @@ public class Input2Dlg : Dialog, IActionListener
 			{
 				right = tfInput2.cmdClear;
 			}
-			tfInput2.update();
 		}
 		if (GameCanvas.isTouch && GameCanvas.isPointerJustRelease && GameCanvas.isPointerClick)
 		{

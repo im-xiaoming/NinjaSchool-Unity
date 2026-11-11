@@ -99,3 +99,19 @@ The user reported gradual HP gain without items/external effects and asked for a
 - Intentional offline presentation deviation: retain fractional residuals after legacy integer entity/camera interpolation and draw them with scoped GUI transforms. Include NPCs, pets, dropped items, arrows/darts/trails, souls, lanterns, eggs, figures and weather. Nested absolute-coordinate projectile/pet scopes replace the parent's residual so offsets do not add twice. World camera scope ends before fixed HUD. Existing teleports/map changes snap.
 - Scroll input/inertia/hit-testing remain integer and authoritative. Weakly registered instances capture pre-tick state; only rendered content receives a fractional offset. Clip/origin/reset/finally clear the content offset; recycled or changed geometry snaps. Smooth Effects controls weather/scroll too; new Smooth World Motion (default true) disables fractional world placement when needed. No new packages, assets, filtering or sprite frames.
 - Finite source artwork cannot supply 60 distinct authored poses each second. Do not speed up sprite cycling or claim universal FPS from the sampled village. This pass preserves existing paint-owned pose counters; broader animation timeline changes are not silently included.
+
+## 2026-11-12: double-click = Enter (offline client addition)
+Not in the original client. Double-click on a focused world target simulates the fire key so the existing Enter path runs; no new gameplay logic. User request. Configurable via NSO Game Control.
+
+## 2026-11-12: gamepad input (offline client addition)
+User request: PS5 controller with Elden Ring-style buttons. Implemented as a key-code translator so no gameplay path changes; mapping configurable per button.
+
+## 2026-11-12: dialog arrow selection; menu entries removed
+- Dialog bottom buttons can be chosen with Left/Right + Enter (keyboard/gamepad). Offline client addition.
+- User decision (permanent): the game menu no longer lists "Thủ khố", "Tự sát", "Khu vực".
+- 2026-11-12: Dialog keyboard/gamepad handling is centralised in `Dialog` (FocusedField / UpDownStepsNumber hooks) instead of patching each dialog. Up/Down step numeric input fields (offline deviation, gamepad has no digits).
+- 2026-11-12: User decision (permanent): auto options reMap, Chuyển map khi hết boss, Tự sát khi hết Mp, Đánh tinh anh, Đánh thủ lĩnh and Auto Reconnect are removed from the game. Former defaults are kept as fixed behaviour; no reconnect.
+- 2026-11-12: Offline deviation (user request): the chat box is a dev terminal. CHAT_MAP (-23) runs Server/Net/DevTerminal commands on the local player instead of public chat; DevTerminal.Enabled switches it off.
+
+### Basic attack grows for class 0 (2026-11-12, user request)
+- Java gives class 0 no skill points and the data has one row for skill template 0. Offline, the basic attack gets one automatic point per level (max 9, -20 ms cooldown each). Generated rows ids 30001..30009 on client and server from `BasicSkillGrowth`. Offline deviation.

@@ -230,6 +230,30 @@ public class Main : MonoBehaviour
         {
             int num = 1 / a;
         }
+        UpdateChatText();
+        // Mouse wheel for the in-game lists (Scroll.AddWheel); cursor converted like the clicks in OnGUI.
+        Vector3 wheelMouse = Input.mousePosition;
+        Scroll.AddWheel(Input.mouseScrollDelta.y, (int)(wheelMouse.x / (float)mGraphics.zoomLevel), (int)(((float)Screen.height - wheelMouse.y) / (float)mGraphics.zoomLevel));
+    }
+
+    // Typing into the chat box / terminal. Input.inputString holds this frame's characters exactly as the OS
+    // produced them, including char 8 for Backspace in order, which is how Unikey writes a mark (Backspace + the
+    // marked letter). IME composition is enabled while the box is open for IME-style Vietnamese keyboards.
+    private void UpdateChatText()
+    {
+        bool open = ChatTextField.IsShowing;
+        IMECompositionMode ime = open ? IMECompositionMode.On : IMECompositionMode.Auto;
+        if (Input.imeCompositionMode != ime) Input.imeCompositionMode = ime;
+        if (!open) return;
+        string typed = Input.inputString;
+        if (string.IsNullOrEmpty(typed)) return;
+        TField field = ChatTextField.gI().tfChat;
+        foreach (char c in typed)
+        {
+            if (c == (char)8) field.clear();   // Backspace
+            else if (c >= ' ' && c != (char)127) ChatTextField.gI().keyPressed(c);
+            // Line breaks (10, 13) are ignored: Enter sends through the key-code path (GameScr fires the chat command).
+        }
     }
 
     private void checkInput()
@@ -267,6 +291,19 @@ public class Main : MonoBehaviour
         if (TextCalib.Open)
         {
             return;
+        }
+        // Chat box / terminal open: text comes from Input.inputString in Update (Unicode, Vietnamese from Unikey or
+        // the Windows keyboard, Backspace in order). Here the printable keys and Backspace are only swallowed so
+        // they do not also reach the game; Enter, arrows and Esc keep the key-code path below.
+        if (ChatTextField.IsShowing && Event.current.type == EventType.KeyDown)
+        {
+            if (Event.current.keyCode == KeyCode.Backspace || Event.current.character >= ' '
+                || (Event.current.keyCode != KeyCode.None && MyKeyMap.map(Event.current.keyCode) >= 32)
+                || Event.current.keyCode == KeyCode.Space)
+            {
+                Event.current.Use();
+                return;
+            }
         }
         if (Input.anyKeyDown && Event.current.type == EventType.KeyDown)
         {

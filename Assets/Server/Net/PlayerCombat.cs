@@ -53,6 +53,7 @@ namespace NsoServer.Net
             me.SkillPoint = me.Progress.SkillPoint;
             if (me.Record.ClassId == 0 || me.Progress.Potential == null) SetClassZeroPotential(me);
             else for (int i = 0; i < 4; i++) me.Potential[i] = me.Progress.Potential[i];
+            SyncBasicSkill(me);   // saves made before the basic attack grew
             // the first attack skill the character knows (a new character: the basic attack, template 0)
             PlayerSkills.Select(me, world, -1);
             SetAbility(me, world);
@@ -62,6 +63,21 @@ namespace NsoServer.Net
 
         // Char.addExp: a character without a class gets +2/+1/+1/+1 potential per level. Starting values are 15/5/5/5,
         // so the potentials follow from the level. (Characters with a class use potential points, not ported yet.)
+        // Offline deviation (BasicSkillGrowth): without a school the basic attack gets one point per level, spent
+        // automatically. Returns true when the point changed.
+        private static bool SyncBasicSkill(PlayerState me)
+        {
+            if (me.Record.ClassId != 0) return false;
+            int want = BasicSkillGrowth.PointForLevel(me.Level);
+            foreach (var s in me.Progress.Skills)
+            {
+                if (s[0] != BasicSkillGrowth.TemplateId || s[1] == want) continue;
+                s[1] = want;
+                return true;
+            }
+            return false;
+        }
+
         private static void SetClassZeroPotential(PlayerState me)
         {
             int up = Math.Max(0, me.Level - 1);
@@ -405,7 +421,15 @@ namespace NsoServer.Net
             me.Level = world.GetLevel(me.Record.Exp);
             if (me.Level <= preLevel) return;
             int num = me.Level - preLevel;
-            if (me.Record.ClassId == 0) SetClassZeroPotential(me);
+            if (me.Record.ClassId == 0)
+            {
+                SetClassZeroPotential(me);
+                if (SyncBasicSkill(me))
+                {
+                    PlayerSkills.Select(me, world, BasicSkillGrowth.TemplateId);   // faster row for the attack
+                    PlayerService.LoadSkill(me, world);
+                }
+            }
             else
             {
                 for (int i = preLevel; i < me.Level; i++)

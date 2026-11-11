@@ -171,9 +171,6 @@ public static class NsoSettings
             () => MenuAudio.uiSounds, on => MenuAudio.uiSounds = on);
 
         Tab game = AddTab("Chơi");
-        Toggle(game, "autoReconnect", "Tự kết nối lại", "Tự vào lại game khi bị mất kết nối.",
-            () => NsoGameControl.Active != null ? NsoGameControl.Active.autoReconnect : GameScr.autoReconnect,
-            on => { if (NsoGameControl.Active != null) NsoGameControl.Active.autoReconnect = on; GameScr.autoReconnect = on; });
         Toggle(game, "runInBackground", "Chạy khi thu nhỏ", "Game vẫn chạy khi cửa sổ không được chọn.",
             () => NsoGameControl.Active != null ? NsoGameControl.Active.runInBackground : Application.runInBackground,
             on => { if (NsoGameControl.Active != null) NsoGameControl.Active.runInBackground = on; Application.runInBackground = on; });

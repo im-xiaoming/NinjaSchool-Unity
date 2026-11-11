@@ -1,5 +1,51 @@
 public class Scroll
 {
+    // ---- Offline addition: mouse wheel scrolls any up/down list under the cursor (user request 2026-11-12) ----
+
+    /// <summary>Pixels scrolled per wheel notch.</summary>
+    public static int WheelStepPx = 24;
+
+    /// <summary>A wheel movement older than this (seconds) is dropped if no list was under the cursor.</summary>
+    public static float WheelKeepSeconds = 0.25f;
+
+    private static float wheelAccum, wheelTime;
+    private static int wheelX, wheelY;
+
+    /// <summary>Called by Main.Update with Input.mouseScrollDelta.y and the cursor in game coordinates.</summary>
+    public static void AddWheel(float delta, int x, int y)
+    {
+        if (delta == 0f)
+        {
+            return;
+        }
+        wheelAccum += delta;
+        wheelX = x;
+        wheelY = y;
+        wheelTime = UnityEngine.Time.unscaledTime;
+    }
+
+    // Takes the pending wheel movement (in pixels, positive = down) when the cursor is over this list.
+    private bool TakeWheel(out int px)
+    {
+        px = 0;
+        if (wheelAccum == 0f)
+        {
+            return false;
+        }
+        if (UnityEngine.Time.unscaledTime - wheelTime > WheelKeepSeconds)
+        {
+            wheelAccum = 0f;
+            return false;
+        }
+        if (wheelX < xPos || wheelX >= xPos + width || wheelY < yPos || wheelY >= yPos + height)
+        {
+            return false;
+        }
+        px = -(int)System.Math.Round(wheelAccum * WheelStepPx);
+        wheelAccum = 0f;
+        return px != 0;
+    }
+
     private static readonly System.Collections.Generic.List<System.WeakReference> paintScrolls = new System.Collections.Generic.List<System.WeakReference>();
     private int paintX, paintY, paintWidth, paintHeight, paintItems;
     private bool havePaintState;
@@ -125,6 +171,13 @@ public class Scroll
 		int num2 = yPos;
 		int w = width;
 		int h = height;
+		int wheelPx;
+		if (!pointerIsDowning && TakeWheel(out wheelPx))
+		{
+			// mouse wheel: move the target offset; updatecm eases cmy toward it like a fling
+			cmRun = 0;
+			cmtoY = System.Math.Max(0, System.Math.Min(cmyLim, cmtoY + wheelPx));
+		}
 		if (GameCanvas.isPointerDown)
 		{
 			if (!pointerIsDowning && GameCanvas.isPointer(num, num2, w, h))

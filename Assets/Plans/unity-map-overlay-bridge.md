@@ -121,3 +121,70 @@ Không đổi UI game. Inspector chia Header: Display, Timing, Camera, Overlay, 
 - Windows build smoke test nếu tooling sẵn có. Không cần thêm UI/game assets hay packages ngoài test dependencies đã xác minh.
 
 Đợt cấu hình này chờ phê duyệt; chưa sửa code hoặc asset game trong quá trình lập kế hoạch.
+
+# Bổ sung mới: Tự cân bằng né và sát thương quái qua web local
+
+## Project Overview
+- Game Title: NSO / NinjaGame.
+- High-Level Concept: Giữ game ninja offline hiện có; thêm cấu hình chiến đấu vào web local để người dùng tự cân bằng độ khó.
+- Players: Single player, server C# nhúng in-process.
+- Inspiration / Reference Games: NSO gốc.
+- Tone / Art Direction: Giữ nguyên pixel art và giao diện web hiện có.
+- Target Platform: Windows64, Unity 6000.6.8f1, UniversalRP.
+- Screen Orientation / Resolution: Giữ cửa sổ game; web responsive theo layout hiện có.
+- Render Pipeline: UniversalRP; không sửa renderer.
+
+## Game Mechanics
+### Core Gameplay Loop
+Giữ đánh quái, nhận EXP, nhiệm vụ và hồi sinh. Chỉ thêm tham số cho quái đánh nhân vật. Không sửa EXP, thức ăn, đồ rơi hoặc dữ liệu nhân vật đã lưu. Không khẳng định né hiện tại là lỗi công thức khi chưa đối chiếu dữ liệu gốc.
+### Controls and Input Methods
+Không thay input game (Both, luồng legacy hiện tại). Người dùng chỉnh trên web local rồi nhấn Lưu & áp dụng; không cần thêm Unity Services hoặc networking multiplayer.
+
+## UI
+Mở rộng mục Điều chỉnh game bằng form Chiến đấu riêng, giữ form rơi đồ:
+```
+Chiến đấu                       Revision / trạng thái đồng bộ
+Hệ số điểm né nhân vật (%)       [100]
+Hệ số chính xác quái (%)         [100]
+Trần xác suất né (%)             [100]
+Sát thương quái thực nhận (%)    [20]
+[Khôi phục mặc định]             [Lưu & áp dụng]
+Trạng thái: cấp / HP / điểm né gốc / điểm né hiệu lực
+```
+Giải thích: 20% sát thương tương đương giảm 80% hiện tại; 100% là bỏ mức giảm này, nhưng vẫn giữ kháng và giảm sát thương trang bị. Trần né chỉ giới hạn xác suất, không phải điểm né. Mặc định giữ hành vi hiện tại. Có hướng dẫn thử giảm hệ số né hoặc trần né và tăng sát thương; không áp dụng preset tự động. Nút mặc định chỉ đổi draft, cần Lưu để có hiệu lực. Hiển thị validation, đang lưu, lỗi, revision conflict và giá trị active.
+
+## Key Asset & Context
+- Assets/Server/World/LootRules.cs: mẫu immutable snapshot, JSON version, validation và ghi file thay thế; giữ nguyên schema/rules rơi đồ.
+- Assets/Server/DevWiki/WikiControl.cs: GET /control/state và POST /control/rules; token, revision và nhật ký thay đổi. Thêm state và write route riêng cho combat, không phá client cũ.
+- Assets/Server/DevWiki/WikiServer.cs: POST allowlist hiện chỉ cho /control/rules; thêm đúng /control/combat với cùng kiểm tra token, Host, Origin, Content-Type và body size. Không mở arbitrary write route.
+- Assets/Server/Net/MobBrain.cs: Hit đang roll accuracy từ mob.Level*10+100 và dodge từ pl.Miss+100, rồi giảm 80% damage. Nối cấu hình tại đây.
+- Assets/Server/Net/PlayerCombat.cs: Miss có nền Thân pháp*1.5 và bonus trang bị/kỹ năng. Giữ raw stat, áp dụng hệ số né tại Hit để không cần tái tính toàn bộ stats hoặc gửi lại protocol chỉ số.
+- Assets/Server/World/World.cs: nơi giữ immutable CombatRules bên cạnh LootRules.
+- Assets/Server/GameServer.cs: load combat config khi startup, kể cả release không có wiki.
+- Assets/StreamingAssets/NsoWiki/app.js, app.css, index.html: web HTML/JS/CSS hiện có, không chuyển sang uGUI/UI Toolkit.
+- Tạo Assets/Server/World/CombatRules.cs và Assets/Documentation/CombatBalanceConfiguration.md; test trong framework hiện có nếu có, nếu không dùng kiểm thử cô lập phù hợp, không thêm package tự động.
+- File runtime mới: combat-rules.json dưới Config.DataDirectory. Không đổi game-rules.json hoặc save nhân vật.
+
+## Implementation Steps
+1. Audit lại dependencies bằng AssetDatabase.GetDependencies và tìm textual references vì công cụ graph có thể không có; đọc đầy đủ Hit, web form/submit, server startup và security handler trước sửa. Xác minh test framework. Dependency: không có.
+2. Tạo CombatRules immutable, version 1, các trường nguyên dodgeScalePercent 0..500 (default 100), mobAccuracyScalePercent 0..500 (100), maxDodgeChancePercent 0..100 (100), mobDamagePercent 0..500 (20). Validate thiếu/extra keys, sai kiểu và ngoài range; hỗ trợ default khi thiếu file. Ghi file an toàn; lỗi load giữ default và báo warning không xóa file. Dependency: 1.
+3. Thêm snapshot vào GameWorld và load trong GameServer.Start. Config dùng được trong release dù web chỉ chạy Editor/development build. Dependency: 2.
+4. Tách hàm tính xác suất né kiểm thử được. Dùng cùng phân phối hai roll uniform hiện tại để tính xác suất exactly < miss, áp dụng hệ số lên điểm trước offset +100; giới hạn bởi maxDodgeChancePercent, rồi roll một lần. Dùng long/double và kiểm tra overflow; không roll riêng cap làm sai xác suất mục tiêu. Default phải khớp xác suất công thức cũ (không yêu cầu cùng chuỗi RNG). Áp mobDamagePercent sau kháng/giảm damage tại vị trí mức giảm 80% cũ; bảo toàn rounding 20% tương đương ceil(damage/5), miss không gây damage, 0% cho phép không mất HP, giá trị dương giữ damage tối thiểu 1 khi hit. Không đổi damage hiển thị/protocol trong phạm vi này, ghi rõ web là sát thương HP thực nhận. Dependency: 2–3.
+5. Thêm GET /control/combat trả combat, defaults, revision và persistence; POST /control/combat nhận revision + combat. Revision riêng hoặc shared được ghi rõ và test, ưu tiên riêng để không xung đột form loot. Serialize update bằng changes lock; validate trước, persist trước rồi swap dưới World.SyncRoot. Nhật ký before/after; báo applied next monster hit. Không gọi Unity API từ HTTP thread, không sửa player records. Thêm raw/effective dodge vào runtime status phục vụ cân bằng. Dependency: 2–4.
+6. Mở allowlist đúng combat route trong WikiServer, giữ tất cả security checks hiện tại. Dependency: 5.
+7. Mở rộng trang settings của app.js với form chiến đấu riêng, fetch/save/default và xử lý lỗi; giữ loot form và dirty draft khi polling. Theo style app.css, chỉ sửa index.html nếu cần cấu trúc thực sự. Dependency: 5–6.
+8. Tài liệu phạm vi từng field, mặc định, ví dụ tăng độ khó, đường dẫn file, hiệu lực runtime, web chỉ local/dev và thao tác rollback. Dependency: 4–7.
+9. Compile và chạy tests dưới đây; không sửa scene/prefab, đồ họa, input hoặc các đợt overlay cũ trong plan này. Dependency: 1–8.
+
+## Verification & Testing
+- Default né đối chiếu công thức xác suất hai uniform với nhiều cặp level/Miss, bao gồm 0, cao, âm đã chuẩn hóa và giới hạn số nguyên. Monte Carlo kiểm tra trong tolerance thống kê; maxDodgeChancePercent không bị vượt.
+- Hệ số né 0/50/100/500 và chính xác 0/100/500 ảnh hưởng đúng chiều; cap 0/40/100; không overflow hoặc Random.Next bound lỗi.
+- Damage: default20 với 1/4/5/6/100 phải khớp logic cũ; 0/100/500, miss và kháng cao không heal nhân vật; đồ kháng vẫn có tác dụng.
+- JSON round-trip, thiếu file, malformed/version/type/range/extra keys; lỗi ghi file không thay live snapshot. Không thay game-rules.json hoặc nhân vật.
+- HTTP: GET state/default, POST hợp lệ, 400 invalid, 403 thiếu token/Origin sai, 409 stale revision, 500 persist failure; loot endpoint vẫn hoạt động, không mở write route khác.
+- Hai tab, reset draft, save/reload web và restart game giữ đúng combat settings; update áp dụng cho lần hit tiếp theo mà không tạo stale stats.
+- Kiểm thử runtime quái đánh nhân vật, HP mất và tử vong, với/không thức ăn để phân biệt hồi HP và né. Ghi rõ test nào chưa chạy; không tuyên bố fix hoàn tất chỉ vì compile.
+- Giữ các sửa lỗi EXP khi chết và lưu thức ăn hiện có; regression thoát/vào, chết/hồi sinh.
+
+## Phạm vi duyệt lần này
+Chỉ triển khai phần bổ sung combat web này; các bước overlay/Inspector trước đó là bối cảnh lịch sử, không tự thực hiện lại. Không tự hạ stat người chơi, không tự đổi default cân bằng, không thêm backend cloud/packages.

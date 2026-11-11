@@ -97,8 +97,6 @@ namespace Functions.Auto
             }
             else
             {
-                //Actions.isThuLinh = false;
-                //Actions.isTinhAnh = false;
                 Default();
                 Start();
             }

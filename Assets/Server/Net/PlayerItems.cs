@@ -119,6 +119,14 @@ namespace NsoServer.Net
             me.Progress.PotentialPoint = me.PotentialPoint;
             me.Progress.SkillPoint = me.SkillPoint;
             if (me.Record.ClassId > 0) me.Progress.Potential = (int[])me.Potential.Clone();
+            me.Progress.FoodEffect = null;
+            long now = Now();
+            foreach (var effect in me.Effects)
+            {
+                if (effect.Type != 0 || effect.IsExpired(now)) continue;
+                me.Progress.FoodEffect = new[] { (long)effect.TemplateId, (long)effect.Param, effect.StartAt, effect.EndAt };
+                break;
+            }
             me.Record.Data = PlayerProgress.ToJson(me.Inventory, me.Progress);
         }
 
@@ -258,6 +266,54 @@ namespace NsoServer.Net
         // ---------------------------------------------------------------- shops (cmd 13, sub -103, cmd 42)
 
         // Char.requestItem: the client asks for the content of a shop window
+        // Char.bagSort (Java): merge stackable, non-expiring items with the same template and lock state,
+        // then pack every item to the front of the bag. The client runs the same Char.bagSort when it
+        // receives BAG_SORT (-107), so both sides end with the same layout. No trade exists offline,
+        // so Java's "warningTrade" check is not needed.
+        public const sbyte BagSortSub = -107; // CMD.BAG_SORT
+        public static void BagSort(PlayerState me, GameWorld world)
+        {
+            var bag = me.Inventory.Bag;
+            var items = new List<PlayerItem>();
+            foreach (var it in bag)
+            {
+                if (it == null) continue;
+                var t = world.FindItem(it.Id);
+                if (t != null && t.IsUpToUp && !(it.Expire > 0)) items.Add(it);
+            }
+            for (int i = 0; i < items.Count; i++)
+            {
+                var a = items[i];
+                if (a == null) continue;
+                for (int j = i + 1; j < items.Count; j++)
+                {
+                    var b = items[j];
+                    if (b != null && b.Id == a.Id && b.IsLock == a.IsLock)
+                    {
+                        a.Quantity += b.Quantity;
+                        bag[b.Index] = null;
+                        items[j] = null;
+                    }
+                }
+            }
+            for (int i = 0; i < bag.Length; i++)
+            {
+                if (bag[i] == null) continue;
+                for (int j = 0; j <= i; j++)
+                {
+                    if (bag[j] == null)
+                    {
+                        bag[j] = bag[i];
+                        bag[j].Index = j;
+                        bag[i] = null;
+                        break;
+                    }
+                }
+            }
+            Save(me);
+            me.Session.Send(PlayerService.Sub(BagSortSub));
+        }
+
         public static void RequestShop(Message m, PlayerState me, GameWorld world)
         {
             int type = m.Reader.ReadSByte();

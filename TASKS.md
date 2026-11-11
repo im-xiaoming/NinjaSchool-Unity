@@ -119,3 +119,9 @@ Older completed tasks (online removal, title menu, fonts, mob art, performance p
 - [x] Play checks: 94 world/camera/scroll, 17 effect, 18 release, 8 skill-hit checks. Sample actual 60/120 paints per second, 24 logic ticks per second; inspect world/bag screenshots and Console.
 - [ ] User visual confirmation on physical display/input; representative combat/map and frame-time percentile profiling; Windows build.
 - [ ] A universal 60-FPS/60-unique-pose claim is NOT established. Original sprite pose sets remain finite; original paint-owned pose/effect counters (including Char.paintCharWithSkill) retain existing behavior. New artwork or a gameplay-sensitive timeline redesign needs a separate scoped decision/validation.
+
+## 2026-11-12
+- [~] **Double-click = Enter** on world targets (monster, NPC, player, ground item). `GameScr.onTargetClicked`, config `NsoGameControl._doubleClickMs`. Unity compile clean; `Tools/verify_double_click.cs` 6/6 in Play. Hand test by the user pending.
+- [~] **Gamepad (PS5) input**, Elden Ring layout: `Assets/Scripts/Input/NsoGamepadInput.cs`. Sends the same key codes as the keyboard. Unity compile clean; hand test by the user pending.
+- [x] Buy-quantity dialog: keyboard typing works, Left/Right choose the 3 buttons, Up/Down step the number (shared Dialog base). Needs user test.
+- [x] Removed auto panel extras after 'Không nhặt gì cả' and their code (user request). Needs user test.

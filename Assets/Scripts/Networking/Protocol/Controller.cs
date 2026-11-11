@@ -39,29 +39,15 @@ public class Controller : IMessageHandler
     public void onConnectionFail()
     {
         Debug.LogError("Kết nối thất bại");
-
-        if (GameScr.autoReconnect)
-        {
-            Session_ME.gI().autoReconnect();
-        }
-        else
-        {
-            GameCanvas.isConnectFail = true;
-        }
+        // Offline change (user request): auto reconnect removed from the game.
+        GameCanvas.isConnectFail = true;
     }
 
     public void onDisconnected()
     {
         Debug.LogError("Mất kết nối");
-
-        if (GameScr.autoReconnect)
-        {
-            Session_ME.gI().autoReconnect();
-        }
-        else
-        {
-            GameCanvas.gI().resetToLoginScr();
-        }
+        // Offline change (user request): auto reconnect removed from the game.
+        GameCanvas.gI().resetToLoginScr();
 
     }
 
@@ -430,7 +416,14 @@ public class Controller : IMessageHandler
                     break;
                 case -24:
                     GameCanvas.debug("SA3", 2);
-                    InfoMe.addInfo(msg.reader().readUTF(), 50, mFont.tahoma_7_yellow);
+                    {
+                        // Offline: replies from the dev terminal (ReplyMarker prefix) go to the terminal window.
+                        string serverText = msg.reader().readUTF();
+                        if (!NsoTerminal.TryAddReply(serverText))
+                        {
+                            InfoMe.addInfo(serverText, 50, mFont.tahoma_7_yellow);
+                        }
+                    }
                     break;
                 case -25:
                     {
@@ -3293,6 +3286,43 @@ public class Controller : IMessageHandler
                     Skills.add(GameScr.nClasss[j].skillTemplates[k].skills[l]);
                 }
             }
+        }
+        AddBasicSkillGrowth();
+    }
+
+    // Offline deviation: extra rows (points 1..MaxPoint) for the basic attack, see BasicSkillGrowth.
+    private static void AddBasicSkillGrowth()
+    {
+        if (GameScr.nClasss == null || GameScr.nClasss.Length == 0)
+        {
+            return;
+        }
+        foreach (SkillTemplate tpl in GameScr.nClasss[0].skillTemplates)
+        {
+            if (tpl.id != BasicSkillGrowth.TemplateId || tpl.skills == null || tpl.skills.Length != 1)
+            {
+                continue;   // not the basic attack, or the rows were already added
+            }
+            Skill b = tpl.skills[0];
+            Skill[] all = new Skill[BasicSkillGrowth.MaxPoint + 1];
+            all[0] = b;
+            for (int p = 1; p <= BasicSkillGrowth.MaxPoint; p++)
+            {
+                Skill s = new Skill();
+                s.skillId = BasicSkillGrowth.SkillId(b.skillId, p);
+                s.template = tpl;
+                s.point = p;
+                s.level = b.level;
+                s.manaUse = b.manaUse;
+                s.coolDown = BasicSkillGrowth.Cooldown(b.coolDown, p);
+                s.dx = b.dx;
+                s.dy = b.dy;
+                s.maxFight = b.maxFight;
+                s.options = b.options;
+                all[p] = s;
+                Skills.add(s);
+            }
+            tpl.skills = all;
         }
     }
 

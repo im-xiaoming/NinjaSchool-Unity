@@ -671,7 +671,13 @@ public class mGraphics
 			}
 		}
 		Rect destination = new Rect((float)x + num3 + num14 + (float)num16, (float)y + num4 + (float)num17 + num15, num * num7, num2 * (float)num9);
-		Rect source = new Rect((x0 + num3 + num8) / (float)image.texture.width, ((float)image.texture.height - num2 - (y0 + num4)) / (float)image.texture.height, num / (float)image.texture.width, num2 / (float)image.texture.height);
+		// A mirrored destination must crop the opposite source edge. Otherwise glyph pixels
+		// are replaced at the viewport boundary instead of moving with the scrolled line.
+		float sourceOffsetX = num3 + num8;
+		float sourceOffsetY = num4;
+		if (transform == 2 || transform == 3) sourceOffsetX = w - num3 - num;
+		if (transform == 1 || transform == 3) sourceOffsetY = h - num4 - num2;
+		Rect source = new Rect((x0 + sourceOffsetX) / (float)image.texture.width, ((float)image.texture.height - num2 - (y0 + sourceOffsetY)) / (float)image.texture.height, num / (float)image.texture.width, num2 / (float)image.texture.height);
 		if (material == null)
 		{
 			Graphics.DrawTexture(destination, image.texture, source, 0, 0, 0, 0);
@@ -701,11 +707,46 @@ public class mGraphics
 			x += translateX;
 			y += translateY;
 		}
+		// Match bitmap pixel placement in final screen space. Fractional camera interpolation
+		// otherwise changes sampling of rotated glyphs while a speech popup moves.
+		x = Mathf.Round(x + GUI.matrix.m03) - GUI.matrix.m03;
+		y = Mathf.Round(y + GUI.matrix.m13) - GUI.matrix.m13;
+		// Clip the upright glyph first; atlas coordinates run in the rotated direction.
+		if (isClip)
+		{
+			float viewportX = clipX + clipTX;
+			float viewportY = clipY + clipTY;
+			Rect upright = new Rect(x, y, h, w);
+			Rect visible = intersectRect(upright, new Rect(viewportX, viewportY, clipW, clipH));
+			if (visible.width <= 0f || visible.height <= 0f) return;
+			float left = visible.x - x;
+			float top = visible.y - y;
+			x0 += w - top - visible.height;
+			y0 += left;
+			x = visible.x;
+			y = visible.y;
+			Vector2 clippedCenter = new Vector2(x + visible.width / 2f, y + visible.height / 2f);
+			Rect clippedDestination = new Rect(clippedCenter.x - visible.height / 2f, clippedCenter.y - visible.width / 2f, visible.height, visible.width);
+			Rect clippedSource = new Rect(x0 / image.texture.width, (image.texture.height - visible.width - y0) / image.texture.height, visible.height / image.texture.width, visible.width / image.texture.height);
+			Matrix4x4 previousMatrix = GUI.matrix;
+			try
+			{
+				GUI.matrix = previousMatrix * Matrix4x4.Translate(new Vector3(clippedCenter.x, clippedCenter.y, 0f))
+					* Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, -90f))
+					* Matrix4x4.Translate(new Vector3(-clippedCenter.x, -clippedCenter.y, 0f));
+				if (material == null) Graphics.DrawTexture(clippedDestination, image.texture, clippedSource, 0, 0, 0, 0, color);
+				else Graphics.DrawTexture(clippedDestination, image.texture, clippedSource, 0, 0, 0, 0, color, material);
+			}
+			finally { GUI.matrix = previousMatrix; }
+			return;
+		}
 		Vector2 center = new Vector2(x + h / 2f, y + w / 2f);
 		Rect destination = new Rect(center.x - w / 2f, center.y - h / 2f, w, h);
 		Rect source = new Rect(x0 / image.texture.width, (image.texture.height - h - y0) / image.texture.height, (float)w / image.texture.width, (float)h / image.texture.height);
 		matrixBackup = GUI.matrix;
-		GUIUtility.RotateAroundPivot(-90f, center);
+		GUI.matrix = matrixBackup * Matrix4x4.Translate(new Vector3(center.x, center.y, 0f))
+			* Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, -90f))
+			* Matrix4x4.Translate(new Vector3(-center.x, -center.y, 0f));
 		if (material == null)
 		{
 			Graphics.DrawTexture(destination, image.texture, source, 0, 0, 0, 0, color);

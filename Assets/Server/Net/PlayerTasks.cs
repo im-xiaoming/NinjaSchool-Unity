@@ -355,6 +355,23 @@ namespace NsoServer.Net
             else PlayerItems.Save(me);
         }
 
+        // Offline deviation (dev terminal /skip): completes the current quest at once. Takes it if not taken yet,
+        // jumps to the last step and runs FinishTask (normal rewards, next quest). Returns a reply for the terminal.
+        public static string SkipTask(PlayerState me, GameWorld world)
+        {
+            var t = world.FindTask(me.Record.TaskId);
+            if (t == null) return "Không còn nhiệm vụ nào.";
+            if (!me.Progress.TaskActive) TakingTask(me, world);
+            if (!me.Progress.TaskActive) return "Không nhận được nhiệm vụ '" + t.Name + "'.";
+            me.Progress.TaskIndex = Math.Max(0, t.SubNames.Length - 1);
+            me.Progress.TaskCount = 0;
+            PlayerService.SendTaskInfo(me, t);
+            int before = me.Record.TaskId;
+            FinishTask(me, world);
+            if (me.Record.TaskId == before) return "Chưa hoàn thành được (hành trang đầy?).";
+            return "Đã hoàn thành nhiệm vụ '" + t.Name + "'.";
+        }
+
         // Char.finishTask + updateTask
         private static void FinishTask(PlayerState me, GameWorld world)
         {

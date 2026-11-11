@@ -187,12 +187,13 @@ public class SelectServerScr : mScreen, IActionListener
 
     public override void updateKey()
     {
-        if (GameCanvas.keyPressedz[2] || GameCanvas.keyPressedz[21])
+        // Offline addition (user request): Up ([24], arrow/gamepad) = previous row, Down ([25]) = next row.
+        if (GameCanvas.keyPressedz[2] || GameCanvas.keyPressedz[21] || GameCanvas.keyPressedz[24])
         {
             menuSelection = (menuSelection + MainMenuRows - 1) % MainMenuRows;
             MenuAudio.Tick();   // selection moved
         }
-        else if (GameCanvas.keyPressedz[8] || GameCanvas.keyPressedz[22])
+        else if (GameCanvas.keyPressedz[8] || GameCanvas.keyPressedz[22] || GameCanvas.keyPressedz[25])
         {
             menuSelection = (menuSelection + 1) % MainMenuRows;
             MenuAudio.Tick();

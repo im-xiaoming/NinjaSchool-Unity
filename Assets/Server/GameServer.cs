@@ -42,6 +42,8 @@ namespace NsoServer
             {
                 try { World.LootRules = NsoServer.World.LootRules.Load(RulesPath); }
                 catch (Exception ex) { Log("rules load error (defaults retained): " + ex.Message); }
+                try { World.CombatRules = NsoServer.World.CombatRules.Load(Path.Combine(Config.DataDirectory, "combat-rules.json")); }
+                catch (Exception ex) { Log("combat rules load error (defaults retained): " + ex.Message); }
             }
             running = true;
             new Thread(TickLoop) { IsBackground = true, Name = "nso-tick" }.Start();

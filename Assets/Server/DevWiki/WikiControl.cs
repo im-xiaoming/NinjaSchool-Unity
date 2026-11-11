@@ -21,6 +21,41 @@ namespace NsoServer.DevWiki
         private int revision;
         public readonly string Token = Guid.NewGuid().ToString("N");
 
+        private int combatRevision;
+        private KeyValuePair<int, string> Combat(string method, string body)
+        {
+            if (method == "GET")
+            {
+                lock (server.World.SyncRoot)
+                    return Reply(200, Obj("revision", combatRevision, "combat", server.World.CombatRules.ToObject(),
+                        "defaults", new CombatRules().ToObject(), "persistence", "combat-rules.json"));
+            }
+            Dictionary<string, object> root;
+            try { root = Json.Parse(body) as Dictionary<string, object>; }
+            catch (Exception) { return Reply(400, Obj("error", "Invalid JSON.")); }
+            if (root == null || root.Count != 2 || !root.ContainsKey("combat"))
+                return Reply(400, Obj("error", "Expected revision and combat."));
+            int expected = LootRules.Number(root, "revision");
+            var next = CombatRules.FromObject(root["combat"] as Dictionary<string, object>);
+            lock (changes)
+            {
+                lock (server.World.SyncRoot)
+                    if (expected != combatRevision) return Reply(409, Obj("error", "Combat settings changed in another tab. Reload before saving.", "revision", combatRevision));
+                try { next.Save(System.IO.Path.Combine(server.Config.DataDirectory, "combat-rules.json")); }
+                catch (Exception) { return Reply(500, Obj("error", "Cannot save combat-rules.json; active settings were not changed.")); }
+                lock (server.World.SyncRoot)
+                {
+                    var previous = server.World.CombatRules;
+                    server.World.CombatRules = next;
+                    combatRevision++;
+                    events.Insert(0, Obj("time", DateTime.UtcNow.ToString("o"), "type", "combat", "revision", combatRevision,
+                        "before", previous.ToObject(), "after", next.ToObject()));
+                    if (events.Count > 100) events.RemoveAt(events.Count - 1);
+                    return Reply(200, Obj("revision", combatRevision, "combat", next.ToObject(), "saved", true, "applied", "next monster hit"));
+                }
+            }
+        }
+
         public WikiControl(GameServer server) { this.server = server; }
 
         public KeyValuePair<int, string> Handle(string method, string path, string query, string body)
@@ -28,6 +63,7 @@ namespace NsoServer.DevWiki
             try
             {
                 if (server.World == null) return Reply(503, Obj("error", "World data is not loaded."));
+                if (path == "/control/combat" && (method == "GET" || method == "POST")) return Combat(method, body);
                 if (path == "/control/state" && method == "GET")
                 {
                     lock (server.World.SyncRoot)
@@ -98,6 +134,7 @@ namespace NsoServer.DevWiki
                                 "name", tpl == null ? null : tpl.Name, "quantity", item.Quantity)); }
                     players.Add(Obj("id", p.Record.Id, "name", p.Record.Name, "level", p.Level, "classId", p.Record.ClassId,
                         "hp", p.Hp, "maxHp", p.MaxHp, "mp", p.Mp, "maxMp", p.MaxMp, "mapId", p.MapId,
+                        "rawDodge", p.Miss, "effectiveDodge", server.World.CombatRules.EffectiveDodge(p.Miss), "combatRevision", combatRevision,
                         "mapName", zone.Tile.Name, "zone", zone.Id, "x", p.X, "y", p.Y, "dead", p.IsDead,
                         "questId", p.Record.TaskId, "questName", task == null ? null : task.Name,
                         "questActive", p.Progress != null && p.Progress.TaskActive, "stepIndex", index, "stepName", step,

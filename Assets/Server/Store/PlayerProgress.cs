@@ -20,6 +20,8 @@ namespace NsoServer.Store
         public int PotentialPoint, SkillPoint;
         // Char.saveCoordinate: village to go back to when killed (Lang Tone by default)
         public int SaveMap = 22;
+        // Food: template id, strength, start and expiry UTC milliseconds.
+        public long[] FoodEffect;
 
         public static PlayerProgress Load(string json)
         {
@@ -53,6 +55,12 @@ namespace NsoServer.Store
             }
             p.PotentialPoint = (int)Long(root, "potentialPoint", 0);
             p.SkillPoint = (int)Long(root, "skillPoint", 0);
+            if (root.TryGetValue("foodEffect", out raw) && raw is List<object>)
+            {
+                var food = (List<object>)raw;
+                if (food.Count == 4)
+                    p.FoodEffect = new[] { Json.Long(food[0]), Json.Long(food[1]), Json.Long(food[2]), Json.Long(food[3]) };
+            }
             return p;
         }
 
@@ -77,6 +85,16 @@ namespace NsoServer.Store
                  .Append(p.Potential[2]).Append(',').Append(p.Potential[3]).Append(']');
             b.Append(",\"potentialPoint\":").Append(p.PotentialPoint);
             b.Append(",\"skillPoint\":").Append(p.SkillPoint);
+            if (p.FoodEffect != null && p.FoodEffect.Length == 4)
+            {
+                b.Append(",\"foodEffect\":[");
+                for (int i = 0; i < 4; i++)
+                {
+                    if (i > 0) b.Append(',');
+                    b.Append(p.FoodEffect[i].ToString(CultureInfo.InvariantCulture));
+                }
+                b.Append(']');
+            }
             return b.Append('}').ToString();
         }
 

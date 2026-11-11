@@ -98,7 +98,8 @@
     { "id": "s2c:-30/-122,-121", "dir": "server→client", "cmd": -30, "name": "ME_HP / ME_MP (sub -122 / -121), -111 loadHP", "handler": "PlayerService.UpdateHp/UpdateMp/LoadHp", "status": "done" },
     { "id": "s2c:-30/-101,-99", "dir": "server→client", "cmd": -30, "name": "Hiệu ứng nhân vật thêm / xoá (sub -101 / -99)", "handler": "PlayerService.AddEffect/RemoveEffect", "status": "done" },
     { "id": "s2c:-30/-126,-125", "dir": "server→client", "cmd": -30, "name": "ME_LOAD_CLASS / ME_LOAD_SKILL", "handler": "PlayerService.LoadClass/LoadSkill", "status": "done" },
-    { "id": "s2c:-8,95", "dir": "server→client", "cmd": -8, "name": "Nhận yên (-8) / xu (95)", "handler": "PlayerItems.AddYen/AddXu", "status": "done" }
+    { "id": "s2c:-8,95", "dir": "server→client", "cmd": -8, "name": "Nhận yên (-8) / xu (95)", "handler": "PlayerItems.AddYen/AddXu", "status": "done" },
+    { "id": "c2s:-23", "dir": "client→server", "cmd": -23, "name": "CHAT_MAP → dev terminal", "handler": "DevTerminal.Run", "status": "done" }
   ],
 
   "config": [
@@ -127,7 +128,11 @@
     { "id": "skip-steps", "title": "Bỏ qua bước nhiệm vụ chưa port", "why": "Hang động, hộ tống Jaian, câu cá, xách nước, hằng ngày, bạn bè, nâng cấp, chiến trường chưa có.", "how": "Menu 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ." },
     { "id": "generic-talk", "title": "Bước 'nói chuyện' ở NPC chưa port menu", "why": "Để chuỗi nhiệm vụ không bị kẹt.", "how": "Mục menu tên theo bước, bấm là qua bước." },
     { "id": "no-luong", "title": "Không có lượng", "why": "Bản offline không nạp tiền.", "how": "" },
-    { "id": "auto-login", "title": "Tự đăng nhập 1 tài khoản cục bộ", "why": "Offline.", "how": "2 test đăng nhập sai mật khẩu / tên sai luôn fail (dự kiến)." }
+    { "id": "auto-login", "title": "Tự đăng nhập 1 tài khoản cục bộ", "why": "Offline.", "how": "2 test đăng nhập sai mật khẩu / tên sai luôn fail (dự kiến)." },
+    { "id": "menu-removed-entries", "title": "Menu không còn Thủ khố, Tự sát, Khu vực", "why": "User decision (permanent, 2026-11-12).", "how": "GameScr.actMenu no longer adds them; perform cases 110022-110024 are kept." },
+    { "id": "auto-extras-removed", "title": "Bỏ các tùy chọn tự động phụ và tự kết nối lại", "why": "User decision (permanent, 2026-11-12).", "how": "Auto panel shows only the 8 original rows; reMap, ChuyenMapHetBoss, isDieMP, isTinhAnh, isThuLinh and autoReconnect were deleted, defaults kept as fixed behaviour." },
+    { "id": "basic-skill-growth", "title": "Chiêu cơ bản tự tăng cấp khi chưa vào trường", "why": "User request (2026-11-12); the data has one row for skill template 0.", "how": "Class 0 gets one automatic point of skill template 0 per level (max BasicSkillGrowth.MaxPoint = 9), each point -CooldownStepMs (20) cooldown. Rows ids 30001..30009 are generated on client (Controller.AddBasicSkillGrowth) and server (GameWorld.AddBasicSkillGrowth); PlayerCombat.SyncBasicSkill applies it on enter and level-up." },
+    { "id": "chat-dev-terminal", "title": "Khung chat là terminal lệnh dev", "why": "User request (2026-11-12).", "how": "The original chat icon opens ChatTextField; The terminal is the original message window (alert popup, message-style title) with the chat input line under it. /command lines go as CHAT_MAP (-23) to Server/Net/DevTerminal.cs (/help, /skip = finish the current quest via PlayerTasks.SkipTask; /lv = +1 level, /tolv n = up to level n (0..150) via PlayerCombat.AddExp; /clear is client-side); lines without / are local public chat (bubble over the player) and replies with SERVER_MESSAGE (-24) prefixed by char 7, shown in the window. No public chat offline." }
   ],
 
   "issues": [

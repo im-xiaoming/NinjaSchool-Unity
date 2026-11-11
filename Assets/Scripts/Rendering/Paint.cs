@@ -133,7 +133,7 @@ public class Paint
 				}
 				else if (lenCaption < 40)
 				{
-					if (mScreen.keyTouch == 0 || g.isMouseOver(leftX, cmdY, btnW, btnH))
+					if (mScreen.keyTouch == 0 || Command.keySelected == left || g.isMouseOver(leftX, cmdY, btnW, btnH))
 					{
 						g.drawImage(GameScr.imgLbtnFocus, leftX, cmdY, 0);
 					}
@@ -145,7 +145,7 @@ public class Paint
 				}
 				else
 				{
-					if (mScreen.keyTouch == 0 || g.isMouseOver(leftX, cmdY, btnW, btnH))
+					if (mScreen.keyTouch == 0 || Command.keySelected == left || g.isMouseOver(leftX, cmdY, btnW, btnH))
 					{
 						g.drawImage(GameScr.imgLbtnFocus, leftX, cmdY, 0);
 					}
@@ -168,7 +168,7 @@ public class Paint
 				}
 				else if (lenCaption < 40)
 				{
-					if (mScreen.keyTouch == 1)
+					if (mScreen.keyTouch == 1 || Command.keySelected == center)
 					{
 						g.drawImage(GameScr.imgLbtnFocus, GameCanvas.hw - 35, cmdY, 0);
 					}
@@ -180,7 +180,7 @@ public class Paint
 				}
 				else
 				{
-					if (mScreen.keyTouch == 1)
+					if (mScreen.keyTouch == 1 || Command.keySelected == center)
 					{
 						g.drawImage(GameScr.imgLbtnFocus, GameCanvas.hw - 35, cmdY, 0);
 					}
@@ -209,7 +209,7 @@ public class Paint
 		}
 		else if (lenCaption < 40)
 		{
-			if (mScreen.keyTouch == 2 || g.isMouseOver(rightX, cmdY, btnW, btnH))
+			if (mScreen.keyTouch == 2 || Command.keySelected == right || g.isMouseOver(rightX, cmdY, btnW, btnH))
 			{
 				g.drawImage(GameScr.imgLbtnFocus, rightX, cmdY, 0);
 			}
@@ -221,7 +221,7 @@ public class Paint
 		}
 		else
 		{
-			if (mScreen.keyTouch == 2 || g.isMouseOver(rightX, cmdY, btnW, btnH))
+			if (mScreen.keyTouch == 2 || Command.keySelected == right || g.isMouseOver(rightX, cmdY, btnW, btnH))
 			{
 				g.drawImage(GameScr.imgLbtnFocus, rightX, cmdY, 0);
 			}

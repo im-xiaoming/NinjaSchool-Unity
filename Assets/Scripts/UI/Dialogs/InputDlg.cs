@@ -39,17 +39,8 @@ public class InputDlg : Dialog
 		base.paint(g);
 	}
 
-	public override void keyPress(int keyCode)
-	{
-		tfInput.keyPressed(keyCode);
-		base.keyPress(keyCode);
-	}
-
-	public override void update()
-	{
-		tfInput.update();
-		base.update();
-	}
+	// Key routing, field update/focus, number stepping and button navigation live in Dialog.
+	protected override TField FocusedField { get { return tfInput; } }
 
 	public override void show()
 	{

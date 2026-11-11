@@ -558,7 +558,7 @@ public class TField : IActionListener
 
 	public void paint(mGraphics g)
 	{
-		if (GameCanvas.currentScreen != CreateCharScr.gI())
+		if (!(GameCanvas.currentScreen is CreateCharScr))
 		{
 			g.setClip(0, 0, GameCanvas.w, GameCanvas.h);
 			bool flag = isFocused();
@@ -626,7 +626,7 @@ public class TField : IActionListener
 
 	public void paint_NonSetClip(mGraphics g)
 	{
-		if (GameCanvas.currentScreen != CreateCharScr.gI())
+		if (!(GameCanvas.currentScreen is CreateCharScr))
 		{
 			bool flag = isFocused();
 			if (inputType == INPUT_TYPE_PASSWORD)
@@ -738,7 +738,9 @@ public class TField : IActionListener
 				timeDelayKyCode = 0;
 			}
 		}
-		if (kb != null && currentTField == this)
+		// Offline fix: only sync from the on-screen keyboard where one exists. On PC the stub keyboard
+		// (opened by clicking the field) kept resetting the text each frame, so typing seemed disabled.
+		if (kb != null && currentTField == this && UnityEngine.TouchScreenKeyboard.isSupported)
 		{
 			if (kb.text.Length < 40)
 			{

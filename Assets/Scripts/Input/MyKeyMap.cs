@@ -58,6 +58,8 @@ public class MyKeyMap
 		h.Add(KeyCode.Return, -5);
 		h.Add(KeyCode.Tab, -26);
 		h.Add(KeyCode.Period, 46);
+		h.Add(KeyCode.Slash, 47);         // '/' for terminal commands (GameCanvas passes it as text only while the chat box is open)
+		h.Add(KeyCode.KeypadDivide, 47);
 		h.Add(KeyCode.At, 64);
 	}
 

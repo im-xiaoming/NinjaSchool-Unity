@@ -218,10 +218,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5084001678455757970, guid: b1a7f08616c8c834d98a2640fb0dc0f9, type: 3}
-      propertyPath: uiZoom
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 8040215484687170536, guid: b1a7f08616c8c834d98a2640fb0dc0f9, type: 3}
       propertyPath: m_Name
       value: NSO Game

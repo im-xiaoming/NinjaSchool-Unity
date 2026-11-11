@@ -11,6 +11,7 @@ The game server from the original Java source (`C:\NSO_OFFLINE\reference\server_
 | Walking, map/zone change, death, revive (back to the saved village) | `Net/PlayerActions.cs` | `Zone.move`, `Char.changeMap/startDie/returnTownFromDead` |
 | Monsters notice and attack the player | `Net/MobBrain.cs` | `Mob.update`, `Mob.attack` |
 | Player attacks monsters, damage, critical, miss, death, respawn, exp, level up | `Net/PlayerCombat.cs` | `Char.attackMonster`, `Char.addExp`, `Mob.die/recovery` |
+| **Bag sort** (BAG_SORT -107): merge stackable items, pack to the front | `Net/PlayerItems.cs` (`BagSort`) | `Char.bagSort` |
 | **Skills**: learn from books, raise skill points, raise potential, select skill, passive skill bonuses | `Net/PlayerSkills.cs` | `Char.learnSkill/upSkill/upPotential/selectSkill` |
 | **Skill effects on monsters**: burn, freeze, stun, bind, disable, Kakyuu (sushi) | `PlayerCombat.Hit`, `PlayerEffects.AddMobEffect` | `Char.attackMonster(ArrayList)`, `Mob.update` |
 | **Items**: bag, use (HP/MP potions, food), equip / unequip, item details | `Net/PlayerItems.cs` | `Char.useItem/useEquipment/itemBodyToBag/requestItemInfo` |
@@ -108,3 +109,14 @@ Gates now use immutable GameWorld.LootRules, saved in server save-folder game-ru
 
 ## Recovery default corrected (2026-11-11)
 NaturalRegenPercent defaults to 0 per user correction. Source-free HP/MP gain is disabled; Java Char.updateEveryHalfSecond/updateEveryFiveSecond food/potion/equipment recovery remains. NaturalRegenMs=5000 still governs the equipment five-second cadence. regencheck 9/9, questcheck 16/16, progresscheck 12/12; Unity compile/Console clean. This supersedes the earlier agent-added 2% natural-recovery default.
+
+## Dev terminal (2026-11-12)
+| Client | Server | Status |
+|---|---|---|
+| CHAT_MAP (-23) from the chat box | `DevTerminal.Run` (offline deviation: commands, not chat) | done |
+
+- Dev terminal `/skip`: `PlayerTasks.SkipTask` finishes the current quest (offline deviation, no Java equivalent).
+
+- Dev terminal `/lv`, `/tolv n`: `DevTerminal.LevelTo` adds the missing experience via `PlayerCombat.AddExp` (offline deviation).
+
+- Basic attack growth (class 0): `GameWorld.AddBasicSkillGrowth` adds skill rows, `PlayerCombat.SyncBasicSkill` sets the point from the level (offline deviation, see `BasicSkillGrowth`).

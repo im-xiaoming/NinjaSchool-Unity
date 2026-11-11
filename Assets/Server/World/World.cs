@@ -159,6 +159,7 @@ namespace NsoServer.World
     public sealed partial class GameWorld
     {
         public LootRules LootRules = new LootRules(); // immutable snapshot, replaced under SyncRoot
+        public CombatRules CombatRules = new CombatRules(); // replaced under SyncRoot
         private const int MobHopBiAn = 225, MobJuubiShinjuu = 237;
         private const int MaxMobsPerZone = 127;
         private const int MaxZonesPerMap = 5;
@@ -228,6 +229,17 @@ namespace NsoServer.World
             return 1;
         }
 
+        // Total experience at which a level starts (inverse of GetLevel). Used by the dev terminal /lv and /tolv.
+        public long ExpForLevel(int level)
+        {
+            long sum = 0;
+            for (int i = 0; i < level && i < exps.Length; i++) sum += exps[i];
+            return sum;
+        }
+
+        // Highest level GetLevel can return (experience is capped at ExpMax).
+        public int MaxLevel { get { return GetLevel(ExpMax); } }
+
         private void LoadSkills(SqlTable t)
         {
             int id = t.Col("id"), tpl = t.Col("template_id"), maxFight = t.Col("max_fight"), level = t.Col("level"),
@@ -251,6 +263,25 @@ namespace NsoServer.World
                 }
                 s.OptionIds = ids.ToArray(); s.OptionParams = pars.ToArray();
                 skills.Add(s);
+            }
+            AddBasicSkillGrowth();
+        }
+
+        // Offline deviation: rows for points 1..MaxPoint of the basic attack (same ids/cooldowns as the client, see
+        // BasicSkillGrowth). The template keeps max_point 0, so the points cannot be raised by hand.
+        private void AddBasicSkillGrowth()
+        {
+            var b = FindSkill(BasicSkillGrowth.TemplateId, 0);
+            if (b == null) return;
+            for (int p = 1; p <= BasicSkillGrowth.MaxPoint; p++)
+            {
+                if (FindSkill(BasicSkillGrowth.TemplateId, p) != null) continue;
+                skills.Add(new SkillData
+                {
+                    Id = BasicSkillGrowth.SkillId(b.Id, p), TemplateId = b.TemplateId, MaxFight = b.MaxFight, Level = b.Level,
+                    ManaUse = b.ManaUse, CoolDown = BasicSkillGrowth.Cooldown(b.CoolDown, p), Point = p, Dx = b.Dx, Dy = b.Dy,
+                    OptionIds = b.OptionIds, OptionParams = b.OptionParams
+                });
             }
         }
 

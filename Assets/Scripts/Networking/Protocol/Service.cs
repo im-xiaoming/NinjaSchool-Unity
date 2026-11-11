@@ -869,6 +869,29 @@ public class Service
         }
     }
 
+    // CHAT_MAP (-23): offline the text is a dev terminal command, run by the server (Server/Net/DevTerminal.cs).
+    public void chat(string text)
+    {
+        Message message = null;
+        try
+        {
+            message = new Message((sbyte)(-23));
+            message.writer().writeUTF(text);
+            session.sendMessage(message);
+        }
+        catch (Exception ex)
+        {
+            Out.println(ex.Message + ex.StackTrace);
+        }
+        finally
+        {
+            if (message != null)
+            {
+                message.cleanup();
+            }
+        }
+    }
+
     public void bagSort()
     {
         Handle.bagshort = true;

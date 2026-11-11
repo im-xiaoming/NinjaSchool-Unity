@@ -73,6 +73,7 @@ namespace NsoServer.Net
                     case 15: if (actions != null) PlayerItems.ItemBodyToBag(m, actions.State, session.Server.World); break;  // ITEM_BODY_TO_BAG
                     case 42: if (actions != null) PlayerItems.RequestItemInfo(m, actions.State, session.Server.World); break; // REQUEST_ITEM_INFO
                     case -14: if (actions != null) PlayerItems.PickItem(m, actions.State, session.Server.World); break;      // ITEMMAP_MYPICK
+                    case -23: if (actions != null) DevTerminal.Run(m, actions, session.Server.World); break; // CHAT_MAP: dev terminal (offline)
                     case Cmd.SUB_COMMAND: if (actions != null) OnSubCommand(m); break;
                     default: session.Server.Log("Client " + session.Id + ": cmd " + m.Command); break;
                 }
@@ -359,6 +360,7 @@ namespace NsoServer.Net
                 case -103: PlayerItems.RequestShop(m, actions.State, world); break;     // REQUEST_ITEM
                 case -109: PlayerSkills.UpPotential(m, actions.State, world); break;    // POTENTIAL_UP
                 case -108: PlayerSkills.UpSkill(m, actions.State, world); break;        // SKILL_UP
+                case -107: PlayerItems.BagSort(actions.State, world); break;            // BAG_SORT
                 default: session.Server.Log("Client " + session.Id + ": sub " + sub); break;
             }
         }

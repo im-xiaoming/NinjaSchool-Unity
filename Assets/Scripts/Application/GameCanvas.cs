@@ -1107,7 +1107,9 @@ public class GameCanvas : IActionListener
     public void keyPressed(int keyCode)
     {
         lastTimePress = mSystem.getCurrentTimeMillis();
-        if ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 65 && keyCode <= 122) || keyCode == 10 || keyCode == 8 || keyCode == 13 || keyCode == 32 || keyCode == -8)
+        // Offline: '/' (47) is text only while the chat box / terminal is open, so it cannot trigger anything else.
+        if ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 65 && keyCode <= 122) || keyCode == 10 || keyCode == 8 || keyCode == 13 || keyCode == 32 || keyCode == -8
+            || (keyCode == 47 && ChatTextField.gI().isShow))
         {
             keyAsciiPress = keyCode;
         }

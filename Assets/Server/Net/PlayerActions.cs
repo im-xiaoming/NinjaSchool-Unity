@@ -92,6 +92,14 @@ namespace NsoServer.Net
             this.me = me;
             me.Actions = this;
             me.Session = session;
+            var food = me.Progress != null ? me.Progress.FoodEffect : null;
+            long now = Now();
+            if (food != null && food.Length == 4 && food[2] <= now && food[3] > now && world.EffectType((int)food[0]) == 0)
+            {
+                var effect = new PlayerEffect { TemplateId = (int)food[0], Type = 0, Param = (int)food[1], StartAt = food[2], EndAt = food[3] };
+                me.Effects.Insert(0, effect);
+                PlayerService.AddEffect(me, effect, now);
+            }
         }
 
         private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
@@ -286,7 +294,7 @@ namespace NsoServer.Net
             die.Writer.WriteByte(me.TypePk);
             die.Writer.WriteShort(me.X);
             die.Writer.WriteShort(me.Y);
-            die.Writer.WriteLong(me.ExpDown > 0 ? me.ExpDown : me.Exp);
+            die.Writer.WriteLong(me.ExpDown > 0 ? me.ExpDown : me.Record.Exp);
             session.Send(die);
             var wait = new Message(Cmd.PLAYER_DIE);
             wait.Writer.WriteInt(me.Record.Id);

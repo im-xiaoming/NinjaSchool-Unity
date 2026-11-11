@@ -117,9 +117,8 @@ namespace NsoServer.Net
                 case 2: dameHp -= dameHp * pl.Options[130] / 100; dameHp -= pl.ResIce; dameHp -= pl.Options[49]; break;
                 case 3: dameHp -= dameHp * pl.Options[131] / 100; dameHp -= pl.ResWind; dameHp -= pl.Options[50]; break;
             }
-            int exactly = Rng.Next(mob.Level * 10 + 100);
-            int miss = Rng.Next(pl.Miss + 100);
-            bool isMiss = exactly < miss;
+            var rules = pl.Session.Server.World.CombatRules;
+            bool isMiss = Rng.NextDouble() < rules.DodgeChance(mob.Level, pl.Miss);
             if (isMiss) dameHp = -1;
             else if (dameHp <= 0) dameHp = 1;
             int dameMp = 0;
@@ -145,9 +144,8 @@ namespace NsoServer.Net
                 all.Writer.WriteByte(0);
                 p.Session.Send(all);
             }
-            // the real damage is only a fifth of the displayed number
-            dameHp = dameHp - dameHp * 80 / 100;
-            if (dameHp < 0) dameHp = -1;
+            // Preserve display protocol; scale the HP damage after resistances.
+            dameHp = rules.ActualDamage(dameHp);
             if (dameHp > 0)
             {
                 pl.Hp -= dameHp;

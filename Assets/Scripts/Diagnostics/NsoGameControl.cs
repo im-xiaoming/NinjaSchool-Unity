@@ -28,14 +28,14 @@ public class NsoGameControl : MonoBehaviour
     [Tooltip("Stop grounded manual movement when its last horizontal button is released. Disable for original client inertia.")]
     [SerializeField] private bool _instantMovementStop = true;
     public static bool InstantMovementStop { get { return Active == null || Active._instantMovementStop; } }
-    [Tooltip("Reconnect after an unexpected disconnect; does not change server gameplay stats.")]
-    [SerializeField] private bool _autoReconnect;
+    [Tooltip("Double-clicking the same monster, NPC, player or ground item acts like pressing Enter (fire/talk/pick). Zero disables it.")]
+    [SerializeField, Range(0, 1000)] private int _doubleClickMs = 400;
+    /// <summary>Max gap in ms between two clicks on the same world target to count as a double click; 0 = off.</summary>
+    public static int DoubleClickMs { get { return Active != null ? Mathf.Clamp(Active._doubleClickMs, 0, 1000) : 400; } }
     public int uiZoom { get { return _uiZoom; } set { _uiZoom = Mathf.Clamp(value, 0, 4); } }
     public int logicTicksPerSecond { get { return _logicTicksPerSecond; } set { _logicTicksPerSecond = Mathf.Clamp(value, 10, 60); } }
     public int targetFrameRate { get { return Mathf.Clamp(_targetFrameRate, 60, 144); } set { _targetFrameRate = Mathf.Clamp(value, 60, 144); } }
     public bool runInBackground { get { return _runInBackground; } set { _runInBackground = value; } }
-    // used by the Settings menu (F6 > Chơi); Update copies it to GameScr.autoReconnect every frame
-    public bool autoReconnect { get { return _autoReconnect; } set { _autoReconnect = value; } }
     public static NsoGameControl Active { get; private set; }
     private int _appliedTicks = -1;
     public static int InitialTickRate { get { return Active != null ? Active.logicTicksPerSecond : 24; } }
@@ -51,7 +51,6 @@ public class NsoGameControl : MonoBehaviour
         if (Active != null && Active != this) { Debug.LogError("Only one NSO Game Control may own configuration.", this); enabled = false; return; }
         Active = this;
         UiZoomOverride = uiZoom;
-        GameScr.autoReconnect = _autoReconnect;
     }
 
     private void OnDestroy() { if (Active == this) { Active = null; UiZoomOverride = 0; } }
@@ -74,6 +73,5 @@ public class NsoGameControl : MonoBehaviour
         }
         if (Application.targetFrameRate != targetFrameRate) Application.targetFrameRate = targetFrameRate;
         Application.runInBackground = runInBackground;
-        GameScr.autoReconnect = _autoReconnect;
     }
 }

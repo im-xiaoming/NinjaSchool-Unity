@@ -5,28 +5,22 @@ namespace Functions.Auto
     {
         public class Actions
         {
-            public static bool reMap;
 
             public static bool isBuff;
 
             public static bool TanSatMapTrong = true;
 
-            public static bool ChuyenMapHetBoss = true;
 
             public static bool AttackParty;
 
-            public static bool isDieMP = true;
-
-            public static bool isTinhAnh = true;
 
 
 
-            public static bool isThuLinh = true;
 
-            static Actions()
-            {
-                reMap = true;
-            }
+
+            // Offline change (user request, permanent): reMap, ChuyenMapHetBoss, isDieMP, isTinhAnh and isThuLinh
+            // were removed from the game. Their default behaviour is kept: return to the auto map,
+            // change map when no boss is left, attack elites (tinh anh) and bosses (thủ lĩnh).
         }
 
         public int xMob;
@@ -200,7 +194,7 @@ namespace Functions.Auto
             for (int i = 0; i < GameScr.vMob.size(); i++)
             {
                 Mob mob = (Mob)GameScr.vMob.elementAt(i);
-                if (mob != null && mob.hp > 0 && mob.status != 1 && mob.status != 0 && mob.xFirst == X && mob.yFirst == Y && mob.levelBoss != 3 && (templateID == -1 || mob.templateId == templateID) && (mobID == -1 || mob.mobId == mobID) && (Actions.isThuLinh || mob.levelBoss != 2) && (Actions.isTinhAnh || mob.levelBoss != 1))
+                if (mob != null && mob.hp > 0 && mob.status != 1 && mob.status != 0 && mob.xFirst == X && mob.yFirst == Y && mob.levelBoss != 3 && (templateID == -1 || mob.templateId == templateID) && (mobID == -1 || mob.mobId == mobID))
                 {
                     return mob;
                 }
@@ -214,7 +208,7 @@ namespace Functions.Auto
             for (int i = 0; i < GameScr.vMob.size(); i++)
             {
                 Mob mob = (Mob)GameScr.vMob.elementAt(i);
-                if (mob != null && mob.status != 1 && mob.status != 0 && mob.hp > 0 && (templateId == -1 || templateId == mob.templateId) && mob.levelBoss != 3 && (mobID == -1 || mob.mobId == mobID) && TileMap.tileTypeAt(mob.xFirst, mob.yFirst, 2) && (Actions.isThuLinh || mob.levelBoss != 2) && (Actions.isTinhAnh || mob.levelBoss != 1))
+                if (mob != null && mob.status != 1 && mob.status != 0 && mob.hp > 0 && (templateId == -1 || templateId == mob.templateId) && mob.levelBoss != 3 && (mobID == -1 || mob.mobId == mobID) && TileMap.tileTypeAt(mob.xFirst, mob.yFirst, 2))
                 {
                     c(mob);
                     return mob;
@@ -223,7 +217,7 @@ namespace Functions.Auto
             for (int j = 0; j < GameScr.vMob.size(); j++)
             {
                 Mob mob2 = (Mob)GameScr.vMob.elementAt(j);
-                if (mob2 != null && mob2.status != 1 && mob2.status != 0 && mob2.hp > 0 && (templateId == -1 || templateId == mob2.templateId) && mob2.levelBoss != 3 && (mobID == -1 || mob2.mobId == mobID) && (Actions.isThuLinh || mob2.levelBoss != 2) && (Actions.isTinhAnh || mob2.levelBoss != 1))
+                if (mob2 != null && mob2.status != 1 && mob2.status != 0 && mob2.hp > 0 && (templateId == -1 || templateId == mob2.templateId) && mob2.levelBoss != 3 && (mobID == -1 || mob2.mobId == mobID))
                 {
                     c(mob2);
                     return mob2;
@@ -254,7 +248,7 @@ namespace Functions.Auto
             {
                 mob = Fight(templateId, mobID);
             }
-            if (mob != null && (mob.hp <= 0 || mob.status == 1 || mob.status == 0 || mob.levelBoss == 3 || (mobID != -1 && mobID != mob.mobId) || (templateId != -1 && templateId != mob.templateId) || (mob.levelBoss == 2 && !Actions.isThuLinh) || (mob.levelBoss == 1 && !Actions.isTinhAnh)))
+            if (mob != null && (mob.hp <= 0 || mob.status == 1 || mob.status == 0 || mob.levelBoss == 3 || (mobID != -1 && mobID != mob.mobId) || (templateId != -1 && templateId != mob.templateId)))
             {
                 mob = null;
                 Char.getMyChar().mobFocus = null;
@@ -560,13 +554,13 @@ namespace Functions.Auto
             for (int i = 0; i < GameScr.vMob.size(); i++)
             {
                 Mob mob = (Mob)GameScr.vMob.elementAt(i);
-                if (mob != null && mob.status != 1 && mob.status != 0 && mob.hp > 0 && (templateId == -1 || templateId == mob.templateId) && mob.levelBoss != 3 && (mobID == -1 || mob.mobId == mobID) && (Actions.isThuLinh || mob.levelBoss != 2) && (Actions.isTinhAnh || mob.levelBoss != 1))
+                if (mob != null && mob.status != 1 && mob.status != 0 && mob.hp > 0 && (templateId == -1 || templateId == mob.templateId) && mob.levelBoss != 3 && (mobID == -1 || mob.mobId == mobID))
                 {
                     flag = true;
                     break;
                 }
             }
-            if (!flag && Actions.ChuyenMapHetBoss)
+            if (!flag)
             {
                 if (TileMap.mapID == 114)
                 {

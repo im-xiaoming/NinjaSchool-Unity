@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 
-public class GameScr : mScreen, IActionListener
+public class GameScr : mScreen, IActionListener, IChatable
 {
     public static GameScr instance;
 
@@ -21,7 +21,6 @@ public class GameScr : mScreen, IActionListener
     public static int gW2;
     public static bool GiuLV;
     public static int gssw;
-    public static bool autoReconnect = false;
     public static int gssh;
 
     public static int gH34;
@@ -2097,18 +2096,14 @@ public class GameScr : mScreen, IActionListener
         new Command(mResources.MENUGAMESCR[12], 110012);
         new Command(mResources.MENUGAMESCR[13], 110013);
         new Command(mResources.MENUGAMESCR[14], 110014);
-        Command o6 = new Command("Thủ khố", 110022);
-        Command o7 = new Command("Tự sát", 110023);
-        Command o8 = new Command("Khu vực", 110024);
+        // Offline change (user request, permanent): "Thủ khố" (110022), "Tự sát" (110023) and
+        // "Khu vực" (110024) were removed from the game menu. Their perform() handlers are kept.
         new Command(mResources.MENUGAMESCR[15], 110015);
         new Command(mResources.MENUGAMESCR[16], 110016);
         new Command(mResources.MENUGAMESCR[17], 110017);
         myVector.addElement(o);
         myVector.addElement(o3);
         myVector.addElement(o5);
-        myVector.addElement(o6);
-        myVector.addElement(o7);
-        myVector.addElement(o8);
         myVector.addElement(o4);
         GameCanvas.menu.startAt(myVector, 20);
 
@@ -3234,6 +3229,29 @@ public class GameScr : mScreen, IActionListener
         base.keyPress(keyCode);
     }
 
+    // Offline client addition: double-click on a world target = Enter.
+    private object lastClickTarget;
+    private long lastClickTime;
+
+    /// <summary>
+    /// Called when a click focuses a world target. A second click on the same target within
+    /// NsoGameControl.DoubleClickMs presses the fire key (keyPressedz[5], the Enter key),
+    /// which updateKey handles in the same frame: attack monster/player, talk to NPC, pick item.
+    /// </summary>
+    private void onTargetClicked(object target)
+    {
+        long now = mSystem.getCurrentTimeMillis();
+        int window = NsoGameControl.DoubleClickMs;
+        if (window > 0 && target == lastClickTarget && now - lastClickTime <= window)
+        {
+            GameCanvas.keyPressedz[5] = true;
+            lastClickTarget = null; // a third click starts a new pair
+            return;
+        }
+        lastClickTarget = target;
+        lastClickTime = now;
+    }
+
     private void doFocusbyTouch()
     {
         if (isPaintPopup() || isPaintUI() || isOpenUI() || !GameCanvas.isPointerClick)
@@ -3250,6 +3268,7 @@ public class GameScr : mScreen, IActionListener
                 Char.getMyChar().charFocus = null;
                 Char.getMyChar().itemFocus = null;
                 Char.isManualFocus = true;
+                onTargetClicked(mob);
                 return;
             }
         }
@@ -3264,6 +3283,7 @@ public class GameScr : mScreen, IActionListener
                 Char.getMyChar().charFocus = null;
                 Char.getMyChar().itemFocus = null;
                 Char.isManualFocus = true;
+                onTargetClicked(npc);
                 return;
             }
         }
@@ -3283,6 +3303,7 @@ public class GameScr : mScreen, IActionListener
                     Char.getMyChar().charFocus = @char;
                     Char.getMyChar().itemFocus = null;
                     Char.isManualFocus = true;
+                    onTargetClicked(@char);
                     return;
                 }
             }
@@ -3297,6 +3318,7 @@ public class GameScr : mScreen, IActionListener
                 Char.getMyChar().charFocus = null;
                 Char.getMyChar().itemFocus = itemMap;
                 Char.isManualFocus = true;
+                onTargetClicked(itemMap);
                 break;
             }
         }
@@ -3376,6 +3398,48 @@ public class GameScr : mScreen, IActionListener
                 {
                     center.performAction();
                 }
+            }
+            // Offline addition (user request): on large screens grid shops have no center command
+            // (item info is shown automatically), so Enter / gamepad Circle did nothing. Enter now
+            // runs the left "Buy" command, which opens the same buy popup as clicking it.
+            // Same for the auto panel (Tính năng > Tự động): Enter / Circle toggles the selected row
+            // (doAutoSelect, the action of its "Chọn" command 1510).
+            else if (GameCanvas.keyPressedz[5] && center == null && isPaintAuto && indexTitle == 1 && indexRow >= 0)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                doAutoSelect();
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            else if (GameCanvas.keyPressedz[5] && center == null && left != null && isPaintUI() && indexTitle >= 1 && IsGridShop)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                left.performAction();
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            // Offline addition (user request): in the bag (Thông tin > Hành trang) on large screens the
+            // focused item's info panel only has the left "Sử dụng" command (11040 -> actleftItemInfo),
+            // so Enter / gamepad Circle did nothing. When moving with the arrows / D-pad, setLCR leaves
+            // the left command as "Chọn" (11022) instead, so both cases are covered: Enter opens the
+            // original "Chọn" option menu (actBagSelectItem: Sử dụng, Vứt, Tự dùng...). On PC Menu.startAt
+            // pre-selects the first entry, "Sử dụng", so a second Enter uses the item (user request).
+            else if (GameCanvas.keyPressedz[5] && center == null && left != null && (left.idAction == 11040 || left.idAction == 11022)
+                && isPaintInfoMe && indexMenu == 0 && indexTitle >= 1 && getItemFocus(3) != null)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                actBagSelectItem();
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            // Empty bag cell: the only command is the left "Sắp xếp" (110221); Enter / Circle runs it.
+            else if (GameCanvas.keyPressedz[5] && center == null && left != null && left.idAction == 110221
+                && isPaintInfoMe && indexMenu == 0 && indexTitle >= 1)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                left.performAction();
+                Sound.play(Sound.MBClick, 0.5f);
             }
         }
         else if (!Main.isPC)
@@ -4445,6 +4509,8 @@ public class GameScr : mScreen, IActionListener
             if (GameCanvas.isPointerClick && GameCanvas.isPointerJustRelease)
             {
                 Sound.play(Sound.MBClick, 0.5f);
+                // Offline: the original chat icon opens the dev terminal in the message window.
+                openTerminal();
                 GameCanvas.isPointerJustRelease = false;
                 GameCanvas.isPointerClick = false;
                 flag = true;
@@ -5319,8 +5385,10 @@ public class GameScr : mScreen, IActionListener
             paintTitle(g, mResources.ACTIONS[7], false);
             xstart = popupX + 17;
             ystart = popupY + 45;
-            indexRowMax = 14;
-            scrMain.setStyle(indexRowMax, 35, popupX, popupY + 39, popupW, popupH - 63, true, 1);
+            indexRowMax = AutoRowCount; // 8 rows
+            // Offline change (scroll only, layout unchanged): the scroll item size equals the 30 px row
+            // step (was 35, so arrow scrolling drifted and the list scrolled past its end).
+            scrMain.setStyle(indexRowMax, AutoRowStep, popupX, popupY + 39, popupW, popupH - 63, true, 1);
             scrMain.setClip(g);
             int num = ystart;
             paintCheckBox(g, mResources.AUTO_TEXT[0], Char.isAHP, Char.aHpValue + "%", xstart, num);
@@ -5331,20 +5399,36 @@ public class GameScr : mScreen, IActionListener
             paintCheckBox(g, mResources.AUTO_TEXT[5], Char.isAPickYHM, string.Empty, xstart, num += 30);
             paintCheckBox(g, mResources.AUTO_TEXT[6], Char.isAPickYHMS, string.Empty, xstart, num += 30);
             paintCheckBox(g, mResources.AUTO_TEXT[7], Char.isANoPick, string.Empty, xstart, num += 30);
-            paintCheckBox(g, "reMap", Auto.Actions.reMap, string.Empty, xstart, num += 30);
-            paintCheckBox(g, "Chuyển map khi hết boss", Auto.Actions.ChuyenMapHetBoss, string.Empty, xstart, num += 30);
-            paintCheckBox(g, "Tự sát khi hết Mp", Auto.Actions.isDieMP, string.Empty, xstart, num += 30);
-            paintCheckBox(g, "Đánh tinh anh", Auto.Actions.isTinhAnh, string.Empty, xstart, num += 30);
-            paintCheckBox(g, "Đánh thủ lĩnh", Auto.Actions.isThuLinh, string.Empty, xstart, num += 30);
-            paintCheckBox(g, "Auto Reconnect", GameScr.autoReconnect, string.Empty, xstart, num += 30);
+            // Offline change (user request, permanent): the extra rows after "Không nhặt gì cả" (reMap, Chuyển map khi hết boss,
+            // Tự sát khi hết Mp, Đánh tinh anh, Đánh thủ lĩnh, Auto Reconnect) are no longer shown; their flags are kept.
 
-            if (indexTitle == 1 && indexRow >= 0 && !GameCanvas.isTouch)
+            if (indexTitle == 1 && indexRow >= 0)
             {
-                SmallImage.drawSmallImage(g, 942, xstart - 8, ystart + 2 + indexRow * 30, 0, StaticObj.TOP_LEFT);
+                SmallImage.drawSmallImage(g, 942, xstart - 8, ystart + 2 + indexRow * AutoRowStep, 0, StaticObj.TOP_LEFT);
             }
             resetTranslate(g);
             mFont.tahoma_7_green.drawString(g, (!GameCanvas.isTouch) ? mResources.AUTO_TIP1 : mResources.AUTO_TIP2, popupX + popupW / 2, popupY + popupH - 17, 2);
         }
+    }
+
+    /// <summary>Offline addition: row step of the auto panel in pixels (rows are drawn 30 px apart).</summary>
+    private const int AutoRowStep = 30;
+
+    /// <summary>Offline addition: number of rows paintUIAuto draws (keep in sync with its paintCheckBox calls).</summary>
+    private const int AutoRowCount = 8;
+
+    /// <summary>
+    /// Offline addition: scrolls the auto panel by whole rows so the selected row is fully visible
+    /// (replaces moveTo, which centred the row with the wrong item size).
+    /// </summary>
+    private void AutoScrollToRow(int row)
+    {
+        int visible = System.Math.Max(1, scrMain.height / AutoRowStep);
+        int first = scrMain.cmtoY / AutoRowStep;
+        if (row < first) first = row;
+        else if (row >= first + visible) first = row - visible + 1;
+        first = System.Math.Min(first, System.Math.Max(0, AutoRowCount - visible)); // never past the last row
+        scrMain.cmtoY = System.Math.Max(0, first * AutoRowStep);
     }
 
     private void paintCheckBox(mGraphics g, string title, bool isCheck, string value, int x, int y)
@@ -5354,8 +5438,12 @@ public class GameScr : mScreen, IActionListener
         if (isCheck)
         {
             g.setColor(9650442);
-            g.drawLine(x + 2, y + 2, x + 2 + 7, y + 2 + 7);
-            g.drawLine(x + 2, y + 2 + 7, x + 2 + 7, y + 2);
+            // fillRect clips before drawing; rotating drawLine also rotates its GUI clip group.
+            for (int pixel = 0; pixel < 8; pixel++)
+            {
+                g.fillRect(x + 2 + pixel, y + 2 + pixel, 1, 1);
+                g.fillRect(x + 2 + pixel, y + 9 - pixel, 1, 1);
+            }
         }
         mFont mFont2 = ((!isCheck) ? mFont.tahoma_7_grey : mFont.tahoma_7_white);
         mFont2.drawString(g, title, x + 18, y, 0);
@@ -9343,6 +9431,12 @@ public class GameScr : mScreen, IActionListener
         GameCanvas.inputDlg.show(mResources.INPUT_COIN, ok, TField.INPUT_TYPE_NUMERIC);
     }
 
+    /// <summary>Offline addition: true while a grid-style shop UI is shown (same list as updateKeyBuyItemUITouch).</summary>
+    private bool IsGridShop
+    {
+        get { return isPaintEliteShop || isPaintStore || isPaintBox || isPaintGrocery || isPaintGroceryLock || isPaintStack || isPaintStackLock || isPaintNonNam || isPaintNonNu || isPaintAoNam || isPaintAoNu || isPaintGangTayNam || isPaintGangTayNu || isPaintQuanNam || isPaintQuanNu || isPaintGiayNam || isPaintGiayNu || isPaintWeapon || isPaintLien || isPaintNhan || isPaintNgocBoi || isPaintPhu || isPaintItemDell; }
+    }
+
     public void updateKeyBuyItemUI()
     {
         if (GameCanvas.currentDialog != null || !isPaintUI())
@@ -9355,7 +9449,11 @@ public class GameScr : mScreen, IActionListener
         }
         else if (indexTitle >= 1)
         {
-            if (isPaintItemInfo)
+            // Offline change (user request): in grid shops the item-info panel no longer captures the
+            // arrow keys (it only scrolled the info text); the arrows keep moving the item selection
+            // below. The info panel can still be scrolled with the mouse. Same UI list as the grid
+            // pointer handling in updateKeyBuyItemUITouch.
+            if (isPaintItemInfo && !IsGridShop)
             {
                 if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
                 {
@@ -9385,9 +9483,9 @@ public class GameScr : mScreen, IActionListener
                         indexRow--;
                         if (indexRow < 0)
                         {
-                            indexRow = indexRowMax;
+                            indexRow = AutoRowCount - 1; // offline fix: own row count (shared indexRowMax was unreliable)
                         }
-                        scrMain.moveTo(indexRow * scrMain.ITEM_SIZE);
+                        AutoScrollToRow(indexRow);
                     }
                     else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
                     {
@@ -9453,14 +9551,17 @@ public class GameScr : mScreen, IActionListener
                     else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
                     {
                         indexRow++;
-                        if (indexRow > indexRowMax)
+                        if (indexRow >= AutoRowCount) // offline fix: own row count (shared indexRowMax was unreliable)
                         {
                             indexRow = 0;
                         }
-                        scrMain.moveTo(indexRow * scrMain.ITEM_SIZE);
+                        AutoScrollToRow(indexRow);
                     }
                 }
-                if (!GameCanvas.isTouch)
+                // Offline fix: on touch/mouse clients (PC) the keys were not cleared here, so the grid-shop
+                // key code below also ran for the auto panel and moved the scroll by indexSelect,
+                // overriding the row scroll (list stuck before "Không nhặt gì cả"). Consume them for auto too.
+                if (!GameCanvas.isTouch || isPaintAuto)
                 {
                     GameCanvas.clearKeyHold();
                     GameCanvas.clearKeyPressed();
@@ -10208,44 +10309,7 @@ public class GameScr : mScreen, IActionListener
                     Char.isAPickYen = (Char.isAPickYHM = (Char.isAPickYHMS = false));
                 }
             }
-            if (GameCanvas.isPointerInRoll(scrMain.xPos + 16, scrMain.yPos + 245, 16, 16, scrMain) && GameCanvas.isPointerClick)
-            {
-                Auto.Actions.reMap = !Auto.Actions.reMap;
-                GameCanvas.isPointerDown = false;
-
-            }
-
-            if (GameCanvas.isPointerInRoll(scrMain.xPos + 16, scrMain.yPos + 275, 16, 16, scrMain) && GameCanvas.isPointerClick)
-            {
-                Auto.Actions.ChuyenMapHetBoss = !Auto.Actions.ChuyenMapHetBoss;
-                GameCanvas.isPointerDown = false;
-
-            }
-
-            if (GameCanvas.isPointerInRoll(scrMain.xPos + 16, scrMain.yPos + 305, 16, 16, scrMain) && GameCanvas.isPointerClick)
-            {
-                Auto.Actions.isDieMP = !Auto.Actions.isDieMP;
-                GameCanvas.isPointerDown = false;
-
-            }
-            if (GameCanvas.isPointerInRoll(scrMain.xPos + 16, scrMain.yPos + 335, 16, 16, scrMain) && GameCanvas.isPointerClick)
-            {
-                Auto.Actions.isTinhAnh = !Auto.Actions.isTinhAnh;
-                GameCanvas.isPointerDown = false;
-
-            }
-            if (GameCanvas.isPointerInRoll(scrMain.xPos + 16, scrMain.yPos + 365, 16, 16, scrMain) && GameCanvas.isPointerClick)
-            {
-                Auto.Actions.isThuLinh = !Auto.Actions.isThuLinh;
-                GameCanvas.isPointerDown = false;
-
-            }
-            if (GameCanvas.isPointerInRoll(scrMain.xPos + 16, scrMain.yPos + 395, 16, 16, scrMain) && GameCanvas.isPointerClick)
-            {
-                GameScr.autoReconnect = !GameScr.autoReconnect;
-                GameCanvas.isPointerDown = false;
-
-            }
+            // Offline change (user request): click areas of the removed rows are gone too.
             if (GameCanvas.isPointerInRoll(scrMain.xPos + 131, scrMain.yPos + 2, 30, 20, scrMain) && GameCanvas.isPointerClick && Char.isAHP)
             {
                 GameCanvas.inputDlg.show(mResources.AHP_TEXT, new Command(mResources.OK, 1511), TField.INPUT_TYPE_NUMERIC);
@@ -10954,7 +11018,10 @@ public class GameScr : mScreen, IActionListener
         }
         if (isPaintAuto)
         {
-            if (indexTitle == 1 && !GameCanvas.isTouch)
+            // Offline change (user request): the original hid "Chọn" on touch/mouse clients, so PC
+            // keyboard/gamepad users could not toggle an auto option. Now shown for every client;
+            // clicking the checkboxes still works as before.
+            if (indexTitle == 1)
             {
                 left = new Command(mResources.SELECT, 1510);
             }
@@ -12445,7 +12512,7 @@ public class GameScr : mScreen, IActionListener
                 mFont.tahoma_7_white.drawString(g, skillTemplate.description[j], xstart + 5, yPaint += 12, 0);
             }
             mFont.tahoma_7_white.drawString(g, mResources.SKILLTYPE[skillTemplate.type], xstart + 5, yPaint += 12, 0);
-            mFont.tahoma_7_white.drawString(g, mResources.LEVELMAX + ": " + skillTemplate.maxPoint, xstart + 5, yPaint += 12, 0);
+            mFont.tahoma_7_white.drawString(g, mResources.LEVELMAX + ": " + BasicSkillGrowth.DisplayMaxPoint(skillTemplate), xstart + 5, yPaint += 12, 0);
             mFont.tahoma_7_red.drawString(g, mResources.replace(mResources.LEVELNEXT, skill.point + string.Empty), xstart + 5, yPaint += 12, 0);
             paintSkillInfo(g, skill);
             paintSkillOption(g, skill);
@@ -12458,8 +12525,8 @@ public class GameScr : mScreen, IActionListener
                 mFont.tahoma_7_white.drawString(g, skillTemplate.description[k], xstart + 5, yPaint += 12, 0);
             }
             mFont.tahoma_7_white.drawString(g, mResources.SKILLTYPE[skillTemplate.type], xstart + 5, yPaint += 12, 0);
-            mFont.tahoma_7_white.drawString(g, mResources.LEVELMAX + ": " + skillTemplate.maxPoint, xstart + 5, yPaint += 12, 0);
-            if (skill.point == skillTemplate.maxPoint)
+            mFont.tahoma_7_white.drawString(g, mResources.LEVELMAX + ": " + BasicSkillGrowth.DisplayMaxPoint(skillTemplate), xstart + 5, yPaint += 12, 0);
+            if (skill.point >= BasicSkillGrowth.DisplayMaxPoint(skillTemplate) || skillTemplate.skills[skillTemplate.skills.Length - 1].Equals(skill))   // offline: the grown basic attack (BasicSkillGrowth) has no row after its last point
             {
                 mFont.tahoma_7_blue.drawString(g, mResources.LEVELEDMAX, xstart + 5, yPaint += 12, 0);
                 paintSkillInfo(g, skill);
@@ -14711,8 +14778,15 @@ public class GameScr : mScreen, IActionListener
                 g.setColor(Paint.COLORFOCUS);
             }
             g.drawRect(popupX + 5, popupY + 52 + i * (num + 4), popupW - 10, num);
-            mFont.tahoma_7b_white.drawString(g, string.Empty + Char.getMyChar().potential[i], popupX + popupW - 10, popupY + 49 + (num - 10) / 2 + i * (num + 4), mFont.RIGHT);
-            mFont.tahoma_7b_white.drawString(g, mResources.NAMEPOTENTIAL[i], popupX + 10, popupY + 49 + (num - 10) / 2 + i * (num + 4), 0);
+            float cellCenterY = popupY + 52 + i * (num + 4) + num / 2f;
+            try
+            {
+                TextCalib.UseBox("potentialValue", popupX + popupW - 10, cellCenterY);
+                mFont.tahoma_7b_white.drawString(g, string.Empty + Char.getMyChar().potential[i], popupX + popupW - 10, (int)cellCenterY, mFont.RIGHT);
+                TextCalib.UseBox("potentialLabel", popupX + 10, cellCenterY);
+                mFont.tahoma_7b_white.drawString(g, mResources.NAMEPOTENTIAL[i], popupX + 10, (int)cellCenterY, 0);
+            }
+            finally { TextCalib.Clear(); }
         }
         if (indexTitle > 0)
         {
@@ -14872,7 +14946,12 @@ public class GameScr : mScreen, IActionListener
             g.setColor(Paint.COLORBORDER);
         }
         g.drawRoundRect(num - mFont.tahoma_8b.getWidth(title) / 2 - 12, popupY + 5, mFont.tahoma_8b.getWidth(title) + 22, 24, 6, 6);
-        mFont.tahoma_8b.drawString(g, title, num, popupY + 9, 2);
+        try
+        {
+            TextCalib.UseBox("tabHeader", num, popupY + 17);
+            mFont.tahoma_8b.drawString(g, title, num, popupY + 9, 2);
+        }
+        finally { TextCalib.Clear(); }
     }
 
     public void paintZone(mGraphics g)
@@ -14913,18 +14992,16 @@ public class GameScr : mScreen, IActionListener
                 if (num4 < zones.Length)
                 {
                     SmallImage.drawSmallImage(g, 154, xstart + j * indexSize + indexSize / 2, ystart + i * indexSize + indexSize / 2, 0, mGraphics.VCENTER | mGraphics.HCENTER);
-                    if (zones[num4] >= 20)
+                    mFont zoneFont = zones[num4] >= 20 ? mFont.tahoma_7b_red :
+                        zones[num4] >= 15 ? mFont.tahoma_7b_yellow : mFont.tahoma_7b_white;
+                    float zoneCenterX = xstart + j * indexSize + indexSize / 2f;
+                    float zoneCenterY = ystart + i * indexSize + indexSize / 2f;
+                    try
                     {
-                        TextCalib.Use("zone"); mFont.tahoma_7b_red.drawString(g, string.Empty + num4, xstart + j * indexSize + indexSize / 2, ystart + i * indexSize + indexSize / 2 - 8, 2); TextCalib.Clear();
+                        TextCalib.UseBox("zone", zoneCenterX, zoneCenterY);
+                        zoneFont.drawString(g, string.Empty + num4, (int)zoneCenterX, (int)zoneCenterY, mFont.CENTER);
                     }
-                    else if (zones[num4] >= 15)
-                    {
-                        TextCalib.Use("zone"); mFont.tahoma_7b_yellow.drawString(g, string.Empty + num4, xstart + j * indexSize + indexSize / 2, ystart + i * indexSize + indexSize / 2 - 8, 2); TextCalib.Clear();
-                    }
-                    else
-                    {
-                        TextCalib.Use("zone"); mFont.tahoma_7b_white.drawString(g, string.Empty + num4, xstart + j * indexSize + indexSize / 2, ystart + i * indexSize + indexSize / 2 - 8, 2); TextCalib.Clear();
-                    }
+                    finally { TextCalib.Clear(); }
                     num4++;
                 }
             }
@@ -15425,6 +15502,16 @@ public class GameScr : mScreen, IActionListener
                     text = text.Substring(2);
                     mFont2 = mFont.tahoma_7_green;
                 }
+            }
+            // Offline terminal: a row holding NsoTerminal.SplitMark is drawn in two colours (chat name yellow, text white).
+            int split = text.IndexOf(NsoTerminal.SplitMark);
+            if (split >= 0)
+            {
+                string head = text.Substring(0, split);
+                yPaint += 12;
+                mFont.tahoma_7_yellow.drawString(g, head, xstart + 5, yPaint, 0);
+                mFont.tahoma_7_white.drawString(g, text.Substring(split + 1), xstart + 5 + mFont.tahoma_7_yellow.getWidth(head), yPaint, 0);
+                continue;
             }
             mFont2.drawString(g, text, xstart + 5, yPaint += 12, 0);
         }
@@ -20967,6 +21054,41 @@ public class GameScr : mScreen, IActionListener
         }
         Service.gI().addFriend(text);
         GameCanvas.inputDlg.hide();
+    }
+
+    // IChatable: a line typed in the chat box. Offline the chat box is a dev terminal (see NsoTerminal).
+    public void onChatFromMe(string text, string to)
+    {
+        NsoTerminal.Submit(text);
+    }
+
+    // IChatable: the input line was closed with its "Đóng" command; close the terminal window with it.
+    public void onCancelChat()
+    {
+        auto = saveAuto;
+        if (NsoTerminal.IsOpen)
+        {
+            actionPerform(11066, null);   // same as the window's own close command
+        }
+    }
+
+    // Offline dev terminal: the original message window (as openUIChatTab: alert popup, message-style title,
+    // close command 11066) showing NsoTerminal.View; the prompt row inside it shows the ChatTextField text.
+    private void openTerminal()
+    {
+        saveAuto = auto;
+        isPaintAlert = true;
+        isPaintMessage = true;
+        isLockKey = true;
+        setPopupSize(190, 176);
+        NsoTerminal.ApplyLayout();   // large window ending just above the "Đóng" button
+        right = new Command(mResources.CLOSE, 11066);
+        left = (center = null);
+        textsTitle = NsoTerminal.Title;
+        texts = NsoTerminal.View;
+        ChatTextField.gI().startChat(this, string.Empty);
+        NsoTerminal.ResetScroll();
+        NsoTerminal.Refresh(string.Empty);
     }
 
     public void perform(int idAction, object p)

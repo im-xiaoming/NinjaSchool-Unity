@@ -173,7 +173,7 @@ namespace NsoServer.DevWiki
                     if (method == "POST")
                     {
                         string token, origin, contentType, length;
-                        if (path != "/control/rules" || Control == null)
+                        if ((path != "/control/rules" && path != "/control/combat") || Control == null)
                         { Send(stream, 404, "application/json", "{\"error\":\"Unknown write route\"}"); return; }
                         if (!headers.TryGetValue("X-Nso-Control", out token) || token != Control.Token ||
                             (headers.TryGetValue("Origin", out origin) && origin != "http://" + authority && origin != "http://" + local))

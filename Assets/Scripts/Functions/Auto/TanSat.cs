@@ -13,7 +13,7 @@
                 Hoisinh(isWait: true);
                 return;
             }
-            if (Actions.reMap && (TileMap.mapID != mapID || TileMap.zoneID != zoneID))
+            if (TileMap.mapID != mapID || TileMap.zoneID != zoneID) // reMap removed; was always on
             {
                 Go(mapID, zoneID);
                 return;

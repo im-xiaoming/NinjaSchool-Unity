@@ -129,6 +129,10 @@ public class Command
 	// Hover highlight is on only while the bottom bar paints its left / right button (Paint.paintCmdBar).
 	public static bool hoverEnabled;
 
+	// Offline addition: the bottom button chosen with the arrow keys / gamepad in a Dialog
+	// (Dialog.paint sets it only while painting its command bar). Drawn with the focused image.
+	public static Command keySelected;
+
 	public void paint(mGraphics g)
 	{
 		if (back != null)
@@ -163,7 +167,7 @@ public class Command
 			}
 			onBottomRow = y == Paint.CmdY;
 			bottomRowY = Paint.CmdY;
-			if (!isFocus && !(hoverEnabled && g.isMouseOver(x, y, GameScr.imgLbtn.getWidth(), GameScr.imgLbtn.getHeight())))   // hover = focused look
+			if (!isFocus && this != keySelected && !(hoverEnabled && g.isMouseOver(x, y, GameScr.imgLbtn.getWidth(), GameScr.imgLbtn.getHeight())))   // hover = focused look
 			{
 				g.drawImage(GameScr.imgLbtn, x, y, 0);
 			}

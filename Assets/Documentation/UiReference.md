@@ -129,7 +129,6 @@ F6 opens the Settings window. `TextCalib.Open` means the window is open, and `Ns
 | | Nhạc nền / môi trường (`ambientVolume`) | `Sound.ambientVolume`: the BG loop, water and the menu music. |
 | | Nhạc menu (`menuMusic`) | `MenuAudio.menuMusic`. |
 | | Âm thanh nút bấm (`uiSounds`) | `MenuAudio.uiSounds`. |
-| Chơi | Tự kết nối lại (`autoReconnect`) | `NsoGameControl.autoReconnect`. |
 | | Chạy khi thu nhỏ (`runInBackground`) | `NsoGameControl.runInBackground`. |
 | Giao diện | `btnBottomGap`, `btnSidePadding`, `potionBottomGap`, `menuBottomGap` | The NSO UI Layout values in section 1. |
 | Phím | Information only | The key list. |
