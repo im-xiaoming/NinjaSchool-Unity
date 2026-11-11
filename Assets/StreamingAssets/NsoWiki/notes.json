@@ -1,0 +1,127 @@
+{
+  "_comment": "Hand-written collections of the dev wiki (Assets/Server/DevWiki). Each key is a collection, each value an array of documents with an \"id\". Keys starting with _ are ignored. Edit, then press 'Tải lại dữ liệu' in the page. status: done | partial | todo | skip.",
+
+  "features": [
+    { "id": "login", "area": "Khởi động", "title": "Phiên, đăng nhập, danh sách / tạo / chọn nhân vật", "status": "done", "files": "Net/Session.cs, Net/Controller.cs, Store/AccountStore.cs", "java": "network/*, model/User.java", "notes": "Bản offline tự đăng nhập vào 1 tài khoản cục bộ." },
+    { "id": "enter-world", "area": "Bản đồ", "title": "Vào map, thông tin map, cảnh vật, đồ nằm trên đất", "status": "done", "files": "Net/EnterWorld.cs", "java": "Service.loadAll, sendZone, sendItemMap", "notes": "entercheck: khớp Java từng byte." },
+    { "id": "move", "area": "Bản đồ", "title": "Di chuyển, đổi map / khu, chết, hồi sinh về làng đã lưu", "status": "done", "files": "Net/PlayerActions.cs", "java": "Zone.move, Char.changeMap/startDie/returnTownFromDead" },
+    { "id": "map-unlock", "area": "Bản đồ", "title": "Mở khoá map theo nhiệm vụ", "status": "done", "files": "World/MapUnlock.cs", "java": "Char.initListCanEnterMap" },
+    { "id": "special-maps", "area": "Bản đồ", "title": "Map đặc biệt: hang động, chiến trường, sự kiện, lãnh địa gia tộc", "status": "todo", "files": "", "java": "map/*Dungeon*, War.java", "notes": "Chỉ map type 0 (thường) chơi được." },
+    { "id": "mob-ai", "area": "Chiến đấu", "title": "Quái phát hiện và đánh người chơi", "status": "done", "files": "Net/MobBrain.cs", "java": "Mob.update, Mob.attack" },
+    { "id": "attack", "area": "Chiến đấu", "title": "Đánh quái: sát thương, chí mạng, né, chết, hồi sinh quái, exp, lên cấp", "status": "done", "files": "Net/PlayerCombat.cs", "java": "Char.attackMonster, Char.addExp, Mob.die/recovery" },
+    { "id": "skill-effects", "area": "Chiến đấu", "title": "Hiệu ứng kỹ năng lên quái: bỏng, đóng băng, choáng, trói, vô hiệu, Kakyuu (sushi)", "status": "done", "files": "Net/PlayerCombat.cs (Hit), Net/PlayerEffects.cs", "java": "Char.attackMonster(ArrayList), Mob.update" },
+    { "id": "pvp", "area": "Chiến đấu", "title": "Đánh người chơi khác, PK, tỷ thí", "status": "todo", "files": "", "java": "Char.attackPlayer" },
+    { "id": "skills-learn", "area": "Kỹ năng", "title": "Học từ sách, cộng điểm kỹ năng / tiềm năng, chọn chiêu, kỹ năng bị động", "status": "done", "files": "Net/PlayerSkills.cs", "java": "Char.learnSkill/upSkill/upPotential/selectSkill" },
+    { "id": "skills-buff", "area": "Kỹ năng", "title": "Kỹ năng buff / NPC / hồi sinh (type 2, 3, 4)", "status": "todo", "files": "", "java": "Char.useSkillBuff", "notes": "Chọn được nhưng không có tác dụng." },
+    { "id": "clone", "area": "Kỹ năng", "title": "Phân thân", "status": "todo", "files": "", "java": "model/CloneChar.java" },
+    { "id": "items-use", "area": "Vật phẩm", "title": "Túi đồ, dùng thuốc HP/MP, thức ăn, mặc / tháo trang bị, xem chi tiết", "status": "done", "files": "Net/PlayerItems.cs", "java": "Char.useItem/useEquipment/itemBodyToBag/requestItemInfo" },
+    { "id": "shops", "area": "Vật phẩm", "title": "Cửa hàng: danh sách, mua bằng xu / yên", "status": "done", "files": "Net/PlayerItems.cs", "java": "Char.buyItem, Store.buy, Char.requestItem", "notes": "Không có lượng." },
+    { "id": "drops", "area": "Vật phẩm", "title": "Rơi đồ và nhặt đồ: VP nhiệm vụ, yên, đồ ngẫu nhiên, trang bị; biến mất sau 30 s", "status": "done", "files": "Net/PlayerItems.cs", "java": "Mob.dead/dropItem, Char.pickItem, Zone.updateItemMap" },
+    { "id": "upgrade", "area": "Vật phẩm", "title": "Nâng cấp, tách, khảm ngọc, luyện đá, tinh luyện", "status": "todo", "files": "", "java": "Char.upgradeItem, splitItem, ..." },
+    { "id": "box", "area": "Vật phẩm", "title": "Rương đồ (Kamakura: Mở rương)", "status": "todo", "files": "", "java": "Char.openBox" },
+    { "id": "sell", "area": "Vật phẩm", "title": "Bán đồ, vứt đồ, sắp xếp túi", "status": "todo", "files": "", "java": "Char.sellItem, throwItem, sortBag" },
+    { "id": "mount-pet", "area": "Vật phẩm", "title": "Thú cưỡi, thú nuôi", "status": "todo", "files": "", "java": "Char.useMount, Pet" },
+    { "id": "regen", "area": "Hiệu ứng", "title": "HP/MP theo thời gian: thức ăn, thuốc, option trang bị, hồi tự nhiên", "status": "done", "files": "Net/PlayerEffects.cs", "java": "EffectManager, Char.updateEveryHalfSecond/FiveSecond" },
+    { "id": "quests", "area": "Nhiệm vụ", "title": "Nhiệm vụ chính: nhận, các bước, đếm, trả, thưởng (0–42), câu đố, nhập học", "status": "done", "files": "Net/PlayerTasks.cs", "java": "Char.openMenu/initMenu/menu/getTask/takingTask/taskNext/finishTask" },
+    { "id": "daily", "area": "Nhiệm vụ", "title": "Nhiệm vụ hằng ngày, tà thú, danh vọng", "status": "todo", "files": "", "java": "Char.taskDaily*" },
+    { "id": "npc-menus", "area": "NPC", "title": "Menu NPC làng và trường (xem collection npcs, status)", "status": "partial", "files": "Net/PlayerTasks.cs (InitMenu)", "java": "Char.initMenu, Char.menu" },
+    { "id": "social", "area": "Xã hội", "title": "Bạn bè, nhóm, giao dịch, gia tộc, chat", "status": "todo", "files": "", "java": "Char.addFriend, Party, Trade, Clan" },
+    { "id": "save", "area": "Lưu trữ", "title": "Lưu túi đồ, trang bị, xu, yên, nhiệm vụ, kỹ năng, tiềm năng, làng đã lưu", "status": "done", "files": "Store/PlayerProgress.cs, Store/PlayerInventory.cs (PlayerRecord.Data)", "java": "players columns" },
+    { "id": "devwiki", "area": "Công cụ", "title": "Website tra cứu (trang này)", "status": "done", "files": "Server/DevWiki/*, StreamingAssets/NsoWiki/*", "notes": "Chạy cùng game ở 127.0.0.1:8787 (Editor / development build)." }
+  ],
+
+  "constraints": [
+    { "id": "weapon-required", "area": "Chiến đấu", "rule": "Phải mặc vũ khí phù hợp với trường mới đánh được (trừ chưa vào trường dùng kiếm gỗ)", "message": "Vũ khí không thích hợp", "where": "PlayerCombat.AttackMonster" },
+    { "id": "skill-cooldown", "area": "Chiến đấu", "rule": "Đòn đánh bị bỏ qua nếu chưa hết thời gian hồi chiêu (skill.cooldown, ms)", "where": "PlayerCombat.AttackMonster" },
+    { "id": "skill-mana", "area": "Chiến đấu", "rule": "Không đủ MP thì không ra chiêu", "message": "Không đủ MP để sử dụng", "where": "PlayerCombat.AttackMonster" },
+    { "id": "miss", "area": "Chiến đấu", "rule": "Né: random(mob.level+10) so với random(exactly+100); chí mạng: fatal > random(1000)", "where": "PlayerCombat.AttackMonster" },
+    { "id": "kakyuu", "area": "Chiến đấu", "rule": "Kakyuu (skill tpl 4) chỉ nướng quái khi đủ điều kiện, nếu không báo", "message": "Đối phương quá mạnh bạn không thể thi triển thuật này!", "where": "PlayerCombat.Hit" },
+    { "id": "effect-chance", "area": "Chiến đấu", "rule": "Bỏng 7/16: 4 s; băng 25/34: 3 s; choáng 43: 2 s; trói 24 và vô hiệu 40: param giây; skill lửa/băng/gió: 2/2/1 s, tỷ lệ = param0 %", "where": "PlayerCombat.Hit" },
+    { "id": "buy-needs-task3", "area": "Cửa hàng", "rule": "Chỉ mua được khi đã qua NV diệt sên trừ cóc (taskId >= 3)", "message": "Hãy hoàn nhiệm vụ diệt trừ cóc để sử dụng chức năng này.", "where": "PlayerItems.BuyItem" },
+    { "id": "no-luong", "area": "Cửa hàng", "rule": "Đồ giá lượng không mua được", "message": "Vật phẩm cần lượng, bản offline không có lượng.", "where": "PlayerItems.BuyItem" },
+    { "id": "money", "area": "Cửa hàng", "rule": "Không đủ xu / yên thì không mua; yên tối đa 2.000.000.000", "message": "Không đủ tiền.", "where": "PlayerItems.BuyItem, AddYen" },
+    { "id": "bag-full", "area": "Vật phẩm", "rule": "Hết chỗ trong hành trang: không nhận / mua / trả nhiệm vụ cần chỗ", "message": "Hành trang không đủ chỗ trống", "where": "PlayerItems, PlayerTasks.FinishTask" },
+    { "id": "equip-level", "area": "Vật phẩm", "rule": "Dùng / mặc đồ cần level >= level của đồ", "where": "PlayerItems.UseItem" },
+    { "id": "hp-full", "area": "Vật phẩm", "rule": "Không dùng thuốc khi HP/MP đã đầy", "message": "HP đã đầy. / MP đã đầy.", "where": "PlayerItems.UseItem" },
+    { "id": "book-class", "area": "Kỹ năng", "rule": "Sách võ công phải đúng trường và chưa học", "message": "Sách này không đúng với trường bạn! / Chiêu này đã học!", "where": "PlayerSkills.LearnSkill" },
+    { "id": "skill-level", "area": "Kỹ năng", "rule": "Cộng điểm kỹ năng cần đủ level của điểm tiếp theo (skill.level) và có điểm kỹ năng", "message": "Trình độ không đủ yêu cầu. / Bạn không đủ điểm.", "where": "PlayerSkills.UpSkill" },
+    { "id": "drop-owner", "area": "Rơi đồ", "rule": "Đồ rơi thuộc người giết trong 20 s đầu, biến mất sau 30 s", "message": "Vật phẩm của người khác", "where": "PlayerItems.PickItem, UpdateItemMaps" },
+    { "id": "drop-rates", "area": "Rơi đồ", "rule": "VP nhiệm vụ 1/3 (heo rừng luôn rơi rìu); boss không rơi đồ thường; chênh lệch level > 7 không rơi; 10% yên, 10% vật phẩm, 5% trang bị trong khoảng ±7 level", "where": "PlayerItems.OnMobDead" },
+    { "id": "quest-npc", "area": "Nhiệm vụ", "rule": "Mỗi bước có NPC riêng (task.npcs[index+1]); -1 = thầy/cô của trường; NPC phải đứng trong khu hiện tại", "message": "Không tìm thấy NPC này", "where": "PlayerTasks.TaskNpcId, HasNpc" },
+    { "id": "quest-skip", "area": "Nhiệm vụ", "rule": "Bước chưa port được cơ chế (status skip trong quests) có mục 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ", "where": "PlayerTasks.InitMenu, IsStepSupported" },
+    { "id": "quiz", "area": "Nhiệm vụ", "rule": "Câu đố: trả lời đúng đủ 5 câu thì qua 5 bước; sai thì hỏi lại", "where": "PlayerTasks.QuestionAndAnswer, Answer" },
+    { "id": "admission", "area": "Nhiệm vụ", "rule": "Nhập học ở thầy/cô (cần NV tìm hiểu 3 trường); nhận vũ khí và sách của trường", "where": "PlayerTasks.Admission" },
+    { "id": "mp-min", "area": "Chỉ số", "rule": "MP tối đa không dưới 100 (giá trị Java cho nhân vật mới)", "where": "PlayerCombat.SetAbility" }
+  ],
+
+  "commands": [
+    { "id": "c2s:-30/-103", "dir": "client→server", "cmd": -30, "sub": -103, "name": "REQUEST_ITEM (mở shop)", "handler": "PlayerItems.RequestShop", "status": "done" },
+    { "id": "c2s:-30/-109", "dir": "client→server", "cmd": -30, "sub": -109, "name": "POTENTIAL_UP", "handler": "PlayerSkills.UpPotential", "status": "done" },
+    { "id": "c2s:-30/-108", "dir": "client→server", "cmd": -30, "sub": -108, "name": "SKILL_UP", "handler": "PlayerSkills.UpSkill", "status": "done" },
+    { "id": "c2s:-28/-115", "dir": "client→server", "cmd": -28, "sub": -115, "name": "REQUEST_ICON", "handler": "Controller.SendIcon", "status": "done" },
+    { "id": "c2s:-28/-108", "dir": "client→server", "cmd": -28, "sub": -108, "name": "REQUEST_NPCTEMPLATE", "handler": "Controller.SendMobTemplate", "status": "done" },
+    { "id": "c2s:-28/-126", "dir": "client→server", "cmd": -28, "sub": -126, "name": "SELECT_PLAYER", "handler": "Controller", "status": "done" },
+    { "id": "c2s:-28/-125", "dir": "client→server", "cmd": -28, "sub": -125, "name": "CREATE_PLAYER", "handler": "Controller.CreateCharacter", "status": "done" },
+    { "id": "c2s:1", "dir": "client→server", "cmd": 1, "name": "PLAYER_MOVE", "handler": "PlayerActions.Move", "status": "done" },
+    { "id": "c2s:-17", "dir": "client→server", "cmd": -17, "name": "MAP_CHANGE", "handler": "PlayerActions.RequestChangeMap", "status": "done" },
+    { "id": "c2s:36", "dir": "client→server", "cmd": 36, "name": "OPEN_UI_ZONE", "handler": "PlayerActions.OpenUiZone", "status": "done" },
+    { "id": "c2s:28", "dir": "client→server", "cmd": 28, "name": "ZONE_CHANGE", "handler": "PlayerActions.ChangeZone", "status": "done" },
+    { "id": "c2s:-9", "dir": "client→server", "cmd": -9, "name": "ME_BACK (về làng khi chết)", "handler": "PlayerActions.ReturnTownFromDead", "status": "done" },
+    { "id": "c2s:-10", "dir": "client→server", "cmd": -10, "name": "ME_LIVE (hồi sinh tại chỗ)", "handler": "PlayerActions.ReviveInPlace", "status": "done" },
+    { "id": "c2s:41", "dir": "client→server", "cmd": 41, "name": "SKILL_SELECT", "handler": "PlayerSkills.SelectSkill", "status": "done" },
+    { "id": "c2s:60", "dir": "client→server", "cmd": 60, "name": "PLAYER_ATTACK_NPC (đánh quái)", "handler": "PlayerCombat.AttackMonster", "status": "done" },
+    { "id": "c2s:40", "dir": "client→server", "cmd": 40, "name": "OPEN_UI_MENU (bấm NPC)", "handler": "PlayerTasks.OpenMenu", "status": "done" },
+    { "id": "c2s:29", "dir": "client→server", "cmd": 29, "name": "MENU (chọn mục menu NPC)", "handler": "PlayerTasks.Menu", "status": "done" },
+    { "id": "c2s:47", "dir": "client→server", "cmd": 47, "name": "TASK_GET (trả lời hộp xác nhận)", "handler": "PlayerTasks.GetTask", "status": "done" },
+    { "id": "c2s:11", "dir": "client→server", "cmd": 11, "name": "ITEM_USE", "handler": "PlayerItems.UseItem", "status": "done" },
+    { "id": "c2s:13", "dir": "client→server", "cmd": 13, "name": "ITEM_BUY", "handler": "PlayerItems.BuyItem", "status": "done" },
+    { "id": "c2s:15", "dir": "client→server", "cmd": 15, "name": "ITEM_BODY_TO_BAG (tháo đồ)", "handler": "PlayerItems.ItemBodyToBag", "status": "done" },
+    { "id": "c2s:42", "dir": "client→server", "cmd": 42, "name": "REQUEST_ITEM_INFO", "handler": "PlayerItems.RequestItemInfo", "status": "done" },
+    { "id": "c2s:-14", "dir": "client→server", "cmd": -14, "name": "ITEMMAP_MYPICK (nhặt đồ)", "handler": "PlayerItems.PickItem", "status": "done" },
+    { "id": "c2s:other", "dir": "client→server", "cmd": null, "name": "Các lệnh khác (bán, vứt, nâng cấp, chat, bạn bè, nhóm...)", "handler": "bỏ qua", "status": "todo" },
+    { "id": "s2c:63", "dir": "server→client", "cmd": 63, "name": "OPEN_UI_NEWMENU (menu NPC)", "handler": "PlayerService.OpenUiMenu", "status": "done" },
+    { "id": "s2c:39", "dir": "server→client", "cmd": 39, "name": "OPEN_UI_CONFIRM", "handler": "PlayerService.OpenUiConfirm", "status": "done" },
+    { "id": "s2c:38", "dir": "server→client", "cmd": 38, "name": "NPC_CHAT", "handler": "PlayerService.NpcChat", "status": "done" },
+    { "id": "s2c:47-50", "dir": "server→client", "cmd": 47, "name": "TASK_GET / NEXT / FINISH / UPDATE (47/48/49/50)", "handler": "PlayerService.SendTaskInfo, TaskNext, TaskFinish, TaskCount", "status": "done" },
+    { "id": "s2c:8", "dir": "server→client", "cmd": 8, "name": "ITEM_BAG_ADD", "handler": "PlayerItems.AddItemToBag", "status": "done" },
+    { "id": "s2c:18", "dir": "server→client", "cmd": 18, "name": "ITEM_USE_UPTOUP", "handler": "PlayerService.UseItemUpToUp", "status": "done" },
+    { "id": "s2c:33", "dir": "server→client", "cmd": 33, "name": "OPEN_UI_SHOP", "handler": "PlayerItems.RequestShop", "status": "done" },
+    { "id": "s2c:6", "dir": "server→client", "cmd": 6, "name": "ITEMMAP_ADD / -14 pick / -15 remove", "handler": "PlayerService", "status": "done" },
+    { "id": "s2c:85-91", "dir": "server→client", "cmd": 85, "name": "NPC_IS_* (trạng thái quái: lửa, băng, gió, trói, vô hiệu)", "handler": "PlayerService.MobState", "status": "done" },
+    { "id": "s2c:-30/-122,-121", "dir": "server→client", "cmd": -30, "name": "ME_HP / ME_MP (sub -122 / -121), -111 loadHP", "handler": "PlayerService.UpdateHp/UpdateMp/LoadHp", "status": "done" },
+    { "id": "s2c:-30/-101,-99", "dir": "server→client", "cmd": -30, "name": "Hiệu ứng nhân vật thêm / xoá (sub -101 / -99)", "handler": "PlayerService.AddEffect/RemoveEffect", "status": "done" },
+    { "id": "s2c:-30/-126,-125", "dir": "server→client", "cmd": -30, "name": "ME_LOAD_CLASS / ME_LOAD_SKILL", "handler": "PlayerService.LoadClass/LoadSkill", "status": "done" },
+    { "id": "s2c:-8,95", "dir": "server→client", "cmd": -8, "name": "Nhận yên (-8) / xu (95)", "handler": "PlayerItems.AddYen/AddXu", "status": "done" }
+  ],
+
+  "config": [
+    { "id": "NaturalRegenPercent", "file": "Server/Net/PlayerEffects.cs", "default": 2, "desc": "% HP/MP tối đa hồi tự nhiên mỗi NaturalRegenMs. 0 = giống bản gốc (không tự hồi)." },
+    { "id": "NaturalRegenMs", "file": "Server/Net/PlayerEffects.cs", "default": 5000, "desc": "Chu kỳ hồi tự nhiên (ms)." },
+    { "id": "_wikiEnabled", "file": "NSO Server Control (Inspector)", "default": true, "desc": "Bật website tra cứu khi chạy game (Editor / development build)." },
+    { "id": "_wikiPort", "file": "NSO Server Control (Inspector)", "default": 8787, "desc": "Cổng đầu tiên của website; bận thì thử 9 cổng kế tiếp." },
+    { "id": "_wikiOpenBrowser", "file": "NSO Server Control (Inspector)", "default": false, "desc": "Tự mở trình duyệt khi game chạy." },
+    { "id": "_saveSubfolder", "file": "NSO Server Control (Inspector)", "default": "NsoData", "desc": "Thư mục lưu save trong persistentDataPath." },
+    { "id": "_staticSubfolder", "file": "NSO Server Control (Inspector)", "default": "NsoStatic", "desc": "Thư mục dữ liệu tĩnh (tables.txt, Data) trong StreamingAssets." }
+  ],
+
+  "deviations": [
+    { "id": "natural-regen", "title": "Tự hồi HP/MP 2% mỗi 5 s", "why": "Người dùng yêu cầu hồi theo thời gian; bản gốc chỉ hồi bằng thức ăn / thuốc / trang bị.", "how": "PlayerEffects.NaturalRegenPercent = 0 để giống gốc." },
+    { "id": "skip-steps", "title": "Bỏ qua bước nhiệm vụ chưa port", "why": "Hang động, hộ tống Jaian, câu cá, xách nước, hằng ngày, bạn bè, nâng cấp, chiến trường chưa có.", "how": "Menu 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ." },
+    { "id": "generic-talk", "title": "Bước 'nói chuyện' ở NPC chưa port menu", "why": "Để chuỗi nhiệm vụ không bị kẹt.", "how": "Mục menu tên theo bước, bấm là qua bước." },
+    { "id": "no-luong", "title": "Không có lượng", "why": "Bản offline không nạp tiền.", "how": "" },
+    { "id": "auto-login", "title": "Tự đăng nhập 1 tài khoản cục bộ", "why": "Offline.", "how": "2 test đăng nhập sai mật khẩu / tên sai luôn fail (dự kiến)." }
+  ],
+
+  "issues": [
+    { "id": "not-played", "title": "Chưa kiểm tra trong game thật", "status": "todo", "detail": "Nhiệm vụ, shop, rơi đồ, kỹ năng mới chỉ qua test tự động (Tools/ServerTests)." },
+    { "id": "login-tests", "title": "2 test đăng nhập fail", "status": "skip", "detail": "Dự kiến: bản offline luôn đăng nhập 1 tài khoản." }
+  ],
+
+  "tests": [
+    { "id": "questcheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- questcheck", "covers": "NV 0–3: chào làng, câu đố, kiếm gỗ, bù nhìn, mua và ăn cơm nắm", "result": "16/16 pass (2026-11-11)" },
+    { "id": "progresscheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- progresscheck", "covers": "rơi VP nhiệm vụ, nhặt, nhập học, sách, điểm kỹ năng / tiềm năng, vũ khí trường", "result": "12/12 pass (2026-11-11)" },
+    { "id": "combatcheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- combatcheck", "covers": "đánh quái, exp, chết, hồi sinh", "result": "pass" },
+    { "id": "entercheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- entercheck C:/NSO_OFFLINE/captures/enter_map22.txt 22", "covers": "vào map 22 khớp Java", "result": "khớp từng byte" },
+    { "id": "wiki", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- wiki", "covers": "dựng db.json của website tra cứu và chạy website không cần Unity", "result": "" }
+  ]
+}

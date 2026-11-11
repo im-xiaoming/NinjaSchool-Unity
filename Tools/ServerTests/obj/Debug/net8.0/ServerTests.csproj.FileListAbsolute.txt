@@ -1,0 +1,15 @@
+C:\My project\Tools\ServerTests\bin\Debug\net8.0\ServerTests.exe
+C:\My project\Tools\ServerTests\bin\Debug\net8.0\ServerTests.deps.json
+C:\My project\Tools\ServerTests\bin\Debug\net8.0\ServerTests.runtimeconfig.json
+C:\My project\Tools\ServerTests\bin\Debug\net8.0\ServerTests.dll
+C:\My project\Tools\ServerTests\bin\Debug\net8.0\ServerTests.pdb
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.GeneratedMSBuildEditorConfig.editorconfig
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.AssemblyInfoInputs.cache
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.AssemblyInfo.cs
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.csproj.CoreCompileInputs.cache
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.dll
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\refint\ServerTests.dll
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.pdb
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.genruntimeconfig.cache
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ref\ServerTests.dll
+C:\My project\Tools\ServerTests\obj\Debug\net8.0\ServerTests.sourcelink.json

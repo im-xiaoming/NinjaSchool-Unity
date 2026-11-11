@@ -1,0 +1,35 @@
+--sX: Tốc độ chạy X
+--rs: Reset tốc độ chạy
+--e: Tắt auto
+--kX: Chuyển khu X
+--die: Tự sát
+--ltd: Lưu tọa độ
+--ts: Tàn sát all
+--tsX: Tàn sát quái lvX
+--ak: Bật/Tắt tự đánh
+--xdh: Bật/Tắt xóa địa hình
+--glv: Bật/Tắt giữ level (Khi EXP đạt 98% sẽ tự thoát phiên bản)
+--nv: Bật/Tắt hiển thị nhân vật trong map
+--gt X: Dịch chuyển đến nhân vật X trong map
+--cnhat: Bật HútVP hoặc Nhặt xa
+--cmap: Bật/Tắt chuyển map hết boss
+--atc: Bật/Tắt auto chat file txt (Ghi nội dung chat trong file HungHero.txt)
+--hsl: Bật/Tắt hồi sinh bằng lượng (Chỉ hoặt động khi bật Tàn Sát)
+--tdmX: Tốc độ nextmap X (X tính = mili giây)
+--gm + mapID: Bay đến map có id mapID.
+--nmX: Next map số X (vd ở làng tone nm0 là next đến ichidai, nm1 next đồi kokoro)
+--npcX: Act npc id số X (Có hiện id cạnh tên NPC)
+--g: Goto đến nhân vật, npc, item đang trỏ
+--u: Kinh kông
+--d: Độn thổ
+--l: Dịch trái
+--r: Dịch phải
+--as10: auto nv lv10
+--as20:auto nv lv20
+--as20k:auto nv lv20 vào kiếm
+--as20t:auto nv lv20 vào tiêu
+--as20u:auto nv lv20 vào kunai
+--as20c:auto nv lv20 vào cung
+--as20d:auto nv lv20 vào đao
+--as20q:auto nv lv20 vào quạt
+--hs, hr, oz,...: Next to Hirosaki, Haruna, Ozaka,...

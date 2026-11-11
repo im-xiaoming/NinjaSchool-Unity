@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NSO Dev Wiki</title>
+<!-- Dev wiki of the offline NSO server. Served by Assets/Server/DevWiki/WikiServer.cs; data from /db.json (WikiData.cs + notes.json). -->
+<style>
+:root {
+  --bg: #f7f7f5; --panel: #ffffff; --text: #1f2328; --muted: #646b73; --line: #e2e2de; --accent: #2457c5;
+  --hover: #eef2fb; --sel: #dfe7fa; --code: #f1f1ee;
+  --done: #1a7f37; --done-bg: #e3f4e7; --partial: #9a6700; --partial-bg: #fbf0d4; --todo: #b42318; --todo-bg: #fde7e5;
+  --skip: #6e5bb7; --skip-bg: #ece8fa;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --panel: #1f2023; --text: #e6e6e3; --muted: #9a9ea3; --line: #33353a; --accent: #7aa2f7;
+    --hover: #262a33; --sel: #2c3446; --code: #26272b;
+    --done: #6fcf8a; --done-bg: #1d3325; --partial: #e3b341; --partial-bg: #3a3019; --todo: #f47067; --todo-bg: #3d1f1f;
+    --skip: #b4a5f5; --skip-bg: #2b2640;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 "Segoe UI", "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; }
+a { color: var(--accent); text-decoration: none; cursor: pointer; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: "Cascadia Mono", Consolas, "SF Mono", monospace; font-size: 13px; }
+
+.app { display: grid; grid-template-columns: 220px 1fr; height: 100vh; }
+nav { border-right: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 14px 10px; }
+nav h1 { font-size: 16px; margin: 2px 8px 2px; }
+nav .gen { font-size: 12px; color: var(--muted); margin: 0 8px 12px; }
+nav .group { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 8px 4px; }
+nav button { display: flex; justify-content: space-between; width: 100%; border: 0; background: none; color: var(--text);
+  font: inherit; padding: 5px 8px; border-radius: 6px; cursor: pointer; text-align: left; }
+nav button:hover { background: var(--hover); }
+nav button.on { background: var(--sel); font-weight: 600; }
+nav button .n { color: var(--muted); font-size: 12px; font-weight: 400; }
+
+main { display: grid; grid-template-rows: auto 1fr; min-width: 0; height: 100vh; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.bar input[type=search] { flex: 1 1 320px; min-width: 200px; font: inherit; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--text); }
+.bar input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.bar select, .bar button { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); cursor: pointer; }
+.bar label { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; background: var(--bg); user-select: none; }
+.chip.on { border-color: var(--accent); background: var(--sel); }
+
+.body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 40%); min-height: 0; }
+.body.nodetail { grid-template-columns: minmax(0, 1fr); }
+.list { overflow: auto; min-height: 0; }
+.info { padding: 8px 16px; color: var(--muted); font-size: 13px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { position: sticky; top: 0; background: var(--panel); font-size: 13px; color: var(--muted); font-weight: 600; cursor: pointer; white-space: nowrap; z-index: 1; }
+th:hover { color: var(--text); }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--hover); }
+tbody tr.sel { background: var(--sel); }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .clip { max-width: 420px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.more { margin: 12px 16px; }
+
+.badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.b-done { color: var(--done); background: var(--done-bg); }
+.b-partial { color: var(--partial); background: var(--partial-bg); }
+.b-todo { color: var(--todo); background: var(--todo-bg); }
+.b-skip { color: var(--skip); background: var(--skip-bg); }
+
+.detail { border-left: 1px solid var(--line); background: var(--panel); overflow: auto; padding: 14px 18px 40px; min-height: 0; }
+.detail h2 { margin: 0 0 2px; font-size: 18px; }
+.detail .path { color: var(--muted); font-size: 12px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.detail .path button { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 6px; padding: 2px 8px; cursor: pointer; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.kv > .k { color: var(--muted); font-size: 13px; padding-top: 1px; }
+.kv > .v { word-break: break-word; }
+.sub { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; margin: 4px 0; }
+.empty { color: var(--muted); }
+.mini { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.mini th { position: static; font-size: 12px; cursor: default; }
+.mini th, .mini td { padding: 3px 8px; font-size: 13px; }
+.mini tbody tr { cursor: default; }
+.kv.wide { grid-template-columns: 1fr; }
+.close { float: right; border: 0; background: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; }
+.card:hover { border-color: var(--accent); }
+.card h3 { margin: 0 0 6px; font-size: 15px; }
+.bars { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); margin: 6px 0; }
+.bars span { display: block; height: 100%; }
+.legend { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.help { padding: 0 16px 16px; color: var(--muted); font-size: 13px; }
+.help code { background: var(--code); padding: 1px 5px; border-radius: 4px; }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; height: auto; }
+  nav { border-right: 0; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 4px; }
+  nav h1, nav .gen, nav .group { width: 100%; }
+  nav button { width: auto; gap: 6px; }
+  main { height: auto; }
+  .body, .body.nodetail { grid-template-columns: 1fr; }
+  .detail { border-left: 0; border-top: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav id="nav"></nav>
+  <main>
+    <div class="bar">
+      <input id="q" type="search" placeholder="Tìm (không cần dấu)… ví dụ: kiem go · id:194 · status:todo · giverNpc:12" autocomplete="off">
+      <label id="facetWrap" hidden><span id="facetLabel"></span><select id="facet"></select></label>
+      <div class="chips" id="chips"></div>
+      <button id="reload" title="Dựng lại db.json (đọc lại notes.json)">Tải lại dữ liệu</button>
+    </div>
+    <div class="body nodetail" id="body">
+      <div class="list" id="list"></div>
+      <div class="detail" id="detail" hidden></div>
+    </div>
+  </main>
+</div>
+<script>
+"use strict";
+// ---------------------------------------------------------------- configuration
+// Collections shown in the sidebar: label, group, list columns, facet field (dropdown filter).
+const COLS = {
+  overview:    { label: "Tổng quan", group: "Dự án" },
+  features:    { label: "Tính năng", group: "Dự án", cols: ["id", "area", "title", "status", "files"], facet: "area" },
+  constraints: { label: "Ràng buộc / luật", group: "Dự án", cols: ["id", "area", "rule", "message", "where"], facet: "area" },
+  deviations:  { label: "Khác bản gốc", group: "Dự án", cols: ["id", "title", "why", "how"] },
+  issues:      { label: "Vấn đề", group: "Dự án", cols: ["id", "title", "status", "detail"] },
+  config:      { label: "Cấu hình", group: "Dự án", cols: ["id", "default", "file", "desc"] },
+  commands:    { label: "Lệnh mạng (cmd)", group: "Dự án", cols: ["id", "dir", "name", "handler", "status"], facet: "dir" },
+  tests:       { label: "Test", group: "Dự án", cols: ["id", "covers", "result", "cmd"] },
+  quests:      { label: "Nhiệm vụ", group: "Dữ liệu game", cols: ["id", "name", "levelRequire", "giverNpcName", "rewardExp", "rewardYen", "unsupportedSteps", "status"] },
+  npcs:        { label: "NPC", group: "Dữ liệu game", cols: ["id", "name", "status", "maps", "questGiver"] },
+  maps:        { label: "Bản đồ", group: "Dữ liệu game", cols: ["id", "name", "typeName", "zones", "unlockQuest", "npcs", "mobs", "status"], facet: "typeName" },
+  mobs:        { label: "Quái", group: "Dữ liệu game", cols: ["id", "name", "level", "hp", "boss", "maps", "questDrops"], facet: "boss" },
+  items:       { label: "Vật phẩm", group: "Dữ liệu game", cols: ["id", "name", "typeName", "level", "gender", "shops", "droppedBy"], facet: "typeName" },
+  shops:       { label: "Cửa hàng", group: "Dữ liệu game", cols: ["id", "name", "itemCount"] },
+  skills:      { label: "Kỹ năng", group: "Dữ liệu game", cols: ["id", "name", "className", "typeName", "maxPoint", "status"], facet: "className" },
+  effects:     { label: "Hiệu ứng", group: "Dữ liệu game", cols: ["id", "name", "type", "icon"], facet: "type" },
+  itemOptions: { label: "Option vật phẩm", group: "Dữ liệu game", cols: ["id", "name", "type"], facet: "type" },
+  classes:     { label: "Trường / lớp", group: "Dữ liệu game", cols: ["id", "name"] }
+};
+// field name -> collection its value (an id) points to, for links in the detail panel
+const LINK = { npc: "npcs", giverNpc: "npcs", map: "maps", mob: "mobs", killMob: "mobs", droppedBy: "mobs", item: "items",
+  pickItem: "items", shop: "shops", unlockQuest: "quests", quest: "quests", class: "classes" };
+// array name -> collection of the "id" of its objects
+const ARRAY_LINK = { npcs: "npcs", mobs: "mobs", maps: "maps" };
+const STATUS_TEXT = { done: "Xong", partial: "Một phần", todo: "Chưa làm", skip: "Bỏ qua" };
+const PAGE = 300;
+
+let DB = null, cur = "overview", selId = null, sortKey = null, sortDir = 1, limit = PAGE;
+const statusOn = new Set();
+const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------- helpers
+const fold = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const badge = s => STATUS_TEXT[s] ? `<span class="badge b-${s}">${STATUS_TEXT[s]}</span>` : esc(s);
+const docs = name => (DB && DB.collections[name]) || [];
+
+// all text of a document (for free-text search), cached
+const textCache = new WeakMap();
+function docText(d) {
+  let t = textCache.get(d);
+  if (t === undefined) { t = fold(JSON.stringify(d)); textCache.set(d, t); }
+  return t;
+}
+// field:value terms match a top-level field (numbers exactly, text by contains); other words must appear anywhere
+function parseQuery(q) {
+  const terms = [];
+  for (const m of q.matchAll(/(\w+):("([^"]*)"|\S+)|"([^"]*)"|(\S+)/g)) {
+    if (m[1]) terms.push({ field: m[1], value: fold(m[3] ?? m[2]) });
+    else terms.push({ value: fold(m[4] ?? m[5]) });
+  }
+  return terms;
+}
+function matchField(v, want) {
+  if (v === undefined) return false;
+  if (Array.isArray(v)) return v.some(x => matchField(x, want));
+  if (v !== null && typeof v === "object") return Object.values(v).some(x => matchField(x, want));
+  if (typeof v === "number" || /^-?\d+$/.test(want)) return String(v) === want;
+  return fold(v).includes(want);
+}
+function matches(d, terms) {
+  for (const t of terms) {
+    if (t.field) { if (!matchField(d[t.field], t.value)) return false; }
+    else if (!docText(d).includes(t.value)) return false;
+  }
+  return true;
+}
+
+// short text of a value for a table cell
+function cell(key, v) {
+  if (key === "status") return badge(v);
+  if (v === null || v === undefined) return "";
+  if (typeof v === "boolean") return v ? "✓" : "";
+  if (Array.isArray(v)) {
+    const parts = v.map(x => x && typeof x === "object" ? (x.name ?? x.mapName ?? x.shopName ?? x.itemName ?? x.mobName ?? x.id ?? x.map ?? x.mob) : x);
+    const uniq = [...new Set(parts)];
+    return `<div class="clip">${esc(uniq.slice(0, 6).join(", "))}${uniq.length > 6 ? " …+" + (uniq.length - 6) : ""}</div>`;
+  }
+  if (typeof v === "number") return v.toLocaleString("vi-VN");
+  return `<div class="clip">${esc(v)}</div>`;
+}
+
+// ---------------------------------------------------------------- navigation
+function buildNav() {
+  let html = `<h1>NSO Dev Wiki</h1><div class="gen">Dữ liệu: ${esc(DB.generatedAt)}</div>`;
+  let group = null;
+  for (const [name, c] of Object.entries(COLS)) {
+    if (name !== "overview" && !DB.collections[name]) continue;
+    if (c.group !== group) { group = c.group; html += `<div class="group">${esc(group)}</div>`; }
+    const n = name === "overview" ? "" : docs(name).length;
+    html += `<button data-c="${name}" class="${name === cur ? "on" : ""}">${esc(c.label)}<span class="n">${n}</span></button>`;
+  }
+  // collections in the database but not configured above
+  for (const name of Object.keys(DB.collections)) if (!COLS[name])
+    html += `<button data-c="${name}" class="${name === cur ? "on" : ""}">${esc(name)}<span class="n">${docs(name).length}</span></button>`;
+  $("nav").innerHTML = html;
+  $("nav").querySelectorAll("button").forEach(b => b.onclick = () => { if (b.dataset.c !== cur) $("q").value = ""; go(b.dataset.c, null); });
+}
+
+function go(name, id) {
+  if (name !== cur) { sortKey = null; sortDir = 1; statusOn.clear(); $("facet").value = ""; limit = PAGE; }
+  cur = name; selId = id;
+  location.hash = id === null || id === undefined ? name : name + "/" + encodeURIComponent(id);
+  render();
+}
+
+function fromHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (!h) return;
+  const i = h.indexOf("/");
+  const name = i < 0 ? h : h.slice(0, i), id = i < 0 ? null : h.slice(i + 1);
+  if (name !== "overview" && !DB.collections[name]) return;
+  if (name !== cur) { sortKey = null; statusOn.clear(); $("facet").value = ""; $("q").value = ""; limit = PAGE; }
+  cur = name; selId = id;
+}
+
+// ---------------------------------------------------------------- filters
+function buildFilters() {
+  const list = docs(cur), c = COLS[cur] || {};
+  // status chips
+  const statuses = [...new Set(list.map(d => d.status).filter(s => s))];
+  $("chips").innerHTML = statuses.map(s => `<span class="chip ${statusOn.has(s) ? "on" : ""}" data-s="${s}">${STATUS_TEXT[s] || s} (${list.filter(d => d.status === s).length})</span>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(ch => ch.onclick = () => {
+    const s = ch.dataset.s; statusOn.has(s) ? statusOn.delete(s) : statusOn.add(s); limit = PAGE; render();
+  });
+  // facet dropdown
+  const f = c.facet;
+  if (!f || cur === "overview") { $("facetWrap").hidden = true; return; }
+  const prev = $("facet").value;
+  const counts = new Map();
+  for (const d of list) { const k = String(d[f]); counts.set(k, (counts.get(k) || 0) + 1); }
+  const keys = [...counts.keys()].sort((a, b) => isNaN(a) || isNaN(b) ? a.localeCompare(b, "vi") : a - b);
+  $("facetLabel").textContent = f + ":";
+  $("facet").innerHTML = `<option value="">Tất cả</option>` + keys.map(k => `<option value="${esc(k)}">${esc(k)} (${counts.get(k)})</option>`).join("");
+  $("facet").value = keys.includes(prev) ? prev : "";
+  $("facetWrap").hidden = false;
+}
+
+function filtered() {
+  const terms = parseQuery($("q").value.trim());
+  const f = (COLS[cur] || {}).facet, fv = $("facet").value;
+  let out = docs(cur).filter(d => (!statusOn.size || statusOn.has(d.status)) && (!f || !fv || String(d[f]) === fv) && matches(d, terms));
+  if (sortKey) {
+    out = out.slice().sort((a, b) => {
+      const x = a[sortKey], y = b[sortKey];
+      const nx = Array.isArray(x) ? x.length : x, ny = Array.isArray(y) ? y.length : y;
+      if (typeof nx === "number" && typeof ny === "number") return (nx - ny) * sortDir;
+      return String(nx ?? "").localeCompare(String(ny ?? ""), "vi") * sortDir;
+    });
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- views
+function render() {
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.c === cur));
+  buildFilters();
+  if (cur === "overview") { renderOverview(); return; }
+  const c = COLS[cur] || {};
+  const rows = filtered();
+  const all = docs(cur);
+  const cols = c.cols || Object.keys(all[0] || {}).filter(k => typeof all[0][k] !== "object").slice(0, 7);
+  let html = `<div class="info">${rows.length.toLocaleString("vi-VN")} / ${all.length.toLocaleString("vi-VN")} bản ghi</div><table><thead><tr>`;
+  for (const k of cols) html += `<th data-k="${k}">${esc(k)}${sortKey === k ? (sortDir > 0 ? " ▲" : " ▼") : ""}</th>`;
+  html += `</tr></thead><tbody>`;
+  for (const d of rows.slice(0, limit)) {
+    html += `<tr data-id="${esc(d.id)}" class="${String(d.id) === String(selId) ? "sel" : ""}">`;
+    for (const k of cols) html += `<td class="${typeof d[k] === "number" ? "num" : ""}">${cell(k, d[k])}</td>`;
+    html += `</tr>`;
+  }
+  html += `</tbody></table>`;
+  if (rows.length > limit) html += `<button class="more" id="more">Hiện thêm (${rows.length - limit} còn lại)</button>`;
+  $("list").innerHTML = html;
+  $("list").querySelectorAll("th").forEach(th => th.onclick = () => {
+    const k = th.dataset.k; if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; } render();
+  });
+  $("list").querySelectorAll("tbody tr").forEach(tr => tr.onclick = () => go(cur, tr.dataset.id));
+  if ($("more")) $("more").onclick = () => { limit += PAGE; render(); };
+  renderDetail();
+}
+
+function renderOverview() {
+  const f = docs("features");
+  const areas = [...new Set(f.map(d => d.area))];
+  const sum = list => ({ done: list.filter(d => d.status === "done").length, partial: list.filter(d => d.status === "partial").length,
+    todo: list.filter(d => d.status === "todo").length, skip: list.filter(d => d.status === "skip").length, n: list.length });
+  const bar = s => `<div class="bars">${["done", "partial", "skip", "todo"].map(k => s[k] ? `<span style="width:${100 * s[k] / s.n}%;background:var(--${k})"></span>` : "").join("")}</div>
+    <div class="legend">${["done", "partial", "skip", "todo"].filter(k => s[k]).map(k => `<span>${STATUS_TEXT[k]}: ${s[k]}</span>`).join("")}</div>`;
+  let html = `<div class="cards">`;
+  const card = (title, list, target, q) => `<div class="card" data-go="${target}" data-q="${esc(q || "")}"><h3>${esc(title)}</h3>${bar(sum(list))}</div>`;
+  html += card("Tất cả tính năng", f, "features");
+  for (const a of areas) html += card(a, f.filter(d => d.area === a), "features", "area:\"" + a + "\"");
+  for (const name of ["quests", "npcs", "maps", "skills"]) if (DB.collections[name]) html += card("Dữ liệu game: " + COLS[name].label, docs(name), name);
+  html += `</div><div class="help">
+    <p><b>Tìm kiếm</b>: gõ chữ không dấu là được (<code>kiem go</code>). Lọc theo trường: <code>id:194</code>, <code>status:todo</code>,
+    <code>maps:"lang tone"</code> (tìm cả trong danh sách con), <code>giverNpc:12</code>, <code>area:"Vật phẩm"</code>. Nhiều điều kiện thì cách nhau bằng dấu cách.</p>
+    <p><b>Liên kết</b>: link dạng <code>#items/194</code>, <code>#quests/2</code> mở thẳng bản ghi, dán vào ghi chú bug được.</p>
+    <p><b>API cho agent / script</b>: <a href="api" target="_blank">/api</a> (danh sách collection và cú pháp),
+    <code>/api/search?q=kiem go</code>, <code>/api/quests/2</code>, <code>/api/npcs?status=todo&amp;fields=id,name</code>.</p>
+    <p><b>File</b>: dữ liệu game được sinh từ <code>tables.txt</code> và code server mỗi lần chạy game; phần viết tay nằm ở
+    <code>Assets/StreamingAssets/NsoWiki/notes.json</code>. Khi chạy trong Editor, toàn bộ cơ sở dữ liệu cũng được ghi ra <code>NsoWiki/db.json</code> ở thư mục project.</p>
+  </div>`;
+  $("list").innerHTML = html;
+  $("list").querySelectorAll(".card").forEach(c => c.onclick = () => { $("q").value = c.dataset.q; go(c.dataset.go, null); });
+  $("detail").hidden = true; $("body").classList.add("nodetail");
+}
+
+// ---------------------------------------------------------------- detail panel
+function link(coll, id, text) {
+  if (id === null || id === undefined || id < 0 || !DB.collections[coll]) return esc(text ?? id);
+  return `<a data-c="${coll}" data-id="${esc(id)}">${esc(text ?? id)}</a>`;
+}
+function value(key, v, parentArray) {
+  if (key === "status") return badge(v);
+  if (v === null || v === undefined) return `<span class="empty">—</span>`;
+  if (Array.isArray(v)) {
+    if (!v.length) return `<span class="empty">(trống)</span>`;
+    if (v.every(x => x === null || typeof x !== "object")) {
+      // quest references such as "2.1" (quest.step) in npcs / mobs / items
+      if (/^quest/.test(key)) return v.map(x => link("quests", String(x).split(".")[0], x)).join(", ");
+      return v.map(x => LINK[key] ? link(LINK[key], x) : esc(x)).join(", ");
+    }
+    // list of flat objects (quest steps, map npcs, shop items...): a small table
+    if (v.every(x => x && typeof x === "object" && Object.values(x).every(y => y === null || typeof y !== "object"))) {
+      const keys = [...new Set(v.flatMap(x => Object.keys(x)))];
+      return `<div class="mini"><table><thead><tr>${keys.map(k => `<th>${esc(k)}</th>`).join("")}</tr></thead><tbody>` +
+        v.map(x => `<tr>${keys.map(k => `<td>${k in x ? value(k, x[k], key) : ""}</td>`).join("")}</tr>`).join("") + `</tbody></table></div>`;
+    }
+    return v.map(x => `<div class="sub">${object(x, key)}</div>`).join("");
+  }
+  if (typeof v === "object") return `<div class="sub">${object(v, key)}</div>`;
+  if (key === "id" && ARRAY_LINK[parentArray]) return link(ARRAY_LINK[parentArray], v);
+  if (LINK[key] && typeof v === "number") return link(LINK[key], v);
+  if (typeof v === "boolean") return v ? "có" : "không";
+  if (typeof v === "number") return `<span class="mono">${v.toLocaleString("vi-VN")}</span>`;
+  return esc(v).replace(/\n/g, "<br>");
+}
+function object(o, parentArray) {
+  return `<div class="kv">${Object.entries(o).map(([k, v]) => `<div class="k">${esc(k)}</div><div class="v">${value(k, v, parentArray)}</div>`).join("")}</div>`;
+}
+function renderDetail() {
+  const d = selId === null ? null : docs(cur).find(x => String(x.id) === String(selId));
+  if (!d) { $("detail").hidden = true; $("body").classList.add("nodetail"); return; }
+  $("detail").hidden = false; $("body").classList.remove("nodetail");
+  $("detail").innerHTML = `<button class="close" id="close" title="Đóng">×</button>
+    <h2>${esc(d.name ?? d.title ?? d.id)}</h2>
+    <div class="path"><span class="mono">${esc(cur)}/${esc(d.id)}</span>
+      <button id="copyLink">Copy link</button><button id="copyJson">Copy JSON</button></div>
+    ${object(d)}`;
+  $("close").onclick = () => go(cur, null);
+  $("copyLink").onclick = () => navigator.clipboard && navigator.clipboard.writeText(location.href);
+  $("copyJson").onclick = () => navigator.clipboard && navigator.clipboard.writeText(JSON.stringify(d, null, 2));
+  $("detail").querySelectorAll("a[data-c]").forEach(a => a.onclick = () => { $("q").value = ""; go(a.dataset.c, a.dataset.id); });
+  const tr = $("list").querySelector("tr.sel"); if (tr) tr.scrollIntoView({ block: "nearest" });
+}
+
+// ---------------------------------------------------------------- loading
+async function load(reload) {
+  $("list").innerHTML = `<div class="info">Đang tải dữ liệu…</div>`;
+  try {
+    const r = await fetch("db.json" + (reload ? "?reload=1" : ""), { cache: "no-store" });
+    DB = await r.json();
+  } catch (e) {
+    $("list").innerHTML = `<div class="info">Không tải được db.json: ${esc(e.message)}. Game (Play mode) có đang chạy không?</div>`;
+    return;
+  }
+  fromHash(); buildNav(); render();
+}
+let timer = null;
+$("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { limit = PAGE; render(); }, 120); });
+$("facet").addEventListener("change", () => { limit = PAGE; render(); });
+$("reload").onclick = () => load(true);
+window.addEventListener("hashchange", () => { if (!DB) return; fromHash(); render(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && document.activeElement !== $("q")) { e.preventDefault(); $("q").focus(); }
+  if (e.key === "Escape") { if (document.activeElement === $("q") && $("q").value) { $("q").value = ""; render(); } else go(cur, null); }
+});
+load(false);
+</script>
+</body>
+</html>
