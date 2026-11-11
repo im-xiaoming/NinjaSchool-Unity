@@ -130,6 +130,11 @@ public class MobSoul
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (type == 1)
 		{
 			if (GameCanvas.gameTick % 5 > 2)

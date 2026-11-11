@@ -43,6 +43,11 @@ public class BuNhin
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (isPaint())
 		{
 			mFont.tahoma_7_yellow.drawString(g, name, x, y - 32, 2, mFont.tahoma_7_grey);

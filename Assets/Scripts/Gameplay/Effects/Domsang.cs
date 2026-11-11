@@ -43,6 +43,11 @@ public class Domsang
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (typeEff == 0)
 		{
 			g.drawRegion(GameScr.imgMatcho, 0, frame * GameScr.imgMatcho.getHeight() / 6, GameScr.imgMatcho.getWidth(), GameScr.imgMatcho.getHeight() / 6, 0, xS, yS, 0);

@@ -293,6 +293,11 @@ public class MonsterDart : Effect2
 
 	public override void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (isBoss)
 		{
 			int num = tickz(7);

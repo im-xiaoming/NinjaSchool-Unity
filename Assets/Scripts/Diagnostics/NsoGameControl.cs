@@ -9,14 +9,30 @@ public class NsoGameControl : MonoBehaviour
     [SerializeField] private bool _fullscreenOnStart = true;
     [Header("Timing — Inspector defaults take priority")]
     [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("logicTicksPerSecond"), Range(10, 60)] private int _logicTicksPerSecond = 24;
-    [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("targetFrameRate"), Range(15, 144)] private int _targetFrameRate = 60;
+    [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("targetFrameRate"), Range(60, 144)] private int _targetFrameRate = 60;
     [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("runInBackground")] private bool _runInBackground = true;
+    [Header("Effect presentation - does not change gameplay timing")]
+    [Tooltip("Fractional world/camera/projectile placement at render rate. Disable for legacy integer interpolation.")]
+    [SerializeField] private bool _smoothWorldMotion = true;
+    public static bool SmoothWorldMotion { get { return Active == null || Active._smoothWorldMotion; } }
+    [Tooltip("Smooth damage numbers, hit splashes and menu movement between logic ticks.")]
+    [SerializeField] private bool _smoothEffects = true;
+    [Tooltip("Seconds for the visible monster HP bar to reach its actual HP. Zero makes it instant.")]
+    [SerializeField, Range(0f, 0.5f)] private float _mobHealthSeconds = 0.12f;
+    [Tooltip("Minimum opening animation for menus, including menus reopened within five seconds.")]
+    [SerializeField, Range(0f, 0.5f)] private float _menuOpenSeconds = 0.14f;
+    public static float MenuOpenSeconds { get { return Active != null ? Mathf.Clamp(Active._menuOpenSeconds, 0f, 0.5f) : 0.14f; } }
+    public static bool SmoothEffects { get { return Active == null || Active._smoothEffects; } }
+    public static float MobHealthSeconds { get { return Active != null ? Mathf.Clamp(Active._mobHealthSeconds, 0f, 0.5f) : 0.12f; } }
     [Header("Gameplay — client preferences")]
+    [Tooltip("Stop grounded manual movement when its last horizontal button is released. Disable for original client inertia.")]
+    [SerializeField] private bool _instantMovementStop = true;
+    public static bool InstantMovementStop { get { return Active == null || Active._instantMovementStop; } }
     [Tooltip("Reconnect after an unexpected disconnect; does not change server gameplay stats.")]
     [SerializeField] private bool _autoReconnect;
     public int uiZoom { get { return _uiZoom; } set { _uiZoom = Mathf.Clamp(value, 0, 4); } }
     public int logicTicksPerSecond { get { return _logicTicksPerSecond; } set { _logicTicksPerSecond = Mathf.Clamp(value, 10, 60); } }
-    public int targetFrameRate { get { return _targetFrameRate; } set { _targetFrameRate = Mathf.Clamp(value, 15, 144); } }
+    public int targetFrameRate { get { return Mathf.Clamp(_targetFrameRate, 60, 144); } set { _targetFrameRate = Mathf.Clamp(value, 60, 144); } }
     public bool runInBackground { get { return _runInBackground; } set { _runInBackground = value; } }
     // used by the Settings menu (F6 > Chơi); Update copies it to GameScr.autoReconnect every frame
     public bool autoReconnect { get { return _autoReconnect; } set { _autoReconnect = value; } }
@@ -43,7 +59,7 @@ public class NsoGameControl : MonoBehaviour
     {
         _uiZoom = Mathf.Clamp(_uiZoom, 0, 4);
         _logicTicksPerSecond = Mathf.Clamp(_logicTicksPerSecond, 10, 60);
-        _targetFrameRate = Mathf.Clamp(_targetFrameRate, 15, 144);
+        _targetFrameRate = Mathf.Clamp(_targetFrameRate, 60, 144);
     }
     private void OnValidate() { Validate(); }
 

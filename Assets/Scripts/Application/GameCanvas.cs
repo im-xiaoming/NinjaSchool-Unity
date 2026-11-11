@@ -1402,6 +1402,10 @@ public class GameCanvas : IActionListener
 
     public void mapKeyRelease(int keyCode)
     {
+        bool releasedMovement = (keyCode == -3 && keyHold[23]) || (keyCode == -4 && keyHold[22]) ||
+            (keyCode == 52 && keyHold[Key.NUM4]) || (keyCode == 54 && keyHold[Key.NUM6]) ||
+            (keyCode == 97 && Key.NUM4 == 18 && keyHold[18]) ||
+            (keyCode == 100 && Key.NUM6 == 19 && keyHold[19]);
         switch (keyCode)
         {
             case 48:
@@ -1542,6 +1546,8 @@ public class GameCanvas : IActionListener
                 keyPressedz[32] = true;
                 break;
         }
+        if (releasedMovement && currentScreen == GameScr.instance)
+            Char.getMyChar().StopGroundMovementOnRelease();
     }
 
     public void pointerDragged(int x, int y)

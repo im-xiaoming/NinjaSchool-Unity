@@ -1,5 +1,23 @@
 public class AnimateEffect : Effect2
 {
+    private readonly System.Collections.Generic.Dictionary<Position, UnityEngine.Vector2> paintPositions = new System.Collections.Generic.Dictionary<Position, UnityEngine.Vector2>();
+    public void CapturePaintState()
+    {
+        paintPositions.Clear();
+        for (int i = 0; i < list.size(); i++)
+        {
+            var p = (Position)list.elementAt(i);
+            paintPositions[p] = new UnityEngine.Vector2(p.x / 10f, p.y / 10f);
+        }
+    }
+    private UnityEngine.Vector2 ParticleOffset(Position p)
+    {
+        UnityEngine.Vector2 previous;
+        var current = new UnityEngine.Vector2(p.x / 10f, p.y / 10f);
+        if (!NsoGameControl.SmoothEffects || !paintPositions.TryGetValue(p, out previous) || (current - previous).sqrMagnitude > 90f * 90f)
+            return UnityEngine.Vector2.zero;
+        return UnityEngine.Vector2.Lerp(previous, current, Interp.TickFraction) - new UnityEngine.Vector2(p.x / 10, p.y / 10);
+    }
 	private static FrameImage img;
 
 	private static FrameImage imgSnow;
@@ -97,6 +115,8 @@ public class AnimateEffect : Effect2
 				{
 					GameScr.gI();
 					int num = Scroll.gI().cmx * ((2 - position.h) * 20) / 120 - GameScr.cmx;
+                    var offset = ParticleOffset(position);
+                    using (g.Offset(offset.x, offset.y))
 					imgSnow.drawFrame(position.h, num + position.x / 10, position.y / 10 - GameScr.cmy, 2, 0, g);
 				}
 			}
@@ -146,6 +166,8 @@ public class AnimateEffect : Effect2
 		for (int i = 0; i < number; i++)
 		{
 			Position position = (Position)list.elementAt(i);
+            var offset = ParticleOffset(position);
+            using (g.Offset(offset.x, offset.y))
 			img.drawFrame(position.color / (position.limitY / 4), position.x / 10 - GameScr.cmx, position.y / 10 - GameScr.cmy, 0, 3, g);
 		}
 	}

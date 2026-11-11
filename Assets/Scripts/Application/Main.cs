@@ -166,6 +166,7 @@ public class Main : MonoBehaviour
             }
             finally
             {
+                g.ClearScrollPaintOffset(); // also restore a scrolled panel if its paint throws
                 Interp.EndPaint();   // restore the real positions even if paint throws
                 if (inLayer) NsoGameLayer.EndPaint();
             }

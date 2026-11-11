@@ -29,8 +29,8 @@ Furoya (clothes), Ameji (jewellery), Goosho (shop, books, fashion). Other NPCs s
 "Chức năng này chưa có trong bản offline."
 
 ## Offline deviations (on purpose)
-- **Natural regeneration**: `PlayerEffects.NaturalRegenPercent` (default 2 % of max HP/MP every 5 s). The original only
-  regenerates from food, potions and equipment. Set it to 0 to play exactly like the original.
+- **Natural regeneration disabled**: `PlayerEffects.NaturalRegenPercent = 0` by default, per the user's correction.
+  Recovery requires food, potions or equipment, as in Java. The former 2 %/5 s addition is opt-in only.
 - **Quest steps whose mechanic is not ported** (dungeons, escorting Jaian, fishing, carrying water, daily tasks, friends,
   item upgrades, battlefield) can be skipped at the NPC that gives the quest: its menu shows "Bỏ qua: <step>". Talk steps
   on NPCs without a hand-ported menu get an entry named after the step.
@@ -99,3 +99,12 @@ Results on 2026-11-11:
 - `combatcheck`: all pass.
 - `entercheck`: matches Java byte for byte.
 - Full suite: 18 pass, 2 fail. The 2 failures are expected: this build always signs in to the one local account.
+
+## Loot exclusions (user clarification, 2026-11-11)
+PlayerItems.CanDropLoot rejects training dummy template 0 and any mob at least PlayerItems.DropLevelGapLimit (default 10) levels below the killer. Applies before quest drops, normal loot/currency and to DropSushi through Drop. Dummy exclusion mirrors Java Mob.dead; applying the directional level restriction to all item paths is an offline deviation. Original ordinary loot requires absolute level gap <=7 and retains its probabilities; quest kill counters and XP rules are unchanged. Verified: lootcheck 9/9, questcheck 16/16, progresscheck 12/12; Unity compiles with 0 current Console errors. Manual loot play-through remains pending.
+
+## Workbench-controlled loot rules (2026-11-11)
+Gates now use immutable GameWorld.LootRules, saved in server save-folder game-rules.json. Defaults preserve prior policy. #settings can toggle dummy/global overlevel exclusions, inclusive cutoff (10), and the independent ordinary Java Mob.dead gate (7). Probabilities unchanged. OnMobDead/Drop share the policy including quest items, yen and sushi. #inspector calls /control/loot without creating items. GameServer.Start reads saved rules in every build; web writes only exist with debug wiki. webcheck 27/27; lootcheck/questcheck/progresscheck pass. See architecture for control API and scope.
+
+## Recovery default corrected (2026-11-11)
+NaturalRegenPercent defaults to 0 per user correction. Source-free HP/MP gain is disabled; Java Char.updateEveryHalfSecond/updateEveryFiveSecond food/potion/equipment recovery remains. NaturalRegenMs=5000 still governs the equipment five-second cadence. regencheck 9/9, questcheck 16/16, progresscheck 12/12; Unity compile/Console clean. This supersedes the earlier agent-added 2% natural-recovery default.

@@ -32,6 +32,7 @@ namespace NsoServer.DevWiki
         private string db;
         private System.Collections.Generic.Dictionary<string, object> dbParsed;   // db parsed once for the API
 
+        public WikiControl Control; // optional: read-only wiki still works without a live game
         public Action<string> Logger = _ => { };
         public string Url { get; private set; }   // null until the wiki thread has bound a port
         public Action<string> Started = _ => { };  // called on the wiki thread once listening (argument: Url)
@@ -132,61 +133,96 @@ namespace NsoServer.DevWiki
         {
             using (c)
             {
+                c.ReceiveTimeout = 5000; c.SendTimeout = 5000;
+                var stream = c.GetStream();
                 try
                 {
-                    c.ReceiveTimeout = 5000;
-                    var s = c.GetStream();
-                    // read the request head (up to the blank line)
-                    var buf = new byte[MaxRequestBytes];
-                    int n = 0;
-                    while (n < buf.Length)
+                    var buffer = new byte[MaxRequestBytes];
+                    int count = 0, end = -1;
+                    while (count < buffer.Length && end < 0)
                     {
-                        int r = s.Read(buf, n, buf.Length - n);
-                        if (r <= 0) break;
-                        n += r;
-                        if (Encoding.ASCII.GetString(buf, 0, n).Contains("\r\n\r\n")) break;
+                        int read = stream.Read(buffer, count, System.Math.Min(1024, buffer.Length - count));
+                        if (read <= 0) return;
+                        count += read;
+                        for (int i = 0; i + 3 < count; i++)
+                            if (buffer[i] == 13 && buffer[i + 1] == 10 && buffer[i + 2] == 13 && buffer[i + 3] == 10) { end = i; break; }
                     }
-                    string head = Encoding.ASCII.GetString(buf, 0, n);
-                    string[] first = head.Split('\n')[0].Trim().Split(' ');
-                    if (first.Length < 2 || first[0] != "GET") { Send(s, 405, "text/plain", "Method not allowed"); return; }
-                    string target = first[1], query = "";
-                    int q = target.IndexOf('?');
-                    if (q >= 0) { query = target.Substring(q + 1); target = target.Substring(0, q); }
-                    switch (target)
+                    if (end < 0) { Send(stream, 413, "application/json", "{\"error\":\"Request headers too large\"}"); return; }
+                    string[] lines = Encoding.ASCII.GetString(buffer, 0, end).Split(new[] { "\r\n" }, StringSplitOptions.None);
+                    string[] first = lines[0].Split(' ');
+                    if (first.Length != 3) throw new ArgumentException("Malformed request.");
+                    var headers = new System.Collections.Generic.Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    for (int i = 1; i < lines.Length; i++)
                     {
-                        case "/":
-                        case "/index.html":
-                            string page = Path.Combine(folder, "index.html");
-                            if (File.Exists(page)) Send(s, 200, "text/html; charset=utf-8", File.ReadAllText(page, Encoding.UTF8));
-                            else Send(s, 404, "text/plain; charset=utf-8", "index.html not found in " + folder);
-                            break;
-                        case "/db.json":
-                            Send(s, 200, "application/json; charset=utf-8", Db(query.Contains("reload=1")));
-                            break;
-                        default:
-                            if (target == "/api" || target.StartsWith("/api/", StringComparison.Ordinal))
-                            {
-                                if (query.Contains("reload=1")) Db(true);
-                                var r = WikiApi.Handle(Parsed(), target, query);
-                                Send(s, r.Key, "application/json; charset=utf-8", r.Value);
-                            }
-                            else Send(s, 404, "text/plain", "Not found");
-                            break;
+                        int colon = lines[i].IndexOf(':');
+                        if (colon <= 0) throw new ArgumentException("Malformed header.");
+                        string name = lines[i].Substring(0, colon).Trim();
+                        if (headers.ContainsKey(name)) throw new ArgumentException("Duplicate header.");
+                        headers[name] = lines[i].Substring(colon + 1).Trim();
                     }
+                    string authority = new Uri(Url).Authority, local = "localhost:" + new Uri(Url).Port;
+                    string host;
+                    if (!headers.TryGetValue("Host", out host) || (host != authority && host != local))
+                    { Send(stream, 403, "application/json", "{\"error\":\"Local host required\"}"); return; }
+                    string method = first[0], path = first[1], query = "";
+                    int q = path.IndexOf('?');
+                    if (q >= 0) { query = path.Substring(q + 1); path = path.Substring(0, q); }
+                    if (method != "GET" && method != "POST")
+                    { Send(stream, 405, "application/json", "{\"error\":\"Method not allowed\"}"); return; }
+                    string body = "";
+                    if (method == "POST")
+                    {
+                        string token, origin, contentType, length;
+                        if (path != "/control/rules" || Control == null)
+                        { Send(stream, 404, "application/json", "{\"error\":\"Unknown write route\"}"); return; }
+                        if (!headers.TryGetValue("X-Nso-Control", out token) || token != Control.Token ||
+                            (headers.TryGetValue("Origin", out origin) && origin != "http://" + authority && origin != "http://" + local))
+                        { Send(stream, 403, "application/json", "{\"error\":\"Refresh this local page before saving\"}"); return; }
+                        int size;
+                        if (headers.ContainsKey("Transfer-Encoding") || !headers.TryGetValue("Content-Length", out length) ||
+                            !int.TryParse(length, out size) || size < 1 || size > MaxRequestBytes ||
+                            !headers.TryGetValue("Content-Type", out contentType) || !contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+                        { Send(stream, 400, "application/json", "{\"error\":\"Expected a JSON body of at most 8192 bytes\"}"); return; }
+                        var bytes = new byte[size];
+                        int have = System.Math.Min(size, count - end - 4);
+                        Array.Copy(buffer, end + 4, bytes, 0, have);
+                        while (have < size) { int n = stream.Read(bytes, have, size - have); if (n <= 0) throw new ArgumentException("Incomplete body."); have += n; }
+                        body = new UTF8Encoding(false, true).GetString(bytes);
+                    }
+                    if (path.StartsWith("/control/", StringComparison.Ordinal))
+                    {
+                        var result = Control == null ? WikiControl.Reply(503, WikiControl.Obj("error", "Live controls require the game.")) : Control.Handle(method, path, query, body);
+                        Send(stream, result.Key, "application/json; charset=utf-8", result.Value); return;
+                    }
+                    if (method != "GET") { Send(stream, 405, "application/json", "{\"error\":\"Read-only route\"}"); return; }
+                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js")
+                    {
+                        string name = path == "/" ? "index.html" : path.Substring(1);
+                        string file = Path.Combine(folder, name);
+                        string type = name.EndsWith(".css") ? "text/css" : name.EndsWith(".js") ? "text/javascript" : "text/html";
+                        if (File.Exists(file)) Send(stream, 200, type + "; charset=utf-8", File.ReadAllText(file, Encoding.UTF8));
+                        else Send(stream, 404, "text/plain", "Asset not found");
+                    }
+                    else if (path == "/db.json") Send(stream, 200, "application/json; charset=utf-8", Db(query.Contains("reload=1")));
+                    else if (path == "/api" || path.StartsWith("/api/", StringComparison.Ordinal))
+                    {
+                        if (query.Contains("reload=1")) Db(true);
+                        var result = WikiApi.Handle(Parsed(), path, query);
+                        Send(stream, result.Key, "application/json; charset=utf-8", result.Value);
+                    }
+                    else Send(stream, 404, "application/json", "{\"error\":\"Not found\"}");
                 }
-                catch (Exception ex)
-                {
-                    Logger("Dev wiki request error: " + ex.Message);
-                }
+                catch (ArgumentException ex) { var r = WikiControl.Reply(400, WikiControl.Obj("error", ex.Message)); Send(stream, r.Key, "application/json", r.Value); }
+                catch (Exception ex) { Logger("Dev wiki request error: " + ex.Message); }
             }
         }
 
         private static void Send(Stream s, int status, string type, string body)
         {
             byte[] data = Encoding.UTF8.GetBytes(body);
-            string reason = status == 200 ? "OK" : status == 404 ? "Not Found" : status == 400 ? "Bad Request" : status == 405 ? "Method Not Allowed" : "Error";
+            string reason = status == 200 ? "OK" : status == 404 ? "Not Found" : status == 400 ? "Bad Request" : status == 405 ? "Method Not Allowed" : status == 403 ? "Forbidden" : status == 409 ? "Conflict" : status == 413 ? "Payload Too Large" : status == 503 ? "Service Unavailable" : "Error";
             string head = "HTTP/1.1 " + status + " " + reason + "\r\nContent-Type: " + type + "\r\nContent-Length: " + data.Length +
-                          "\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n";
+                          "\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\nConnection: close\r\n\r\n";
             byte[] h = Encoding.ASCII.GetBytes(head);
             s.Write(h, 0, h.Length);
             s.Write(data, 0, data.Length);

@@ -693,6 +693,21 @@ public class GameScr : mScreen, IActionListener
     public static int[] flyTextState;
 
     public static int[] flyTextColor;
+    private static readonly int[] flyPaintX = new int[5], flyPaintY = new int[5];
+    private static readonly int[] splashPaintX = new int[2], splashPaintY = new int[2];
+
+    // Original updateFlyText/updateSplash keep tick-based lifetime/velocity; only paint is blended.
+    public static void CaptureEffectPaintState()
+    {
+        if (flyTextX != null)
+            for (int i = 0; i < 5; i++) { flyPaintX[i] = flyTextX[i]; flyPaintY[i] = flyTextY[i]; }
+        if (splashX != null)
+            for (int i = 0; i < 2; i++) { splashPaintX[i] = splashX[i]; splashPaintY[i] = splashY[i]; }
+    }
+    public static UnityEngine.Vector2 FlyTextPaintPosition(int index)
+    {
+        return new UnityEngine.Vector2(Interp.EffectPosition(flyPaintX[index], flyTextX[index]), Interp.EffectPosition(flyPaintY[index], flyTextY[index]));
+    }
 
     public static int[] splashX;
 
@@ -4604,6 +4619,8 @@ public class GameScr : mScreen, IActionListener
         }
         if (GameCanvas.isPointerJustRelease)
         {
+            bool releasedMovement = GameCanvas.keyHold[Key.NUM4] || GameCanvas.keyHold[Key.NUM6] ||
+                GameCanvas.keyHold[22] || GameCanvas.keyHold[23];
             GameCanvas.keyHold[Key.NUM1] = false;
             GameCanvas.keyHold[Key.NUM2] = false;
             GameCanvas.keyHold[Key.NUM3] = false;
@@ -4613,6 +4630,8 @@ public class GameScr : mScreen, IActionListener
             GameCanvas.keyHold[23] = false;
             GameCanvas.keyHold[24] = false;
             GameCanvas.keyHold[25] = false;
+            if (releasedMovement)
+                Char.getMyChar().StopGroundMovementOnRelease();
         }
         if (!flag)
         {
@@ -4976,6 +4995,9 @@ public class GameScr : mScreen, IActionListener
         }
         isPaintInfoHelpNotIphone = false;
         GameCanvas.paintBGGameScr(g);
+        // World-only camera residual; dispose before drawing fixed HUD/panels.
+        using (g.Offset(Interp.CameraOffset.x, Interp.CameraOffset.y))
+        {
         if (Screen.width > TileMap.pxw && mGraphics.zoomLevel != 3 && TileMap.mapID == 6)
         {
             g.translate(-cmx - 40, -cmy);
@@ -5101,6 +5123,7 @@ public class GameScr : mScreen, IActionListener
         }
         GameCanvas.debug("PA16", 1);
         paintArrowPointToNPC(g);
+        }
         GameCanvas.debug("PA17", 1);
         if (hideInterface)
         {
@@ -6148,6 +6171,7 @@ public class GameScr : mScreen, IActionListener
             flyTextDx[num] = dx;
             flyTextDy[num] = dy;
             flyTextState[num] = 0;
+            flyPaintX[num] = x; flyPaintY[num] = y; // reset recycled text slots
         }
     }
 
@@ -6174,41 +6198,45 @@ public class GameScr : mScreen, IActionListener
         {
             if (flyTextState[i] != -1 && GameCanvas.isPaint(flyTextX[i], flyTextY[i]))
             {
-                if (flyTextColor[i] == mFont.RED)
+                UnityEngine.Vector2 position = FlyTextPaintPosition(i);
+                using (g.Offset(position.x - flyTextX[i], position.y - flyTextY[i]))
                 {
-                    mFont.bigNumber_red.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
-                }
-                else if (flyTextColor[i] == mFont.YELLOW)
-                {
-                    mFont.bigNumber_yellow.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
-                }
-                else if (flyTextColor[i] == mFont.GREEN)
-                {
-                    mFont.bigNumber_green.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
-                }
-                else if (flyTextColor[i] == mFont.FATAL)
-                {
-                    mFont.bigNumber_red.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
-                }
-                else if (flyTextColor[i] == mFont.FATAL_ME)
-                {
-                    mFont.bigNumber_While.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER, mFont.numberb_red);
-                }
-                else if (flyTextColor[i] == mFont.MISS)
-                {
-                    mFont.bigNumber_blue.drawString(g, "Né", flyTextX[i], flyTextY[i], mFont.CENTER);
-                }
-                else if (flyTextColor[i] == mFont.ORANGE)
-                {
-                    mFont.bigNumber_orange.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
-                }
-                else if (flyTextColor[i] == mFont.ADDMONEY)
-                {
-                    mFont.tahoma_7_yellow.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER, mFont.tahoma_7_red);
-                }
-                else if (flyTextColor[i] == mFont.MISS_ME)
-                {
-                    mFont.bigNumber_red.drawString(g, "Né", flyTextX[i], flyTextY[i], mFont.CENTER);
+                    if (flyTextColor[i] == mFont.RED)
+                    {
+                        mFont.bigNumber_red.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
+                    else if (flyTextColor[i] == mFont.YELLOW)
+                    {
+                        mFont.bigNumber_yellow.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
+                    else if (flyTextColor[i] == mFont.GREEN)
+                    {
+                        mFont.bigNumber_green.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
+                    else if (flyTextColor[i] == mFont.FATAL)
+                    {
+                        mFont.bigNumber_red.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
+                    else if (flyTextColor[i] == mFont.FATAL_ME)
+                    {
+                        mFont.bigNumber_While.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER, mFont.numberb_red);
+                    }
+                    else if (flyTextColor[i] == mFont.MISS)
+                    {
+                        mFont.bigNumber_blue.drawString(g, "Né", flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
+                    else if (flyTextColor[i] == mFont.ORANGE)
+                    {
+                        mFont.bigNumber_orange.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
+                    else if (flyTextColor[i] == mFont.ADDMONEY)
+                    {
+                        mFont.tahoma_7_yellow.drawString(g, flyTextString[i], flyTextX[i], flyTextY[i], mFont.CENTER, mFont.tahoma_7_red);
+                    }
+                    else if (flyTextColor[i] == mFont.MISS_ME)
+                    {
+                        mFont.bigNumber_red.drawString(g, "Né", flyTextX[i], flyTextY[i], mFont.CENTER);
+                    }
                 }
             }
         }
@@ -6268,6 +6296,7 @@ public class GameScr : mScreen, IActionListener
         splashDir[num] = dir;
         splashX[num] = x;
         splashY[num] = y;
+        splashPaintX[num] = x; splashPaintY[num] = y;
         return true;
     }
 
@@ -6298,13 +6327,17 @@ public class GameScr : mScreen, IActionListener
         {
             if (splashState[i] != -1)
             {
-                if (splashDir[i] == 1)
+                using (g.Offset(Interp.EffectPosition(splashPaintX[i], splashX[i]) - splashX[i],
+                    Interp.EffectPosition(splashPaintY[i], splashY[i]) - splashY[i]))
                 {
-                    g.drawImage(imgSplash[splashF[i]], splashX[i], splashY[i], 3);
-                }
-                else
-                {
-                    g.drawRegion(imgSplash[splashF[i]], 0, 0, mGraphics.getImageWidth(imgSplash[splashF[i]]), mGraphics.getImageHeight(imgSplash[splashF[i]]), 2, splashX[i], splashY[i], 3);
+                    if (splashDir[i] == 1)
+                    {
+                        g.drawImage(imgSplash[splashF[i]], splashX[i], splashY[i], 3);
+                    }
+                    else
+                    {
+                        g.drawRegion(imgSplash[splashF[i]], 0, 0, mGraphics.getImageWidth(imgSplash[splashF[i]]), mGraphics.getImageHeight(imgSplash[splashF[i]]), 2, splashX[i], splashY[i], 3);
+                    }
                 }
             }
         }

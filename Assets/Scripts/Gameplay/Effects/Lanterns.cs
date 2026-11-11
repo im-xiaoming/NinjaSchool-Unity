@@ -28,6 +28,11 @@ public class Lanterns
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (GameCanvas.gameTick % 10 < 8)
 		{
 			SmallImage.drawSmallImage(g, 1292, x, y, 0, mGraphics.VCENTER | mGraphics.HCENTER);

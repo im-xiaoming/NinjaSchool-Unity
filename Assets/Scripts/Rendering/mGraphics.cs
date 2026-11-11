@@ -97,6 +97,7 @@ public class mGraphics
 
 	public void translate(int tx, int ty)
 	{
+        if (tx == -getTranslateX() && ty == -getTranslateY()) ClearScrollPaintOffset();
 		tx *= zoomLevel;
 		ty *= zoomLevel;
 		translateX += tx;
@@ -130,6 +131,7 @@ public class mGraphics
 
 	public void setClip(int x, int y, int w, int h)
 	{
+        ClearScrollPaintOffset();
 		x *= zoomLevel;
 		y *= zoomLevel;
 		w *= zoomLevel;
@@ -188,8 +190,8 @@ public class mGraphics
 			texture2D.Apply();
 			cache(key, texture2D);
 		}
-		Vector2 vector = new Vector2(x1, y1);
-		Vector2 vector2 = new Vector2(x2, y2);
+		Vector2 vector = new Vector2(x1 + scrollPaintOffset.x, y1 + scrollPaintOffset.y);
+		Vector2 vector2 = new Vector2(x2 + scrollPaintOffset.x, y2 + scrollPaintOffset.y);
 		Vector2 vector3 = vector2 - vector;
 		float num3 = 57.29578f * Mathf.Atan(vector3.y / vector3.x);
 		if (vector3.x < 0f)
@@ -254,10 +256,40 @@ public class mGraphics
 		fillRect(x, y + h, w + 1, num);
 	}
 
-	public void fillRect(int x, int y, int w, int h)
-	{
+    // Fractional placement for selected visual effects; the old integer drawing API stays intact.
+    public struct OffsetScope : System.IDisposable
+    {
+        private Matrix4x4 previous;
+        private bool changed;
+        public OffsetScope(float x, float y)
+        {
+            changed = x != 0f || y != 0f;
+            previous = changed ? GUI.matrix : Matrix4x4.identity;
+            if (changed) GUI.matrix = previous * Matrix4x4.Translate(new Vector3(x * zoomLevel, y * zoomLevel, 0f));
+        }
+        public void Dispose() { if (changed) GUI.matrix = previous; }
+    }
+    public OffsetScope Offset(float x, float y) { return new OffsetScope(x, y); }
+
+    private Vector2 scrollPaintOffset;
+    // Apply before clipping: the viewport itself must not move with the scrolled content.
+    public void SetScrollPaintOffset(float x, float y)
+    {
+        scrollPaintOffset = new Vector2(x * zoomLevel, y * zoomLevel);
+    }
+    public void ClearScrollPaintOffset()
+    {
+        scrollPaintOffset = Vector2.zero;
+    }
+
+    public void fillRect(int x, int y, int w, int h) { fillRect((float)x, y, w, h); }
+    // Keep fractional HP-bar width until rasterization.
+    public void fillRect(float x, float y, float w, float h)
+    {
 		x *= zoomLevel;
 		y *= zoomLevel;
+        x += scrollPaintOffset.x;
+        y += scrollPaintOffset.y;
 		w *= zoomLevel;
 		h *= zoomLevel;
 		if (w < 0 || h < 0)
@@ -345,6 +377,8 @@ public class mGraphics
 	{
 		x *= zoomLevel;
 		y *= zoomLevel;
+        x += scrollPaintOffset.x;
+        y += scrollPaintOffset.y;
 		if (isTranslate)
 		{
 			x += translateX;
@@ -389,10 +423,12 @@ public class mGraphics
 		a = alpha;
 	}
 
-	public void drawString(string s, int x, int y, GUIStyle style, int w)
+	public void drawString(string s, float x, float y, GUIStyle style, int w)
 	{
 		x *= zoomLevel;
 		y *= zoomLevel;
+        x += scrollPaintOffset.x;
+        y += scrollPaintOffset.y;
 		if (isTranslate)
 		{
 			x += translateX;
@@ -474,13 +510,15 @@ public class mGraphics
 		_drawRegion(arg0, x0, y0, w0, h0, arg5, x, y, arg8);
 	}
 
-	public void _drawRegion(Image image, float x0, float y0, int w, int h, int transform, int x, int y, int anchor)
+	public void _drawRegion(Image image, float x0, float y0, int w, int h, int transform, float x, float y, int anchor)
 	{
 		_drawRegion(image, x0, y0, w, h, transform, x, y, anchor, null, GUI.color);
 	}
 
-	public void _drawRegion(Image image, float x0, float y0, int w, int h, int transform, int x, int y, int anchor, Material material, Color color)
+	public void _drawRegion(Image image, float x0, float y0, int w, int h, int transform, float x, float y, int anchor, Material material, Color color)
 	{
+        x += scrollPaintOffset.x;
+        y += scrollPaintOffset.y;
 		if (image == null)
 		{
 			return;
@@ -650,8 +688,10 @@ public class mGraphics
 
 	// Draws an atlas region that holds a glyph packed turned 90 degrees. (x, y) is the top-left of the upright glyph,
 	// which is h wide and w tall on screen (the region is w wide and h tall in the atlas).
-	public void _drawRotatedGlyph(Image image, float x0, float y0, int w, int h, int x, int y, Material material, Color color)
+	public void _drawRotatedGlyph(Image image, float x0, float y0, int w, int h, float x, float y, Material material, Color color)
 	{
+        x += scrollPaintOffset.x;
+        y += scrollPaintOffset.y;
 		if (image == null)
 		{
 			return;
@@ -705,6 +745,7 @@ public class mGraphics
 
 	public void reset()
 	{
+        ClearScrollPaintOffset();
 		isClip = false;
 		isTranslate = false;
 		translateX = 0;
@@ -763,7 +804,7 @@ public class mGraphics
 		if (image != null)
 		{
 			if (image.texture.filterMode != FilterMode.Bilinear) image.texture.filterMode = FilterMode.Bilinear; // scaled art would be jagged with point filtering
-			Graphics.DrawTexture(new Rect(x + translateX, y + translateY, (tranform != 0) ? (-w) : w, h), image.texture);
+			Graphics.DrawTexture(new Rect(x + translateX + scrollPaintOffset.x, y + translateY + scrollPaintOffset.y, (tranform != 0) ? (-w) : w, h), image.texture);
 		}
 	}
 
@@ -776,7 +817,7 @@ public class mGraphics
 		int w = image.texture.width * scale, h = image.texture.height * scale;
 		float x = cx * zoomLevel + (isTranslate ? translateX : 0) - w / 2;
 		float y = cy * zoomLevel + (isTranslate ? translateY : 0) - h / 2;
-		Graphics.DrawTexture(new Rect(Mathf.Round(x), Mathf.Round(y), w, h), image.texture);
+		Graphics.DrawTexture(new Rect(Mathf.Round(x) + scrollPaintOffset.x, Mathf.Round(y) + scrollPaintOffset.y, w, h), image.texture);
 	}
 
 	public void drawImageSimple(Image image, int x, int y)
@@ -785,7 +826,7 @@ public class mGraphics
 		y *= zoomLevel;
 		if (image != null)
 		{
-			Graphics.DrawTexture(new Rect(x, y, image.w, image.h), image.texture);
+			Graphics.DrawTexture(new Rect(x + scrollPaintOffset.x, y + scrollPaintOffset.y, image.w, image.h), image.texture);
 		}
 	}
 

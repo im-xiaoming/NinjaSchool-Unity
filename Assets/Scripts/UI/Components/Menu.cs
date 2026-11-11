@@ -21,6 +21,25 @@ public class Menu
 	public static int cmtoX;
 
 	public static int cmx;
+    private int[] paintY;
+    private int paintScrollX;
+    private double paintOpenedAt = double.NegativeInfinity;
+    public void CapturePaintState()
+    {
+        paintScrollX = cmx;
+        if (menuTemY == null) return;
+        if (paintY == null || paintY.Length != menuTemY.Length) paintY = new int[menuTemY.Length];
+        System.Array.Copy(menuTemY, paintY, menuTemY.Length);
+    }
+    public float PaintRowY(int index)
+    {
+        float position = Interp.EffectPosition(paintY[index], menuTemY[index]);
+        if (!NsoGameControl.SmoothEffects || NsoGameControl.MenuOpenSeconds <= 0f) return position;
+        // Original Menu.updateMenu snaps recently reopened menus. Keep a short render-time opening
+        // without slowing its longer staggered animation or moving its input hit boxes while selectable.
+        float t = UnityEngine.Mathf.Clamp01((float)((UnityEngine.Time.unscaledTimeAsDouble - paintOpenedAt) / NsoGameControl.MenuOpenSeconds));
+        return UnityEngine.Mathf.Max(position, UnityEngine.Mathf.Lerp(GameCanvas.h, menuY, t * t * (3f - 2f * t)));
+    }
 
 	public static int cmdy;
 
@@ -140,6 +159,8 @@ public class Menu
 		}
 		cmtoX = 0;
 		cmx = 0;
+        CapturePaintState(); // new menu must not reuse old geometry
+        paintOpenedAt = UnityEngine.Time.unscaledTimeAsDouble;
 		xc = 50;
 		w = menuItems.size() * menuW - 1;
 		if (w > GameCanvas.w - 2)
@@ -403,24 +424,23 @@ public class Menu
 		g.translate(-cmx, 0);
 		for (int i = 0; i < menuItems.size(); i++)
 		{
-			if (i == menuSelectedItem)
-			{
-				g.drawImage(GameScr.imgMenu2, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
-			}
-			else
-			{
-				g.drawImage(GameScr.imgMenu1, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
-			}
-			string[] array = ((Command)menuItems.elementAt(i)).subCaption;
-			if (array == null)
-			{
-				array = new string[1] { ((Command)menuItems.elementAt(i)).caption };
-			}
-			int num = menuTemY[i] + (menuH - array.Length * 14) / 2 + 1;
-			for (int j = 0; j < array.Length; j++)
-			{
-				mFont.tahoma_7_yellow.drawString(g, array[j], menuX + i * menuW + menuW / 2 - 2, num + j * 14, 2);
-			}
+            using (g.Offset(cmx - Interp.EffectPosition(paintScrollX, cmx), PaintRowY(i) - menuTemY[i]))
+            {
+				if (i == menuSelectedItem)
+				{
+					g.drawImage(GameScr.imgMenu2, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
+				}
+				else
+				{
+					g.drawImage(GameScr.imgMenu1, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
+				}
+                Command item = (Command)menuItems.elementAt(i);
+                string[] lines = item.subCaption;
+                int lineCount = lines == null ? 1 : lines.Length;
+                int num = menuTemY[i] + (menuH - lineCount * 14) / 2 + 1;
+                for (int j = 0; j < lineCount; j++)
+                    mFont.tahoma_7_yellow.drawString(g, lines == null ? item.caption : lines[j], menuX + i * menuW + menuW / 2 - 2, num + j * 14, 2);
+            }
 		}
 		g.translate(-g.getTranslateX(), -g.getTranslateY());
 		Command command = ((!disableClose) ? right : null);
@@ -461,6 +481,8 @@ public class Menu
 
 	public bool isScrolling()
 	{
+        if (NsoGameControl.SmoothEffects && UnityEngine.Time.unscaledTimeAsDouble - paintOpenedAt < NsoGameControl.MenuOpenSeconds)
+            return true; // do not activate invisible target-position buttons while the popup is opening
 		if ((!isClose && menuTemY[menuTemY.Length - 1] > menuY) || (isClose && menuTemY[menuTemY.Length - 1] < GameCanvas.h))
 		{
 			return true;

@@ -33,8 +33,16 @@ namespace NsoServer
             Accounts = new AccountStore(config.DataDirectory);
         }
 
+        public string RulesPath { get { return Path.Combine(Config.DataDirectory, "game-rules.json"); } }
+
         public void Start()
         {
+            // Saved offline settings work in release players too; no debug web server is required to read them.
+            if (World != null)
+            {
+                try { World.LootRules = NsoServer.World.LootRules.Load(RulesPath); }
+                catch (Exception ex) { Log("rules load error (defaults retained): " + ex.Message); }
+            }
             running = true;
             new Thread(TickLoop) { IsBackground = true, Name = "nso-tick" }.Start();
             Log("Server started");

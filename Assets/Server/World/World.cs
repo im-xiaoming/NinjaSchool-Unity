@@ -158,6 +158,7 @@ namespace NsoServer.World
     // Static game world built from the original database tables: maps, monsters, NPC placement.
     public sealed partial class GameWorld
     {
+        public LootRules LootRules = new LootRules(); // immutable snapshot, replaced under SyncRoot
         private const int MobHopBiAn = 225, MobJuubiShinjuu = 237;
         private const int MaxMobsPerZone = 127;
         private const int MaxZonesPerMap = 5;

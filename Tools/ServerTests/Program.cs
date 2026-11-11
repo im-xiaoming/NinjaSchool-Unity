@@ -91,7 +91,7 @@ class TestClient
     public static Message NotMap(sbyte sub) { var m = new Message(-28); m.Writer.WriteSByte(sub); return m; }
 }
 
-static class Program
+static partial class Program
 {
     static int failures;
 
@@ -185,6 +185,9 @@ static class Program
             return bad;
         }
         if (args.Length > 5 && args[0] == "walkcheck") return WalkCheck(args[1], int.Parse(args[2]), int.Parse(args[3]), int.Parse(args[4]), int.Parse(args[5]));
+        if (args.Length > 0 && args[0] == "regencheck") return RegenCheck();
+        if (args.Length > 0 && args[0] == "webcheck") return WebCheck();
+        if (args.Length > 0 && args[0] == "lootcheck") return LootCheck();
         if (args.Length > 0 && args[0] == "combatcheck") return CombatCheck();
         if (args.Length > 0 && args[0] == "progresscheck") return ProgressCheck();
         if (args.Length > 0 && args[0] == "questcheck") return QuestCheck();
@@ -631,6 +634,48 @@ static class Program
         catch (Exception ex) { Console.WriteLine("EXCEPTION " + ex); bad++; }
         server.Stop();
         return bad + failures;
+    }
+
+    // Offline loot policy: the dummy and mobs >= 10 levels below the killer must never give loot.
+    // Boundary checks are deterministic; blocked-path tests deliberately omit world/session dependencies,
+    // so any attempt to enter quest/currency/item creation fails instead of silently consuming a random roll.
+    static int LootCheck()
+    {
+        var me = new PlayerState {
+            Level = 20,
+            Record = new NsoServer.Store.PlayerRecord { TaskId = 4 },
+            Progress = new NsoServer.Store.PlayerProgress { TaskActive = true, TaskIndex = 1, Yen = 123, Xu = 456 }
+        };
+        var mob = new NsoServer.World.Mob { Id = 77, Level = 20, Template = new NsoServer.World.MobTemplate { Id = 0 } };
+        var zone = new NsoServer.World.Zone();
+        Check(!PlayerItems.CanDropLoot(me, mob), "dummy template is blocked even with a nonzero spawn id and equal levels");
+        mob.Template.Id = 3; mob.Id = 0; mob.Level = 11;
+        Check(PlayerItems.CanDropLoot(me, mob), "nine-level gap passes the global gate (normal Java loot rules still apply)");
+        mob.Level = 10;
+        Check(!PlayerItems.CanDropLoot(me, mob), "exactly ten levels below is blocked");
+        mob.Level = 9;
+        Check(!PlayerItems.CanDropLoot(me, mob), "eleven levels below is blocked");
+        mob.Level = 30;
+        Check(PlayerItems.CanDropLoot(me, mob), "higher-level monsters are not blocked by the directional overlevel gate");
+        int previousLimit = PlayerItems.DropLevelGapLimit;
+        try {
+            PlayerItems.DropLevelGapLimit = 5; mob.Level = 15;
+            Check(!PlayerItems.CanDropLoot(me, mob), "configured five-level limit applies at its boundary");
+        } finally { PlayerItems.DropLevelGapLimit = previousLimit; }
+        try {
+            mob.Level = 10; // quest-4 drop source: nhim da, with a ten-level gap
+            for (int i = 0; i < 100; i++) PlayerItems.OnMobDead(me, null, zone, mob);
+            Check(zone.ItemMaps.Count == 0 && me.Progress.Yen == 123 && me.Progress.Xu == 456,
+                "overlevel gate precedes quest items, ordinary drops and currency rewards");
+            PlayerItems.DropSushi(me, null, zone, mob, 100);
+            Check(zone.ItemMaps.Count == 0, "overlevel skill-created sushi is also blocked");
+            mob.Template.Id = 0; mob.Level = 20;
+            for (int i = 0; i < 100; i++) PlayerItems.OnMobDead(me, null, zone, mob);
+            PlayerItems.DropSushi(me, null, zone, mob, 100);
+            Check(zone.ItemMaps.Count == 0 && me.Progress.Yen == 123,
+                "dummy gives no items, sushi or currency across repeated kills");
+        } catch (Exception ex) { Check(false, "blocked loot path reached a dependency: " + ex.Message); }
+        return failures;
     }
 
     // Combat port check: hit a low-level monster, kill it, gain experience, see it respawn.

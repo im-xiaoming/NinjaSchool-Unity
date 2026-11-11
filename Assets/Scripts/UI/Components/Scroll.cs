@@ -1,5 +1,28 @@
 public class Scroll
 {
+    private static readonly System.Collections.Generic.List<System.WeakReference> paintScrolls = new System.Collections.Generic.List<System.WeakReference>();
+    private int paintX, paintY, paintWidth, paintHeight, paintItems;
+    private bool havePaintState;
+    public Scroll() { paintScrolls.Add(new System.WeakReference(this)); }
+    public static void CaptureAllPaintStates()
+    {
+        for (int i = paintScrolls.Count - 1; i >= 0; i--)
+        {
+            var scroll = paintScrolls[i].Target as Scroll;
+            if (scroll == null) { paintScrolls.RemoveAt(i); continue; }
+            scroll.paintX = scroll.cmx; scroll.paintY = scroll.cmy;
+            scroll.paintWidth = scroll.width; scroll.paintHeight = scroll.height; scroll.paintItems = scroll.nITEM;
+            scroll.havePaintState = true;
+        }
+    }
+    // Original Scroll.updatecm remains the input/inertia authority. Only its painted content moves fractionally.
+    public UnityEngine.Vector2 PaintOffset(float fraction)
+    {
+        if (!havePaintState || !NsoGameControl.SmoothEffects || paintWidth != width || paintHeight != height || paintItems != nITEM ||
+            System.Math.Abs(cmx - paintX) > System.Math.Max(width, 1) || System.Math.Abs(cmy - paintY) > System.Math.Max(height, 1))
+            return UnityEngine.Vector2.zero;
+        return new UnityEngine.Vector2(cmx - UnityEngine.Mathf.Lerp(paintX, cmx, fraction), cmy - UnityEngine.Mathf.Lerp(paintY, cmy, fraction));
+    }
 	public int cmtoX;
 
 	public int cmtoY;
@@ -54,6 +77,7 @@ public class Scroll
 
 	public void clear()
 	{
+        havePaintState = false;
 		cmtoX = 0;
 		cmtoY = 0;
 		cmx = 0;
@@ -73,6 +97,8 @@ public class Scroll
 		g.setClip(x, y, w, h - 1);
 		g.translate(-g.getTranslateX(), -g.getTranslateY());
 		g.translate(-cmx, -cmy);
+        var offset = PaintOffset(Interp.TickFraction);
+        g.SetScrollPaintOffset(offset.x, offset.y);
 	}
 
 	public void setClip(mGraphics g)
@@ -80,6 +106,8 @@ public class Scroll
 		g.setClip(xPos, yPos, width, height - 1);
 		g.translate(-g.getTranslateX(), -g.getTranslateY());
 		g.translate(-cmx, -cmy);
+        var offset = PaintOffset(Interp.TickFraction);
+        g.SetScrollPaintOffset(offset.x, offset.y);
 	}
 
 	public ScrollResult updateKey()

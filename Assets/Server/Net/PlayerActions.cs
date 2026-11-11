@@ -68,7 +68,7 @@ namespace NsoServer.Net
 
         // Char.em: the character's effects (food, potions...), see PlayerEffects
         public readonly List<PlayerEffect> Effects = new List<PlayerEffect>();
-        public long LastRegen;   // last natural HP/MP regeneration (offline addition, see PlayerEffects)
+        public long LastRegen;   // last five-second equipment recovery (and optional offline recovery), see PlayerEffects
 
         public int MapId { get { return Zone.Tile.Id; } }
         public void SetXY(short x, short y) { X = x; Y = y; }

@@ -2,6 +2,13 @@ using System;
 
 public class Mob : MainObject
 {
+    private NsoHealthTween healthTween;
+    public float RenderHpRatio()
+    {
+        float ratio = maxHp > 0 ? UnityEngine.Mathf.Clamp01((float)hp / maxHp) : 0f;
+        return healthTween.Sample(ratio, UnityEngine.Time.unscaledTimeAsDouble,
+            NsoGameControl.SmoothEffects ? NsoGameControl.MobHealthSeconds : 0f);
+    }
 	public const sbyte TYPE_DUNG = 0;
 
 	public const sbyte TYPE_DI = 1;
@@ -1973,10 +1980,16 @@ public class Mob : MainObject
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (!isPaint())
 		{
 			return;
 		}
+        float renderHpRatio = RenderHpRatio();
 		int num = y;
 		if (templateId == 205 || templateId == 206 || templateId == 207 || templateId == 208)
 		{
@@ -2101,7 +2114,7 @@ public class Mob : MainObject
 				{
 					num4 = hp;
 				}
-				int num5 = (int)((long)hp * 100L / num4);
+				float num5 = renderHpRatio * 100f;
 				int num6 = w;
 				int num7 = 4;
 				if (levelBoss == 1 || levelBoss == 2 || levelBoss == 3 || isBoss)
@@ -2110,7 +2123,7 @@ public class Mob : MainObject
 					num6 += num6 / 2;
 				}
 				num6 += 2;
-				int num8 = num6 * num5 / 100;
+				float num8 = num6 * num5 / 100f;
 				if (num8 < 2)
 				{
 					num8 = 2;
@@ -2144,7 +2157,7 @@ public class Mob : MainObject
 				{
 					num9 = hp;
 				}
-				int num10 = (int)((long)hp * 100L / num9);
+				float num10 = renderHpRatio * 100f;
 				int num11 = w;
 				if (templateId > 167)
 				{
@@ -2157,7 +2170,7 @@ public class Mob : MainObject
 					num11 += num11 / 2;
 				}
 				num11 += 2;
-				int num13 = num11 * num10 / 100;
+				float num13 = num11 * num10 / 100f;
 				if (num13 < 2)
 				{
 					num13 = 2;

@@ -31,7 +31,7 @@ For every created zone, in this order:
 1. `PlayerCombat.UpdateRecovery`: monster respawn.
 2. `PlayerEffects.UpdateMobEffects`: burn, freeze, stun and bind expire.
 3. `PlayerItems.UpdateItemMaps`: ground items vanish after 30 s.
-4. `PlayerEffects.UpdateHalfSecond` for each player: food, potion and equipment regeneration, plus the offline natural regeneration.
+4. `PlayerEffects.UpdateHalfSecond` for each player: food, potion and equipment regeneration. Unsourced natural regeneration is disabled by default.
 5. `MobBrain.UpdateZone`: monsters notice and attack.
 
 Client messages are handled in `Controller` under the same lock, so there is no per-object locking.
@@ -75,3 +75,20 @@ Client messages are handled in `Controller` under the same lock, so there is no 
 - **Map overlay:** places Unity objects on the game map. It is visual only; see `Assets/Documentation/UnityMapOverlayBridge.md`.
 - **Menu audio:** `Audio/MenuAudio.cs` plays the login track on the menu screens, once per visit (`menuMusicLoop`), plus the button click sounds.
 - **Title flow:** `SelectServerScr` is the offline title menu (New Game, Continue, Language, Settings, Exit). After that the client signs in automatically to the one local account.
+
+## Client skill hit timing
+`Char.paintCharWithSkill` advances skill animation indices during rendering, independently of FixedUpdate. `Char.updateSkillPaint` therefore dispatches the hit/buff action once per cast when indexSkill reaches or crosses the original hit threshold, before end cleanup. `setAutoSkillPaint` resets the dispatch guard. This offline timing correction prevents missed high-FPS hits and duplicate low-FPS actions; server combat rules stay authoritative and unchanged.
+
+## Effect presentation independent of logic ticks
+Interp.BeforeTick snapshots floating-text/hit-splash positions and menu geometry even if world updates pause. Their paint methods draw fractional offsets through an allocation-free mGraphics.OffsetScope; GUI.matrix is restored on exit. Existing integer coordinates, lifetimes and input targets stay in logic. The menu has a minimum realtime opening for recent reopen; isScrolling guards activation until it is visible. Mob health uses NsoHealthTween to draw a fractional-width visible bar over 0.12 s without modifying hp/maxHp. Configuration is on NsoGameControl. General camera/entity interpolation and server timing are unchanged.
+
+## Local workbench and persistent loot policy
+GameWorld.LootRules is immutable, read under existing SyncRoot by drops. CanDropLoot checks dummy/global overlevel policy, then ordinary rewards apply the separate ordinary gate. Detached calls retain legacy DropLevelGapLimit fallback; running worlds use their policy.
+GameServer.Start loads DataDirectory/game-rules.json version 1. Rules: blockTrainingDummy, blockOverlevel, overlevelGap (1..200), limitOrdinaryLoot, ordinaryMaxGap (0..200). Defaults: true,true,10,true,7. Loading has no Unity/wiki dependency.
+WikiControl attaches only to the debug site. GET /control/state: token/revision/active+default rules/runtime. GET /control/status: player/map/quest/bag snapshot. GET /control/events: up to 100 session changes. GET /control/loot?playerLevel=20&mobId=0[&questId=2&step=1]: actual eligibility explanation.
+POST /control/rules accepts {revision,rules}, application/json and X-Nso-Control from state. Validate, check revision, atomically save, then replace under SyncRoot. File IO is outside world lock under a separate change lock. No arbitrary player/code/Unity operations.
+WikiServer bounds headers/body to 8192 bytes, validates Host/write Origin, sends no CORS and serves only index.html/app.css/app.js. /api and /db.json preserved. Shared serialization lives in Data/JsonWriter.cs. UI uses same-origin assets/system fonts, no new runtime dependency. Poll every 2 s when visible; lists page 75 records. Bookmarks/recent are browser-local. Responsive layout implemented but not visually verified here.
+
+## Fractional world and scroll presentation (2026-11-12)
+Interp.BeforeTick snapshots the integer world and list states. BeginPaint retains the existing temporary integer positions for legacy drawing/culling, adds a fractional residual per tracked object and restores authority in EndPaint. Additional projectile/particle objects keep their authoritative fields untouched and use render offsets only. ObjectScope replaces the parent residual for nested absolute-coordinate projectiles/pets; a world-only camera scope ends before fixed HUD. Map identity/teleport guards prevent blending across transitions. No timing/network/save changes.
+Scroll weak registration captures pre-tick content offsets; only its drawn content is positioned fractionally, while viewport and hit testing use original coordinates. mGraphics clears the content offset at clip/origin/reset boundaries; Main.finally also clears it if painting fails. Smooth World Motion and Smooth Effects opt-outs are Inspector settings. Render-cap requests range 60-144; finite sprite artwork and old paint-owned pose counters remain distinct from position interpolation.

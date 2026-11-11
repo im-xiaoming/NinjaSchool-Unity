@@ -92,6 +92,11 @@ public class EggMonters
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (isPaint())
 		{
 			g.drawRegion(GameScr.imgEggMonters, 0, frame * 32, 32, 32, 0, x, y, mGraphics.HCENTER | mGraphics.BOTTOM);

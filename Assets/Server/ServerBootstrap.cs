@@ -68,6 +68,7 @@ public static class ServerBootstrap
             string export = Application.isEditor ? System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", "NsoWiki", "db.json")) : null;
             wiki = new NsoServer.DevWiki.WikiServer(folder, NsoServerControl.WikiPort,
                 () => NsoServer.DevWiki.WikiData.Build(tables, world, notes), export);
+            wiki.Control = new NsoServer.DevWiki.WikiControl(server);
             wiki.Logger = text => Debug.LogWarning("[NsoWiki] " + text);   // Debug.Log* is safe from other threads
             bool open = NsoServerControl.WikiOpenBrowser;
             // runs on the wiki thread; opening the browser is left to the main thread (NsoServerControl.Update)

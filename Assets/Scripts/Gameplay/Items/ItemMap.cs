@@ -132,6 +132,11 @@ public class ItemMap
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (imgCaptcha != null && imgCaptcha.img != null)
 		{
 			int num = 0;

@@ -153,6 +153,11 @@ public class Arrow
 
 	public void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		int dx = axTo - ax;
 		int num = ayTo - ay;
 		int num2 = findDirIndexFromAngle(Res.angle(dx, -num));

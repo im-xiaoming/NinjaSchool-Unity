@@ -15,11 +15,11 @@ namespace NsoServer.Net
     //   - food (effect type 0): +param HP and MP every half second while it lasts (30 min for rice balls etc.)
     //   - HP potion (effect 21, type 17): +param HP every half second for 3 s
     //   - equipment options 99 (every half second), 30/120 (HP every 5 s), 27/119 (MP every 5 s)
-    // Offline addition: a small natural regeneration (NaturalRegenPercent of max HP/MP every NaturalRegenMs) so a
-    // character without food still recovers slowly. Set NaturalRegenPercent to 0 to play exactly like the original.
+    // Char.updateEveryHalfSecond/updateEveryFiveSecond: HP/MP recovery requires an effect or equipment option.
+    // The previous offline natural-recovery addition is disabled by default at the user's request.
     public static class PlayerEffects
     {
-        public static int NaturalRegenPercent = 2;
+        public static int NaturalRegenPercent = 0; // no free HP/MP; positive values explicitly opt into the offline addition
         public static int NaturalRegenMs = 5000;
 
         private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }

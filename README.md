@@ -23,7 +23,19 @@ Save nằm trong `persistentDataPath/NsoData`. Nút mở thư mục và xóa sav
 | `Tools/ServerTests` | Test tự động cho server (chạy bằng `dotnet`, không cần Unity) |
 | `NsoWiki/db.json` | Bản xuất toàn bộ cơ sở dữ liệu tra cứu (tự ghi mỗi lần Play trong Editor) |
 
-## Dev wiki: tra cứu dữ liệu và tiến độ
+## NSO Workbench: điều chỉnh, theo dõi và tra cứu
+
+Mở **http://127.0.0.1:8787/#overview** khi game chạy. Các mục chính:
+- **Tổng quan:** nhân vật, HP/MP thật, map/khu, nhiệm vụ, tiến độ và túi đồ; cập nhật mỗi 2 giây.
+- **Điều chỉnh game:** bật/tắt chặn đồ từ bù nhìn, chặn quái quá thấp cấp và đổi ngưỡng 10 cấp. Luật đồ thường Java (mặc định chênh tối đa 7 cấp) có công tắc và ngưỡng riêng.
+- **Kiểm tra rơi đồ:** nhập cấp, quái và nhiệm vụ/bước để xem nguyên nhân bị chặn, nguồn đồ nhiệm vụ và tỉ lệ đồ thường. Công cụ chỉ giải thích, không tạo đồ.
+- **Tra cứu:** bộ lọc, chi tiết nhiệm vụ từng bước, liên kết NPC/quái/vật phẩm/map, ghim, xem gần đây, sao chép và xuất JSON. Link cũ như `#quests/2` vẫn hoạt động.
+- **Nhật ký cấu hình:** các lần lưu trong phiên. **API & chẩn đoán:** thử truy vấn chỉ đọc.
+
+Đổi luật tại **http://127.0.0.1:8787/#settings**, rồi nhấn **Lưu & áp dụng**. Sau xác nhận thành công, luật mới được dùng cho lần rơi đồ tiếp theo. Cấu hình lưu nguyên tử trong `game-rules.json` dưới thư mục save server (mặc định `persistentDataPath/NsoData`), và được đọc lại khi mở game, kể cả bản release không chạy web. Nút **Mặc định** chỉ điền biểu mẫu, chưa lưu.
+
+Tắt chặn “thấp hơn 10 cấp” không tự tắt luật đồ thường 7 cấp. Bộ kiểm tra giúp phân biệt hai luật. Thay đổi trên web không làm đổi tỉ lệ rơi đồ, damage, cooldown hoặc yêu cầu nhiệm vụ.
+
 Website tra cứu **chỉ dành cho debug**: chỉ có trong Editor và development build (bản release không chứa), chạy trên luồng riêng
 (`NsoDevWiki`) nên không ảnh hưởng luồng chính của game. Khi game chạy, website khởi động cùng game tại
 **http://127.0.0.1:8787/**. Website chỉ mở được trên máy này; nếu cổng bận, game thử 9 cổng tiếp theo. Console in ra
@@ -76,7 +88,7 @@ Chưa làm: kỹ năng buff, nâng cấp / khảm / tách đồ, rương đồ, 
 trường, sự kiện), bạn bè / nhóm / giao dịch / gia tộc, PK.
 
 Khác bản gốc (có chủ đích):
-- Tự hồi 2% HP/MP mỗi 5 giây. Đặt `PlayerEffects.NaturalRegenPercent = 0` để giống bản gốc.
+- Không tự hồi HP/MP khi không có nguồn hồi phục (`PlayerEffects.NaturalRegenPercent = 0`). Thức ăn, thuốc và option trang bị vẫn hồi như bình thường.
 - Bước nhiệm vụ chưa port được cơ chế có mục **"Bỏ qua: <bước>"** ở NPC giao nhiệm vụ.
 - Không có lượng.
 

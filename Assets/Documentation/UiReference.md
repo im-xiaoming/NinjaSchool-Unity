@@ -188,3 +188,12 @@ Script: `Assets/Scripts/Diagnostics/TextCalib.cs`.
   - 19 = D.
 
 *When you add a new tunable, add a row here too.*
+
+## Effect animation tunables (2026-11-11)
+NSO Game Control exposes `_smoothEffects` (true), `_mobHealthSeconds` (0.12) and `_menuOpenSeconds` (0.14). They control fractional floating-number/hit-splash/menu presentation and the visual monster HP bar; they do not alter actual HP, damage or tick speed. General movement/camera interpolation and original sprite poses are unchanged. Test: Tools/verify_effect_presentation.cs in Play mode after entering a map.
+
+## Movement release tunable (2026-11-11)
+NSO Game Control > Gameplay > `_instantMovementStop` (Instant Movement Stop, default true). On the last horizontal release, stop local grounded manual running without original friction. Disable to restore original client behavior. No change to speed or airborne/destination motion. PC aliases include arrows and A/D through Key.mapKeyPC; number-pad/pointer releases are also handled. Regression: Tools/verify_movement_release.cs, 18/18 in Play.
+
+## Render-motion tunables (2026-11-12)
+NSO Game Control: `_smoothWorldMotion` true adds fractional camera/world/projectile placement. `_smoothEffects` also smooths weather particles and Scroll content. Render cap `_targetFrameRate` range is 60-144, default 60; original logic remains 24. Scroll viewport/hit-testing are unchanged. No asset interpolation/new sprite frames. Checks: Tools/verify_world_presentation.cs (94); measurement: Tools/measure_presentation_rate.cs -> %TEMP%/nso-presentation-rate.txt.

@@ -19,6 +19,10 @@ namespace NsoServer.Net
         public const int TypeWeapon = 1, TypeHp = 16, TypeMp = 17, TypeEat = 18, TypeMoney = 19, TypeTaskSave = 23, TypeTaskWait = 24, TypeTask = 25;
         private const int ItemYen = 12, ItemComNam = 23, ItemWoodenSword = 194, ItemSushi = 218;
         private const int MaxYen = 2000000000;
+        private const int MobTrainingDummy = 0;
+        // Legacy fallback for detached test states. Running worlds use their immutable LootRules snapshot,
+        // editable through the dev workbench; probabilities remain the Java defaults.
+        public static int DropLevelGapLimit = 10;
 
         private static readonly Random Rng = new Random();
         private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
@@ -339,15 +343,24 @@ namespace NsoServer.Net
 
         // ---------------------------------------------------------------- drops and pickup
 
+        // Mob.dead excludes BU_NHIN from loot. Offline deviation: apply that exclusion to every drop path,
+        // and block all loot at the user-configured overlevel limit before quest drops or currency rewards.
+        public static bool CanDropLoot(PlayerState killer, Mob mob, LootRules rules = null)
+        {
+            return (!(rules == null || rules.BlockTrainingDummy) || mob.Template.Id != MobTrainingDummy) &&
+                (!(rules == null || rules.BlockOverlevel) || killer.Level - mob.Level < Math.Max(1, rules == null ? DropLevelGapLimit : rules.OverlevelGap));
+        }
+
         // Mob.dead for ordinary maps (non-boss): quest item, then 10 % yen / 10 % item / 5 % equipment for monsters within 7 levels
         public static void OnMobDead(PlayerState killer, GameWorld world, Zone zone, Mob mob)
         {
+            if (!CanDropLoot(killer, mob, world == null ? null : world.LootRules)) return;
             int taskItem = PlayerTasks.TaskItemFor(killer, mob.Template.Id);
             if (taskItem != -1 && (Rng.Next(3) == 0 || mob.Template.Id == 69))   // heo rừng always drops the axe
                 Drop(killer, world, zone, mob, NewItem(taskItem));
             if (mob.IsBoss) return;
             int dLevel = Math.Abs(mob.Level - killer.Level);
-            if (dLevel > 7) return;
+            if (world.LootRules.LimitOrdinaryLoot && dLevel > world.LootRules.OrdinaryMaxGap) return;
             int r = Rng.Next(100);
             if (r < 10)
             {
@@ -388,6 +401,7 @@ namespace NsoServer.Net
         // Mob.dropItem: put the item on the ground next to the monster
         private static void Drop(PlayerState owner, GameWorld world, Zone zone, Mob mob, PlayerItem item)
         {
+            if (!CanDropLoot(owner, mob, world == null ? null : world.LootRules)) return; // includes DropSushi, which bypasses OnMobDead
             if (zone.ItemMaps.Count > 100) return;
             var t = world.FindItem(item.Id);
             if (t == null) return;

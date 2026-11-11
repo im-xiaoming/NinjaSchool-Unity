@@ -67,6 +67,11 @@ public class ServerEffect : Effect2
 
 	public override void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, c)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (c != null)
 		{
 			x = c.cx;

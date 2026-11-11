@@ -145,6 +145,11 @@ public class Npc : Char
 
 	public override void paint(mGraphics g)
 	{
+	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+	}
+
+	private void PaintAtRenderPosition(mGraphics g)
+	{
 		if (!isPaint() || statusMe == 15)
 		{
 			return;

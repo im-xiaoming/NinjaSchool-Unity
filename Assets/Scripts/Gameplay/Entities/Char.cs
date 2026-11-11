@@ -727,6 +727,8 @@ public class Char : MainObject
 
     public int indexSkill;
 
+    private bool skillActionTriggered; // one hit/buff action per animation, independent of render FPS
+
     public int i0;
 
     public int i1;
@@ -2642,6 +2644,32 @@ public class Char : MainObject
             effPaints = null;
             arr = null;
         }
+        SkillInfoPaint[] array = skillInfoPaint1();
+        if (array == null)
+        {
+            return;
+        }
+        // The original client updateSkillPaint/setAttack assumes one paint per game tick.
+        // Offline timing deviation: Unity may paint several frames between logic ticks, so
+        // indexSkill can pass the hit frame (or the animation end). Dispatch once before
+        // cleanup instead of requiring equality, preserving the original hit-frame timing.
+        if (!skillActionTriggered && indexSkill >= array.Length - array.Length / 3)
+        {
+            if (me && myskill.template.type == 2)
+            {
+                skillActionTriggered = true;
+                Service.gI().sendUseSkillMyBuff();
+                saveLoadPreviousSkill();
+            }
+            else if ((mobFocus != null || (!me && charFocus != null) || (me && charFocus != null && isMeCanAttackOtherPlayer(charFocus))) && arr == null)
+            {
+                setAttack();
+                if (me)
+                {
+                    saveLoadPreviousSkill();
+                }
+            }
+        }
         if (skillPaint != null && arr == null && indexSkill >= skillInfoPaint1().Length)
         {
             if (!me)
@@ -2660,27 +2688,6 @@ public class Char : MainObject
             eff0 = (eff1 = (eff2 = null));
             i0 = (i1 = (i2 = 0));
             arr = null;
-        }
-        SkillInfoPaint[] array = skillInfoPaint1();
-        if (array == null)
-        {
-            return;
-        }
-        if (me && myskill.template.type == 2)
-        {
-            if (indexSkill == array.Length - array.Length / 3)
-            {
-                Service.gI().sendUseSkillMyBuff();
-                saveLoadPreviousSkill();
-            }
-        }
-        else if ((mobFocus != null || (!me && charFocus != null) || (me && charFocus != null && isMeCanAttackOtherPlayer(charFocus))) && arr == null && indexSkill == array.Length - array.Length / 3)
-        {
-            setAttack();
-            if (me)
-            {
-                saveLoadPreviousSkill();
-            }
         }
     }
 
@@ -3103,6 +3110,20 @@ public class Char : MainObject
                 isMotoBehind = true;
             }
         }
+    }
+
+    // Offline input deviation: original client updateCharRun decays cvx by one per tick.
+    // Only a released manual ground control requests this; auto paths and airborne motion keep their rules.
+    public void StopGroundMovementOnRelease()
+    {
+        if (!NsoGameControl.InstantMovementStop || !me || statusMe != 2 || currentMovePoint != null)
+            return;
+        if (GameCanvas.keyHold[Key.NUM4] || GameCanvas.keyHold[23] ||
+            GameCanvas.keyHold[Key.NUM6] || GameCanvas.keyHold[22])
+            return;
+        cvx = 0;
+        cBonusSpeed = 0;
+        changeStatusStand();
     }
 
     public void updateCharRun()
@@ -3768,6 +3789,7 @@ public class Char : MainObject
     public void setAutoSkillPaint(SkillPaint skillPaint, int sType)
     {
         this.skillPaint = skillPaint;
+        skillActionTriggered = false;
         this.sType = sType;
         indexSkill = 0;
         i0 = (i1 = (i2 = (dx0 = (dx1 = (dx2 = (dy0 = (dy1 = (dy2 = 0))))))));
@@ -3821,6 +3843,8 @@ public class Char : MainObject
             {
                 return;
             }
+            // Arrow.endMe also calls setAttack; its impact must consume this cast before the next logic tick.
+            skillActionTriggered = true;
             GameCanvas.debug("SetAttk", 0);
             if (me)
             {
@@ -4150,6 +4174,11 @@ public class Char : MainObject
     }
 
     public virtual void paint(mGraphics g)
+    {
+        using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
+    }
+
+    private void PaintAtRenderPosition(mGraphics g)
     {
         if (!isPaint())
         {
