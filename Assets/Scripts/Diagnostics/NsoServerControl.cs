@@ -49,6 +49,7 @@ public class NsoServerControl : MonoBehaviour
         status = server != null ? "Running" : "Not running";
         address = server != null ? "in-process (no network)" : "";
         wikiUrl = ServerBootstrap.WikiUrl ?? "";
+        if (ServerBootstrap.TakeWikiOpenRequest()) Application.OpenURL(wikiUrl);   // the wiki itself runs on its own thread
     }
 
     public string ConfiguredDataFolder { get { return Resolve(Application.persistentDataPath, _saveSubfolder); } }

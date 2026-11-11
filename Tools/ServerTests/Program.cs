@@ -18,7 +18,17 @@ class TestClient
     public static GameServer Srv; public TestClient(int port) { s = Srv.Connect(); }
     public void Close() { s.Dispose(); }
 
-    private int Raw() { int v = s.ReadByte(); if (v < 0) throw new EndOfStreamException(); return v; }
+    // a byte read started by HasMore that did not arrive in time; the next Raw() takes it, so no byte is lost
+    private System.Threading.Tasks.Task<int> pending;
+
+    private int Raw()
+    {
+        int v;
+        if (pending != null) { v = pending.Result; pending = null; }
+        else v = s.ReadByte();
+        if (v < 0) throw new EndOfStreamException();
+        return v;
+    }
 
     public void Handshake()
     {
@@ -68,13 +78,13 @@ class TestClient
     }
 
     // true if another message arrives within the given time
+    // (the in-memory pipe has no read timeout, so the first byte is read in the background and waited for)
     public bool HasMore(int ms)
     {
-        int old = s.ReadTimeout;
-        s.ReadTimeout = ms;
+        if (pending == null) { var st = s; pending = System.Threading.Tasks.Task.Run(() => st.ReadByte()); }
+        if (!pending.Wait(ms)) return false;
         try { Receive(); return true; }
         catch (IOException) { return false; }
-        finally { s.ReadTimeout = old; }
     }
 
     public static Message NotLogin(sbyte sub) { var m = new Message(-29); m.Writer.WriteSByte(sub); return m; }
@@ -165,8 +175,9 @@ static class Program
             }
             if (args.Length > 1 && args[1] == "serve")
             {
+                // Start returns at once; the wiki thread reports when it listens
+                srv.Started = url => Console.WriteLine("Dev wiki: " + url + "  (Enter to stop)");
                 srv.Start();
-                Console.WriteLine("Dev wiki: " + srv.Url + "  (Enter to stop)");
                 if (Console.IsInputRedirected) System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);   // no console: run until killed
                 Console.ReadLine();
                 srv.Stop();

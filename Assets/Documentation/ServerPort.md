@@ -41,6 +41,39 @@ Furoya (clothes), Ameji (jewellery), Goosho (shop, books, fashion). Other NPCs s
 Buff skills (`useSkillBuff`, skill types 2/3/4), item upgrade / gem / crystal windows, storage box, mounts, pets,
 clone skills, special maps (dungeons, wars, events), friends / party / trade / clan.
 
+## Dev wiki (lookup website + API)
+A small debug-only website (compiled only in the Editor and development builds; it runs on its own background thread
+`NsoDevWiki`, so the game's main thread never waits on it) starts with the game at `http://127.0.0.1:8787/` (only on this machine;
+if the port is taken the next 9 are tried, and the Console prints `[NsoWiki] Dev wiki: <url>`). The **NSO Server Control**
+object has the settings (`_wikiEnabled`, `_wikiPort`, `_wikiOpenBrowser`), the current address and an "Open dev wiki"
+button.
+
+It holds NoSQL-style collections, one document per id:
+- generated on every start from `tables.txt` and the ported code: `quests` (steps, NPC per step, kill/pick targets,
+  which steps are skippable offline), `npcs` (menu, where they stand, ported or not), `maps` (type, unlock quest, NPCs,
+  monsters, exits), `mobs`, `items` (shops, quest drops), `shops`, `skills` (levels, ported or not), `effects`,
+  `itemOptions`, `classes`;
+- hand-written in `Assets/StreamingAssets/NsoWiki/notes.json`: `features` (done / partial / todo), `constraints` (game
+  rules with their message and code location), `commands` (network commands and handlers), `config`, `deviations`,
+  `issues`, `tests`. Edit the file and press "Tải lại dữ liệu" in the page.
+
+The page searches without accents (`kiem go`), filters by field (`id:194`, `status:todo`, `area:"Vật phẩm"`) and links
+records as `#items/194`. In the Editor the whole database is also written to `NsoWiki/db.json` in the project folder.
+
+API for scripts and agents (JSON):
+| Request | Result |
+|---|---|
+| `GET /api` | collections, counts, field names, query syntax |
+| `GET /api/search?q=kiem go` | hits in every collection |
+| `GET /api/quests?q=status:partial&fields=id,name` | filtered documents (`&field=value`, `limit`, `offset`) |
+| `GET /api/quests/2` | one document |
+
+Without Unity: `dotnet run --project "C:/My project/Tools/ServerTests/ServerTests.csproj" -- wiki` checks and writes
+`NsoWiki/db.json`; add `serve 8790` to also run the website on that port.
+
+Code: `Assets/Server/DevWiki/WikiData.cs` (builds the database), `WikiApi.cs` (API), `WikiServer.cs` (HTTP),
+started from `ServerBootstrap.StartWiki`. A wiki failure only logs a warning; the game is not affected.
+
 ## Tests
 `Tools/ServerTests` is the original test suite pointed at this project's server (in-memory pipe instead of TCP).
 ```bash

@@ -10,6 +10,15 @@ public static class ServerBootstrap
     // Dev wiki (lookup website for items / quests / NPCs / what is ported), Editor and development builds only.
     private static NsoServer.DevWiki.WikiServer wiki;
     public static string WikiUrl { get { return wiki != null ? wiki.Url : null; } }
+    private static volatile bool wikiOpenRequested;   // set by the wiki thread when "open in browser" is on
+
+    // Main thread: true once if the wiki is up and should be opened in the browser (Application.OpenURL is main-thread only).
+    public static bool TakeWikiOpenRequest()
+    {
+        if (!wikiOpenRequested) return false;
+        wikiOpenRequested = false;
+        return true;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Init()
@@ -59,10 +68,11 @@ public static class ServerBootstrap
             string export = Application.isEditor ? System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", "NsoWiki", "db.json")) : null;
             wiki = new NsoServer.DevWiki.WikiServer(folder, NsoServerControl.WikiPort,
                 () => NsoServer.DevWiki.WikiData.Build(tables, world, notes), export);
-            wiki.Logger = text => Debug.LogWarning("[NsoWiki] " + text);
-            wiki.Start();
-            Debug.Log("[NsoWiki] Dev wiki: " + wiki.Url);
-            if (NsoServerControl.WikiOpenBrowser) Application.OpenURL(wiki.Url);
+            wiki.Logger = text => Debug.LogWarning("[NsoWiki] " + text);   // Debug.Log* is safe from other threads
+            bool open = NsoServerControl.WikiOpenBrowser;
+            // runs on the wiki thread; opening the browser is left to the main thread (NsoServerControl.Update)
+            wiki.Started = url => { Debug.Log("[NsoWiki] Dev wiki: " + url); if (open) wikiOpenRequested = true; };
+            wiki.Start();   // returns at once: binding, data building and requests all run on the wiki's own thread
         }
         catch (System.Exception ex)
         {

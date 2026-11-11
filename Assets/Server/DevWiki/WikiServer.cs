@@ -13,6 +13,9 @@ namespace NsoServer.DevWiki
     //   /db.json     the database built by WikiData; /db.json?reload=1 rebuilds it (re-reads notes.json)
     //   /api/...     JSON API for scripts and agents (WikiApi.cs; GET /api lists the collections and the query syntax)
     // If the port is taken, the next PortTries ports are tried; Url tells which one was used.
+    // Threading: Start() only creates the background thread "NsoDevWiki" (below-normal priority). Binding the port, building
+    // the database and accepting connections all happen there; each request is answered on the thread pool. The game's
+    // main thread never waits on the wiki. Debug only: ServerBootstrap starts it in the Editor / development builds.
     public sealed class WikiServer
     {
         public const int PortTries = 10;
@@ -23,14 +26,15 @@ namespace NsoServer.DevWiki
         private readonly string exportPath;   // optional copy of db.json on disk (for grep / offline lookup), null = none
         private readonly int firstPort;
         private readonly object buildLock = new object();
-        private TcpListener listener;
+        private volatile TcpListener listener;
         private Thread thread;
         private volatile bool running;
         private string db;
         private System.Collections.Generic.Dictionary<string, object> dbParsed;   // db parsed once for the API
 
         public Action<string> Logger = _ => { };
-        public string Url { get; private set; }
+        public string Url { get; private set; }   // null until the wiki thread has bound a port
+        public Action<string> Started = _ => { };  // called on the wiki thread once listening (argument: Url)
 
         public WikiServer(string folder, int port, Func<string> buildDb, string exportPath)
         {
@@ -40,33 +44,44 @@ namespace NsoServer.DevWiki
             this.exportPath = exportPath;
         }
 
+        // returns at once; the wiki comes up on its own background thread
         public void Start()
         {
-            for (int p = firstPort; p < firstPort + PortTries; p++)
-            {
-                try
-                {
-                    var l = new TcpListener(IPAddress.Loopback, p);
-                    l.Start();
-                    listener = l;
-                    Url = "http://127.0.0.1:" + p + "/";
-                    break;
-                }
-                catch (SocketException) { }   // port in use: try the next one
-            }
-            if (listener == null) throw new IOException("Dev wiki: no free port in " + firstPort + ".." + (firstPort + PortTries - 1));
             running = true;
-            thread = new Thread(AcceptLoop) { IsBackground = true, Name = "NsoDevWiki" };
+            thread = new Thread(Run) { IsBackground = true, Name = "NsoDevWiki", Priority = ThreadPriority.BelowNormal };
             thread.Start();
-            // build once in the background so the first page load is fast and the exported file exists
-            ThreadPool.QueueUserWorkItem(_ => { try { Db(true); } catch (Exception ex) { Logger("Dev wiki build error: " + ex.Message); } });
+        }
+
+        // wiki thread: bind a port, build the database once (first page load is fast, exported file exists), then accept
+        private void Run()
+        {
+            try
+            {
+                for (int p = firstPort; p < firstPort + PortTries && listener == null; p++)
+                {
+                    try
+                    {
+                        var l = new TcpListener(IPAddress.Loopback, p);
+                        l.Start();
+                        listener = l;
+                        Url = "http://127.0.0.1:" + p + "/";
+                    }
+                    catch (SocketException) { }   // port in use: try the next one
+                }
+                if (listener == null) { Logger("Dev wiki: no free port in " + firstPort + ".." + (firstPort + PortTries - 1)); return; }
+                if (!running) { Stop(); return; }   // stopped while binding
+                Started(Url);
+                try { Db(true); } catch (Exception ex) { Logger("Dev wiki build error: " + ex.Message); }
+                AcceptLoop();
+            }
+            catch (Exception ex) { Logger("Dev wiki stopped: " + ex.Message); }
         }
 
         public void Stop()
         {
             running = false;
-            try { if (listener != null) listener.Stop(); } catch { }
-            listener = null;
+            var l = listener;
+            try { if (l != null) l.Stop(); } catch { }
         }
 
         // the database text; rebuilt on demand

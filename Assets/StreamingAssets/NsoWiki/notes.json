@@ -27,7 +27,7 @@
     { "id": "npc-menus", "area": "NPC", "title": "Menu NPC làng và trường (xem collection npcs, status)", "status": "partial", "files": "Net/PlayerTasks.cs (InitMenu)", "java": "Char.initMenu, Char.menu" },
     { "id": "social", "area": "Xã hội", "title": "Bạn bè, nhóm, giao dịch, gia tộc, chat", "status": "todo", "files": "", "java": "Char.addFriend, Party, Trade, Clan" },
     { "id": "save", "area": "Lưu trữ", "title": "Lưu túi đồ, trang bị, xu, yên, nhiệm vụ, kỹ năng, tiềm năng, làng đã lưu", "status": "done", "files": "Store/PlayerProgress.cs, Store/PlayerInventory.cs (PlayerRecord.Data)", "java": "players columns" },
-    { "id": "devwiki", "area": "Công cụ", "title": "Website tra cứu (trang này)", "status": "done", "files": "Server/DevWiki/*, StreamingAssets/NsoWiki/*", "notes": "Chạy cùng game ở 127.0.0.1:8787 (Editor / development build)." }
+    { "id": "devwiki", "area": "Công cụ", "title": "Website tra cứu (trang này)", "status": "done", "files": "Server/DevWiki/*, StreamingAssets/NsoWiki/*", "notes": "Chỉ dành cho debug: Editor / development build (#if), luồng riêng NsoDevWiki, 127.0.0.1:8787. Bản release không có." }
   ],
 
   "constraints": [
