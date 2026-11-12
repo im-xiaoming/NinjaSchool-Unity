@@ -366,3 +366,7 @@ Changed progression.js/app.css: Step 02 uses details/summary without open, neste
 
 ## Menu cell caption centring (2026-11-12)
 - `Menu.paintMenu` draws the cell captions under `TextCalib.Use("menuCell")`, so they are centred by their drawn pixels instead of the bitmap font's advance box (the text looked shifted right). New tunable item "Menu cell captions" in `TextCalib` (default X -0.5: the anchor is half a pixel right of the 57 px cell image centre). Files: `Assets/Scripts/UI/Components/Menu.cs`, `Assets/Scripts/Diagnostics/TextCalib.cs`. Compiled clean; not tested in Play mode.
+
+## Dev wiki: effects preview and filters (2026-11-12)
+- `effects.js`: all 12 cards of a page animate (`maxPlaying = pageSize`; was capped at 6).
+- `app.js`: every data tab gets a filter: "Lọc theo" (column) + "Giá trị" (value) + "Xóa lọc". Filterable columns are plain columns with at most `FILTER_MAX_VALUES` (80) distinct values; the default is the tab's old facet. The choice resets when switching tabs. Syntax checked with node; not tested in a browser.

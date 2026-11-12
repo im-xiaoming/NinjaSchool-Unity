@@ -1,9 +1,9 @@
 "use strict";
 
-// Presentation only: a single slow clock, six visible canvases, bounded decoded-image cache.
+// Presentation only: a single slow clock, up to maxPlaying visible canvases, bounded decoded-image cache.
 const effectPreview = (() => {
   let cleanup = () => {}, page = 0, paused = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const images = new Map(), pageSize = 12;
+  const images = new Map(), pageSize = 12, maxPlaying = pageSize; // every card of a page animates
   function imageFor(id) {
     if (images.has(id)) return images.get(id);
     const img = new Image(); img.src = `/sprites/effects/${id}.svg`;
@@ -14,7 +14,7 @@ const effectPreview = (() => {
   function view() {
     const rows = (DB.collections.effectAnimations || []).filter(x => !q || String(x.id).includes(q.replace(/^id:/, "")));
     const pages = Math.max(1, Math.ceil(rows.length / pageSize)); page = Math.min(page, pages - 1);
-    return `<section class="panel effect-library"><div class="panel-head"><div><div class="eyebrow">MINH HỌA TRỰC TIẾP</div><h2>Thư viện hoạt ảnh</h2></div><button class="button" id="effectToggle" aria-pressed="${!paused}">${paused ? "Phát minh họa" : "Tạm dừng"}</button></div><p>Vòng lặp chậm 4 khung/giây · tối đa 6 ô đang nhìn thấy. Tự dừng khi ẩn trang. ID hoạt ảnh riêng, không trùng với ID trạng thái bên dưới.</p><div class="effect-grid">${rows.slice(page * pageSize, (page + 1) * pageSize).map(x => `<figure class="effect-card"><canvas width="192" height="144" data-effect-preview="${x.id}" role="img" aria-label="Hoạt ảnh ${x.id}"></canvas><figcaption><b>Hoạt ảnh #${x.id}</b><span>${x.frames.length} khung · ${(x.frames.length / 4).toFixed(1)} giây/vòng</span><small data-effect-note>Đang chờ hiển thị</small></figcaption></figure>`).join("") || '<p>Không có hoạt ảnh phù hợp.</p>'}</div><div class="paging"><button class="button" id="effectPrev" ${page === 0 ? "disabled" : ""}>← Trước</button><span>${page + 1} / ${pages}</span><button class="button" id="effectNext" ${page + 1 >= pages ? "disabled" : ""}>Sau →</button></div></section><h2>Hiệu ứng trạng thái</h2>`;
+    return `<section class="panel effect-library"><div class="panel-head"><div><div class="eyebrow">MINH HỌA TRỰC TIẾP</div><h2>Thư viện hoạt ảnh</h2></div><button class="button" id="effectToggle" aria-pressed="${!paused}">${paused ? "Phát minh họa" : "Tạm dừng"}</button></div><p>Vòng lặp chậm 4 khung/giây · tối đa ${maxPlaying} ô đang nhìn thấy. Tự dừng khi ẩn trang. ID hoạt ảnh riêng, không trùng với ID trạng thái bên dưới.</p><div class="effect-grid">${rows.slice(page * pageSize, (page + 1) * pageSize).map(x => `<figure class="effect-card"><canvas width="192" height="144" data-effect-preview="${x.id}" role="img" aria-label="Hoạt ảnh ${x.id}"></canvas><figcaption><b>Hoạt ảnh #${x.id}</b><span>${x.frames.length} khung · ${(x.frames.length / 4).toFixed(1)} giây/vòng</span><small data-effect-note>Đang chờ hiển thị</small></figcaption></figure>`).join("") || '<p>Không có hoạt ảnh phù hợp.</p>'}</div><div class="paging"><button class="button" id="effectPrev" ${page === 0 ? "disabled" : ""}>← Trước</button><span>${page + 1} / ${pages}</span><button class="button" id="effectNext" ${page + 1 >= pages ? "disabled" : ""}>Sau →</button></div></section><h2>Hiệu ứng trạng thái</h2>`;
   }
   function mount() {
     cleanup();
@@ -43,12 +43,12 @@ const effectPreview = (() => {
       ctx.drawImage(img, 96 + (frame.dx - state.x) * scale - w / 2, 72 + (frame.dy - state.y) * scale - h / 2, w, h);
       note.textContent = paused ? "Đã tạm dừng" : `Khung ${state.frame + 1}/${frames.length}`;
     }
-    function tick() { [...visible].slice(0, 6).forEach(c => paint(c, !paused)); }
+    function tick() { [...visible].slice(0, maxPlaying).forEach(c => paint(c, !paused)); }
     function schedule() {
       clearInterval(timer); timer = null;
       if (document.hidden || !visible.size) return;
-      [...visible].slice(0, 6).forEach(firstFrame);
-      [...visible].slice(6).forEach(c => { c.parentElement.querySelector("[data-effect-note]").textContent = "Đang chờ lượt minh họa"; });
+      [...visible].slice(0, maxPlaying).forEach(firstFrame);
+      [...visible].slice(maxPlaying).forEach(c => { c.parentElement.querySelector("[data-effect-note]").textContent = "Đang chờ lượt minh họa"; });
       // Paused previews still get their first loaded frame, then stop the clock completely.
       if (!paused) timer = setInterval(tick, 250);
     }
