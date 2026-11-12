@@ -51,6 +51,7 @@ namespace NsoServer.Net
             me.Level = world.GetLevel(me.Record.Exp);
             me.Inventory = PlayerInventory.Load(me.Record.Data, world);
             me.Progress = PlayerProgress.Load(me.Record.Data);
+            PlayerTasks.SkipRemovedTask(me);   // offline: NV Bạn hữu tâm giao removed
             me.PotentialPoint = me.Progress.PotentialPoint;
             me.SkillPoint = me.Progress.SkillPoint;
             if (me.Record.ClassId == 0) SetClassZeroPotential(me);
@@ -132,12 +133,14 @@ namespace NsoServer.Net
             {
                 potentialDame = (pot[0] + o[57]) + (pot[0] * o[58] / 100);
                 long basicAttack = potentialDame + o[38] + (potentialDame * skillOptions[11] / 100);
+                basicAttack += potentialDame * PlayerBuff.IncrDame2(me) / 100;   // incrDame2 (effect type 13)
                 me.Damage = GameBalanceRules.Stat((basicAttack + o[0] + o[21] + o[23] + o[25]) + (potentialDame * o[8] / 100) + potentialDame);
             }
             else
             {
                 potentialDame = pot[3] + o[57] + (pot[3] * o[58] / 100);
                 long basicAttack = potentialDame + o[38] + (potentialDame * skillOptions[11] / 100);
+                basicAttack += potentialDame * PlayerBuff.IncrDame2(me) / 100;   // incrDame2 (effect type 13)
                 me.Damage = GameBalanceRules.Stat((basicAttack + o[1] + o[22] + o[24] + o[26]) + (potentialDame * o[9] / 100) + potentialDame);
             }
             me.Damage = GameBalanceRules.Stat((long)me.Damage + (o[73] + o[87] + o[76]));
@@ -334,6 +337,15 @@ namespace NsoServer.Net
                 foreach (var mb in mobs) if (NextInt(100) <= me.SupportOptions[69]) PlayerEffects.AddMobEffect(zone, mb, 2, 2000);
             }
             bool isFatal = me.Fatal > NextInt(1000);   // 1000 = 100 % critical chance
+            int invisibleAdd = 0;
+            var invisible = PlayerBuff.Find(me, PlayerBuff.TypeInvisible);
+            if (invisible != null)
+            {
+                isFatal = true;
+                invisibleAdd = me.SupportOptions != null ? me.SupportOptions[61] : 0;
+                PlayerBuff.Remove(me, invisible);
+            }
+            var burnHit = PlayerBuff.Find(me, PlayerBuff.TypeBurnHit);       // isEffBong: hit monsters start burning
             SkillPaint(zone, me, mobs, skill.TemplateId);
             foreach (var mob in mobs)
             {
@@ -349,6 +361,13 @@ namespace NsoServer.Net
                     SendHitResult(zone, -1, false, mob);
                     continue;
                 }
+                if (burnHit != null)
+                {
+                    // Effect eff2 = new Effect(9, eff.getTimeRemaining(), eff.param); eff2.param2 = id; mob.effects.put(5, eff2)
+                    mob.BurnEnd = burnHit.EndAt;
+                    mob.BurnParam = burnHit.Param;
+                    mob.BurnOwner = me.Record.Id;
+                }
                 int damageBasic = NextInt(me.Damage2, me.Damage);
                 long hit = damageBasic;
                 if (isFatal)
@@ -359,6 +378,7 @@ namespace NsoServer.Net
                 }
                 hit += me.Options[102];
                 hit += me.Options[113];
+                hit += invisibleAdd;
                 hit = Math.Min(int.MaxValue, hit); // Bound the intermediate before elemental percent bonuses.
                 switch (mob.Sys)
                 {
@@ -380,6 +400,25 @@ namespace NsoServer.Net
             }
         }
 
+        /// <summary>Mob.callFireEffect: a burning monster loses param HP each update, credited to the player who set it.</summary>
+        public static void FireTick(Zone zone, Mob mob, long now)
+        {
+            if (mob.BurnEnd <= 0) return;
+            if (mob.IsDead || now >= mob.BurnEnd) { mob.BurnEnd = 0; return; }
+            PlayerState p = null;
+            foreach (PlayerState x in zone.Players) if (x.Record.Id == mob.BurnOwner) { p = x; break; }
+            if (p == null) return;
+            var world = p.Session.Server.World;
+            int damage = mob.BurnParam;
+            int preHp = mob.Hp;
+            if (mob.Template.Id == MobBuNhin) mob.Hp -= mob.MaxHp / 5;
+            else mob.Hp -= damage;
+            if (mob.Hp < 0) mob.Hp = 0;
+            AddExp(p, world, mob, Math.Abs(mob.Hp - preHp));
+            if (mob.Hp <= 0) { mob.BurnEnd = 0; DieBy(p, world, zone, mob); }
+            SendHitResult(zone, damage, false, mob);
+        }
+
         // skill templates that may burn / freeze / stun every monster they hit
         private static readonly int[] FireSkills = { 9, 61, 73, 79, 18, 62, 78, 83, 85, 86 };
         private static readonly int[] IceSkills = { 27, 63, 75, 81, 36, 64, 76, 82, 87, 88 };
@@ -390,6 +429,7 @@ namespace NsoServer.Net
         {
             Die(zone, mob);
             PlayerItems.OnMobDead(killer, world, zone, mob);
+            TaskOrders.OnKill(killer, mob);   // Mob.dead: killer.taskOrders
             PlayerTasks.OnKill(killer, world, mob);
         }
 
@@ -404,7 +444,7 @@ namespace NsoServer.Net
             mob.RecoveryTimeCount = mob.IsBeast ? 300 : 20;    // zone ticks of half a second: 10 s, beasts 150 s
             mob.Chars.Clear();
             // ordinary maps: monsters come back, bosses do not (except the mystery box)
-            if (!mob.IsBoss || mob.Template.Id == MobHopBiAn) mob.IsWaitingRespawn = true;
+            if ((!mob.IsBoss || mob.Template.Id == MobHopBiAn) && !zone.NoRespawn) mob.IsWaitingRespawn = true;   // instances: isCantRespawn
         }
 
         // ---------------------------------------------------------------- experience
@@ -422,6 +462,8 @@ namespace NsoServer.Net
             if (mob.LevelBoss == 1) exp *= 2;
             else if (mob.LevelBoss == 2) exp *= 5;
             exp += exp * me.Options[100] / 100;
+            var incr = PlayerBuff.Find(me, 18);   // incrExp: "nhân 2 / 3 kinh nghiệm" (Nấm linh chi...)
+            if (incr != null && incr.Param > 0) exp *= incr.Param;
             if (exp > 0) AddExp(me, world, exp);
         }
 
@@ -456,6 +498,7 @@ namespace NsoServer.Net
                 {
                     PlayerSkills.Select(me, world, BasicSkillGrowth.TemplateId);   // faster row for the attack
                     PlayerService.LoadSkill(me, world);
+                    PlayerService.SkillBars(me);   // the bars must point at the new basic-attack row
                 }
             }
             else

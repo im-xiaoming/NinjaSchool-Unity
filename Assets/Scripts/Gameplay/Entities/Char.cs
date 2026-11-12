@@ -1140,7 +1140,7 @@ public class Char : MainObject
             for (int i = 0; i < arrItemBag.Length; i++)
             {
                 Item item = arrItemBag[i];
-                if (item != null && item.template.isUpToUp && !item.isExpires)
+                if (item != null && NsoServer.Store.InventoryGrouping.CanStack(item.template.type, item.template.isUpToUp) && !item.isExpires)
                 {
                     myVector.addElement(item);
                 }
@@ -1155,7 +1155,7 @@ public class Char : MainObject
                 for (int k = j + 1; k < myVector.size(); k++)
                 {
                     Item item3 = (Item)myVector.elementAt(k);
-                    if (item3 != null && item2.template.Equals(item3.template) && item2.isLock == item3.isLock)
+                    if (item3 != null && item2.template.Equals(item3.template) && item2.isLock == item3.isLock && (long)item2.quantity + item3.quantity <= NsoServer.Store.InventoryGrouping.MaxStackQuantity)
                     {
                         item2.quantity += item3.quantity;
                         arrItemBag[item3.indexUI] = null;
@@ -1180,6 +1180,11 @@ public class Char : MainObject
                     }
                 }
             }
+            // Offline grouping uses the same stable order as the server acknowledgement.
+            NsoServer.Store.InventoryGrouping.Group(arrItemBag, item => item.template.type,
+                item => item.template.id, item => item.isLock);
+            for (int i = 0; i < arrItemBag.Length; i++)
+                if (arrItemBag[i] != null) arrItemBag[i].indexUI = i;
         }
         catch (Exception ex)
         {
@@ -1196,7 +1201,7 @@ public class Char : MainObject
             for (int i = 0; i < arrItemBox.Length; i++)
             {
                 Item item = arrItemBox[i];
-                if (item != null && item.template.isUpToUp && !item.isExpires)
+                if (item != null && NsoServer.Store.InventoryGrouping.CanStack(item.template.type, item.template.isUpToUp) && !item.isExpires)
                 {
                     myVector.addElement(item);
                 }
@@ -1211,7 +1216,7 @@ public class Char : MainObject
                 for (int k = j + 1; k < myVector.size(); k++)
                 {
                     Item item3 = (Item)myVector.elementAt(k);
-                    if (item3 != null && item2.template.Equals(item3.template) && item2.isLock == item3.isLock)
+                    if (item3 != null && item2.template.Equals(item3.template) && item2.isLock == item3.isLock && (long)item2.quantity + item3.quantity <= NsoServer.Store.InventoryGrouping.MaxStackQuantity)
                     {
                         item2.quantity += item3.quantity;
                         arrItemBox[item3.indexUI] = null;
@@ -1236,6 +1241,11 @@ public class Char : MainObject
                     }
                 }
             }
+            // Offline grouping uses the same stable order as the server acknowledgement.
+            NsoServer.Store.InventoryGrouping.Group(arrItemBox, item => item.template.type,
+                item => item.template.id, item => item.isLock);
+            for (int i = 0; i < arrItemBox.Length; i++)
+                if (arrItemBox[i] != null) arrItemBox[i].indexUI = i;
         }
         catch (Exception ex)
         {
@@ -4550,7 +4560,8 @@ public class Char : MainObject
         if (charID == -getMyChar().charID)
         {
             heightCharName += color_font_name[ColorName].getHeight();
-            color_font_name[ColorName].drawString(g, mResources.BY + " " + getMyChar().cName + " " + mResources.PROTECT, cx, cy - heightCharName, mFont.CENTER, mFont.tahoma_7_grey);
+            // Offline (user request): the escort line "do <name> hộ tống" is drawn in yellow, like the client's escort messages.
+            mFont.tahoma_7_yellow.drawString(g, mResources.BY + " " + getMyChar().cName + " " + mResources.PROTECT, cx, cy - heightCharName, mFont.CENTER, mFont.tahoma_7_grey);
             heightCharName++;
         }
         if (!cClanName.Equals(string.Empty) && flag)
@@ -11059,7 +11070,54 @@ public class Char : MainObject
         }
     }
 
+    // Offline timing fix: the original client painted once per game tick, and paintCharWithSkill also advances the
+    // animation (indexSkill, the effect frames i0..i2, the arrow). Unity paints at the screen rate (60-144 fps) while
+    // the logic runs at ~24 ticks/s, so skills played 3-6 times too fast. Only the first paint after a logic tick
+    // advances the animation; later paints in the same tick redraw that frame from the state saved before it.
+    private int skillPaintTick = -1;
+    private struct SkillPaintState
+    {
+        public int cf, indexSkill, i0, i1, i2, dx0, dx1, dx2, dy0, dy1, dy2;
+        public EffectCharPaint eff0, eff1, eff2;
+        public Arrow arr;
+    }
+    private SkillPaintState skillPaintBefore;
+    private SkillPaint skillPaintStepped;   // the animation and frame left by the last step, to spot a restart
+    private int skillPaintSteppedIndex;
+
+    private SkillPaintState SaveSkillPaint()
+    {
+        return new SkillPaintState { cf = cf, indexSkill = indexSkill, i0 = i0, i1 = i1, i2 = i2, dx0 = dx0, dx1 = dx1, dx2 = dx2,
+            dy0 = dy0, dy1 = dy1, dy2 = dy2, eff0 = eff0, eff1 = eff1, eff2 = eff2, arr = arr };
+    }
+
+    private void RestoreSkillPaint(SkillPaintState s)
+    {
+        cf = s.cf; indexSkill = s.indexSkill; i0 = s.i0; i1 = s.i1; i2 = s.i2; dx0 = s.dx0; dx1 = s.dx1; dx2 = s.dx2;
+        dy0 = s.dy0; dy1 = s.dy1; dy2 = s.dy2; eff0 = s.eff0; eff1 = s.eff1; eff2 = s.eff2; arr = s.arr;
+    }
+
     private void paintCharWithSkill(mGraphics g)
+    {
+        // a skill (re)started by a message between two paints also takes a step
+        if (skillPaintTick != Main.LogicTick || skillPaint != skillPaintStepped || indexSkill != skillPaintSteppedIndex)
+        {
+            // first paint of this tick: the original step (draw the frame, then advance)
+            skillPaintTick = Main.LogicTick;
+            skillPaintBefore = SaveSkillPaint();
+            paintCharWithSkillStep(g, true);
+            skillPaintStepped = skillPaint;
+            skillPaintSteppedIndex = indexSkill;
+            return;
+        }
+        // repaint of the same tick: draw the same frame again without advancing or launching another arrow
+        SkillPaintState after = SaveSkillPaint();
+        RestoreSkillPaint(skillPaintBefore);
+        paintCharWithSkillStep(g, false);
+        RestoreSkillPaint(after);
+    }
+
+    private void paintCharWithSkillStep(mGraphics g, bool advance)
     {
         try
         {
@@ -11081,7 +11139,7 @@ public class Char : MainObject
                 i2 = (dx2 = (dy2 = 0));
             }
             SkillInfoPaint[] array2 = array;
-            if (array2 != null && array2[indexSkill] != null && array2[indexSkill].arrowId != 0)
+            if (advance && array2 != null && array2[indexSkill] != null && array2[indexSkill].arrowId != 0)
             {
                 arr = new Arrow(this, GameScr.arrs[array2[indexSkill].arrowId - 1]);
                 arr.life = 10;
@@ -11934,11 +11992,12 @@ public class Char : MainObject
                 num57 = num58;
             }
         }
+        // Resolve the old focus first so it cannot clear a target chosen by item auto-movement.
+        clearFocus(num57);
         if (GameScr.isUseitemAuto && GameScr.auto == 1 && !GameScr.gI().lockAutoMove)
         {
             GameScr.updateAutoMovetoMob();
         }
-        clearFocus(num57);
     }
 
     public void clearFocus(int index)
@@ -12620,8 +12679,11 @@ public class Char : MainObject
 
     public void doInjure(int HPShow, int MPShow, bool isBoss, int idBoss)
     {
-        cHP -= HPShow;
-        cMP -= MPShow;
+        // Offline correction to the Mob.attack(Char, Char) display protocol: -1 means MISS,
+        // not negative damage/healing. Keep the original values for the MISS text below;
+        // only positive damage may reduce local HP/MP. Recovery uses separate effect packets.
+        if (HPShow > 0) cHP -= HPShow;
+        if (MPShow > 0) cMP -= MPShow;
         if (!me)
         {
             cHP = cHpNew;
@@ -12715,6 +12777,11 @@ public class Char : MainObject
     {
         timeBocdau = 0;
         statusMe = 1;
+        // Offline fix: the fall that set cyStartFall (setCharFallFromJump) is over once the character stands.
+        // The original only cleared it on one landing path, so a stale value (e.g. 401 from a previous map)
+        // made updateCharFall skip every floor above that height: walking off a ledge in Cửa biển Kawaguchi
+        // fell through the ground to the bottom row and the server killed the character (isCrossMap).
+        cyStartFall = 0;
         timeSummon = mSystem.currentTimeMillis();
     }
 

@@ -118,6 +118,9 @@ namespace NsoServer.World
         public long LastTimeAttack;
         public long AttackDelay = 3000;
         public readonly List<int> Chars = new List<int>();   // ids of the players this monster is hostile to
+        // effect 9 "Lửa vô hình" put by a player's Taiyoutama (mob.effects[5]): param HP per update, from BurnOwner
+        public long BurnEnd;
+        public int BurnParam, BurnOwner;
         public int RecoveryTimeCount;   // Mob.recoveryTimeCount: zone ticks (half seconds) until a dead monster comes back
         public bool IsWaitingRespawn;   // in the zone's waiting list (Zone.waitingListRecoveries)
         // Mob.effects: status effects from skills, by effect type (0 disable, 1 burn, 2 freeze, 3 stun, 14 bound) -> end time (ms)
@@ -144,6 +147,10 @@ namespace NsoServer.World
         // ItemMap list: items lying on the ground, and the counter used for their ids (Zone.numberDropItem)
         public readonly List<ItemMapEntry> ItemMaps = new List<ItemMapEntry>();
         public short NumberDropItem;
+        // a private copy of a map (Java AreaWithCountdownTime, e.g. ChikatoyaTunnels): not listed in the map's zones,
+        // monsters do not come back, closed at InstanceEndAt (ms) or when empty
+        public bool IsInstance, NoRespawn, InstanceDropped;
+        public long InstanceEndAt;
     }
 
     // com.nsoz.map.item.ItemMap: an item lying on the ground
@@ -153,6 +160,8 @@ namespace NsoServer.World
         public int OwnerId = -1;            // only the owner may pick it up during the first 20 s
         public long CreatedAt;              // removed after 30 s
         public bool PickedUp;
+        public bool Fixed;                  // a quest node that never expires (TaskMechanics)
+        public int GateTask = -1, GateStep; // only seen / picked by a player on this quest step (Zone.getItemMaps)
         public NsoServer.Store.PlayerItem Item;
     }
 
@@ -313,6 +322,7 @@ namespace NsoServer.World
         }
 
         public List<ItemTemplateData> ItemTemplates() { return new List<ItemTemplateData>(itemTemplates.Values); }
+        public List<TileMap> MapTemplates() { return new List<TileMap>(tileMaps.Values); }
 
         public List<MobTemplate> MonsterTemplates() { return new List<MobTemplate>(mobTemplates.Values); }
 
@@ -351,6 +361,23 @@ namespace NsoServer.World
         public List<Zone> AllZones()
         {
             return allZones;
+        }
+
+        /// <summary>A private copy of a map (Java: new ChikatoyaTunnels(0, map.tilemap, map)); ticked until RemoveInstance.</summary>
+        public Zone CreateInstance(int mapId)
+        {
+            var tile = FindMap(mapId);
+            if (tile == null) return null;
+            var z = CreateZone(0, tile);
+            z.IsInstance = true;
+            z.NoRespawn = true;
+            lock (sync) allZones.Add(z);
+            return z;
+        }
+
+        public void RemoveInstance(Zone z)
+        {
+            lock (sync) allZones.Remove(z);
         }
 
         public Zone GetZone(int mapId, int zoneId)

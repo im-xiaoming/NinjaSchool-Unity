@@ -1434,22 +1434,14 @@ public class GameScr : mScreen, IActionListener, IChatable
     {
         Skill skill = Char.getMyChar().getSkill(skillTemplate);
         MyVector myVector = new MyVector();
+        // Offline change (user request): all 5 slots are offered; the original stopped at the first empty slot.
         for (int i = 0; i < 5; i++)
         {
-            bool flag = false;
-            if (onScreenSkill[i] == null)
-            {
-                flag = true;
-            }
             myVector.addElement(new Command(p: new object[2]
             {
                 skill,
                 i + string.Empty
             }, caption: mResources.CELLS + " " + (i + 1), action: 11120));
-            if (flag)
-            {
-                break;
-            }
         }
         GameCanvas.menu.startAt(myVector, 0);
     }
@@ -1919,7 +1911,7 @@ public class GameScr : mScreen, IActionListener, IChatable
         cmdBagSelectItem = new Command(mResources.SELECT, 11022);
         cmdBagViewItemInfo = new Command((!GameCanvas.isTouch) ? string.Empty : mResources.VIEW, 11023);
         cmdBagThrowItem = new Command(mResources.THROW, 11024);
-        cmdBagSplitItem = new Command(mResources.SPLIT, 110244);
+        cmdBagSplitItem = new Command("Tách số lượng", 110244);
         cmdItemInfoClose = new Command(mResources.CLOSE, 11025);
         cmdBagUseItem = new Command(mResources.USE, 11026);
         cmdBagSortItem = new Command(mResources.SORT, 110221);
@@ -3389,7 +3381,16 @@ public class GameScr : mScreen, IActionListener, IChatable
                 }
                 Sound.play(Sound.MBClick, 0.5f);
             }
-            if ((GameCanvas.keyPressedz[5] || mScreen.getCmdPointerLast(GameCanvas.currentScreen.center)) && center != null)
+            // Offline controller fix to GameScr.updateKey: upgrade selection uses the existing
+            // left action (select/material/menu/confirm), rather than the optional info-view command.
+            if (GameCanvas.keyPressedz[5] && isPaintUpGrade && left != null)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                left.performAction();
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            else if ((GameCanvas.keyPressedz[5] || mScreen.getCmdPointerLast(GameCanvas.currentScreen.center)) && center != null)
             {
                 GameCanvas.isPointerJustRelease = false;
                 GameCanvas.keyPressedz[5] = false;
@@ -3430,6 +3431,39 @@ public class GameScr : mScreen, IActionListener, IChatable
                 GameCanvas.keyPressedz[5] = false;
                 mScreen.keyTouch = -1;
                 actBagSelectItem();
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            // Offline addition (user request): in Trang bị (indexMenu 4) on large screens the item info is
+            // shown automatically and there is no center command, so Enter / gamepad Circle did nothing.
+            // Enter now runs the left "Chọn" command (11082 -> actTrangBiSelect: "Cất vào hành trang"...).
+            else if (GameCanvas.keyPressedz[5] && center == null && left != null && left.idAction == 11082
+                && isPaintInfoMe && indexMenu == 4 && indexTitle >= 1)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                actTrangBiSelect();
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            // Thú cưỡi (indexMenu 5), same idea: Enter opens a menu with the left "Tháo ra" command (1516).
+            else if (GameCanvas.keyPressedz[5] && center == null && left != null && left.idAction == 1516
+                && isPaintInfoMe && indexMenu == 5 && indexTitle >= 1)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                MyVector myVector = new MyVector();
+                myVector.addElement(new Command(mResources.MOVEOUT, 1516));
+                GameCanvas.menu.startAt(myVector, 3);
+                Sound.play(Sound.MBClick, 0.5f);
+            }
+            // Vĩ thú list (indexMenu 6, indexBijuuMenu 0): Enter opens a menu with "Tháo ra" (508).
+            else if (GameCanvas.keyPressedz[5] && center == null && left != null && left.idAction == 508
+                && isPaintInfoMe && indexMenu == 6 && indexBijuuMenu == 0 && indexTitle >= 1)
+            {
+                GameCanvas.keyPressedz[5] = false;
+                mScreen.keyTouch = -1;
+                MyVector myVector = new MyVector();
+                myVector.addElement(new Command(mResources.MOVEOUT, 508));
+                GameCanvas.menu.startAt(myVector, 3);
                 Sound.play(Sound.MBClick, 0.5f);
             }
             // Empty bag cell: the only command is the left "Sắp xếp" (110221); Enter / Circle runs it.
@@ -3929,6 +3963,8 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     private void checkAuto()
     {
+        // Item-driven automation yields to menus, dialogs and chat; manual pickup is unchanged.
+        if (isUseitemAuto && (GameCanvas.menu.showMenu || GameCanvas.currentDialog != null || ChatTextField.gI().isShow || isPaintPopup() || isPaintUI())) return;
         if (TileMap.mapID == 130 || isMobSameParty())
         {
             return;
@@ -4632,7 +4668,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                 }
             }
         }
-        if (Char.getMyChar().vSkill.size() >= 2 && (GameCanvas.isPointerHoldIn(xSkill + xS[0], yS[0], onScreenSkill.Length * 30, 30) || (!GameCanvas.isTouchControl && GameCanvas.isPointerHoldIn(xSkill + xS[0], yS[0], 30, onScreenSkill.Length * 25))) && GameCanvas.isPointerClick && GameCanvas.isPointerJustRelease)
+        if (hasBookSkill() && (GameCanvas.isPointerHoldIn(xSkill + xS[0], yS[0], onScreenSkill.Length * 30, 30) || (!GameCanvas.isTouchControl && GameCanvas.isPointerHoldIn(xSkill + xS[0], yS[0], 30, onScreenSkill.Length * 25))) && GameCanvas.isPointerClick && GameCanvas.isPointerJustRelease)
         {
             int num = 0;
             num = (GameCanvas.isTouchControl ? ((GameCanvas.pxLast - (xSkill + xS[0])) / 30) : ((GameCanvas.pyLast - (ySkill + yS[0])) / 25));
@@ -4872,7 +4908,8 @@ public class GameScr : mScreen, IActionListener, IChatable
             TuDanh();
         }
 
-        HutVP();
+        // Offline: ordinary loot is manual; enabled Thien bien lenh is the explicit exception.
+        autoPickItem();
         if (charcountdonw != null)
         {
             charcountdonw.update();
@@ -5330,19 +5367,28 @@ public class GameScr : mScreen, IActionListener, IChatable
             g.translate(-g.getTranslateX(), -g.getTranslateY());
             if (GameCanvas.isTouch && GameCanvas.w >= 320)
             {
+                // Offline presentation deviation from GameScr.paint: wide popup commands follow
+                // paintFrame's actual edges, not a separate hard-coded 320-pixel row.
+                // Keep narrow layouts unchanged: three original-size buttons would overlap.
+                int buttonW = Paint.CmdButtonW;
+                int inset = NsoUiLayout.Buttons.popupSideInset;
+                int rowX = popupX + inset;
+                int rowW = popupW - inset * 2;
+                bool alignPopup = (isPaintInfoMe || isPaintUI()) && rowX > 0
+                    && rowX + rowW <= GameCanvas.w && rowW >= buttonW * 3;
                 if (left != null && left != menu)
                 {
-                    left.x = GameCanvas.w / 2 - 160;
+                    left.x = alignPopup ? rowX : GameCanvas.w / 2 - 160;
                     left.y = Paint.CmdY;
                 }
                 if (center != null)
                 {
-                    center.x = GameCanvas.w / 2 - 35;
+                    center.x = alignPopup ? rowX + (rowW - buttonW) / 2 : GameCanvas.w / 2 - 35;
                     center.y = Paint.CmdY;
                 }
                 if (right != null && right != cmdFocus)
                 {
-                    right.x = GameCanvas.w / 2 + 88;
+                    right.x = alignPopup ? rowX + rowW - buttonW : GameCanvas.w / 2 + 88;
                     right.y = Paint.CmdY;
                 }
             }
@@ -5866,12 +5912,12 @@ public class GameScr : mScreen, IActionListener, IChatable
             {
                 if (Char.getMyChar().pPoint > 0)
                 {
-                    string st = "+" + Char.getMyChar().pPoint + mResources.POTENIAL;
+                    string st = "+" + Char.getMyChar().pPoint + " " + mResources.POTENIAL;   // offline fix: missing space
                     mFont.tahoma_7_yellow.drawString(g, st, num3, num2 += 12, 0, mFont.tahoma_7_grey);
                 }
                 if (Char.getMyChar().sPoint > 0)
                 {
-                    string st2 = "+" + Char.getMyChar().sPoint + mResources.SKILL_PT;
+                    string st2 = "+" + Char.getMyChar().sPoint + " " + mResources.SKILL_PT;   // offline fix: missing space
                     mFont.tahoma_7_yellow.drawString(g, st2, num3, num2 += 12, 0, mFont.tahoma_7_grey);
                 }
             }
@@ -6168,14 +6214,43 @@ public class GameScr : mScreen, IActionListener, IChatable
         }
     }
 
+    /// <summary>Offline addition (user request): the 5-slot skill bar appears once the character has learned
+    /// its first skill from a book (any skill other than the basic attack, template 0).</summary>
+    private static bool hasBookSkill()
+    {
+        MyVector v = Char.getMyChar().vSkill;
+        for (int i = 0; i < v.size(); i++)
+        {
+            Skill skill = (Skill)v.elementAt(i);
+            if (skill != null && skill.template != null && skill.template.id != 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void paintSelectedSkill(mGraphics g)
     {
-        if (GameCanvas.currentDialog != null || ChatPopup.currentMultilineChatPopup != null || GameCanvas.menu.showMenu || isPaintPopup() || center == cmdDead || (GameCanvas.isTouch && Char.getMyChar().vSkill.size() < 2) || !isPaintSelectSkill)
+        if (GameCanvas.currentDialog != null || ChatPopup.currentMultilineChatPopup != null || GameCanvas.menu.showMenu || isPaintPopup() || center == cmdDead || (GameCanvas.isTouch && !hasBookSkill()) || !isPaintSelectSkill)   // offline (user request): was vSkill.size() < 2
         {
             return;
         }
+        // Offline change (user request): on PC the bar sits on the same row as the HP / MP potion buttons
+        // (vertically centred on them; same formula as paintTouchControl's potion yHP).
+        int pcBarY = -1;
+        if (Main.isPC && !GameCanvas.isTouchControlSmallScreen)
+        {
+            int potionH = imgButton != null ? mGraphics.getImageHeight(imgButton) : 34;
+            int slotH = imgSkill != null ? mGraphics.getImageHeight(imgSkill) : 26;
+            pcBarY = GameCanvas.h - potionH - NsoUiLayout.Potions.bottomGap + (potionH - slotH) / 2 + 1;
+        }
         for (int i = 0; i < onScreenSkill.Length; i++)
         {
+            if (pcBarY >= 0)
+            {
+                yS[i] = pcBarY;   // input (updateKeyTouch hit test) reads the same yS
+            }
             if (GameCanvas.isTouchControlSmallScreen)
             {
                 if (Info.hI > 0)
@@ -6216,8 +6291,8 @@ public class GameScr : mScreen, IActionListener, IChatable
                 g.setColor(16711680);
                 g.drawRect(xSkill + xS[i] + 2, yS[i] + 2, 19, 19);
             }
-            skill.paint(xSkill + xS[i] + 12, yS[i] + 12, g);
-            if (Main.isPC)
+            skill.paint(xSkill + xS[i] + 12, yS[i] + 12, g, false);   // offline (user request): no cooldown seconds
+            if (false && Main.isPC)   // offline (user request): the slot index numbers are hidden
             {
                 int num = i + ((!GameCanvas.isChangMapKey) ? 1 : 6);
                 if (num >= 10)
@@ -7988,6 +8063,96 @@ public class GameScr : mScreen, IActionListener, IChatable
         }
     }
 
+    /// <summary>Offline addition (user request): leaves a tab's items for the tab title row (all tabs), hiding the
+    /// item info, so left/right switch tabs again (same state as pressing up from the first row).</summary>
+    private void TrangBiBackToTitle()
+    {
+        indexTitle = 0;
+        indexSelect = 0;
+        isPaintItemInfo = false;
+        left = (center = null);
+        setLCR();
+    }
+
+    /// <summary>Offline addition (user request): in Hành trang, an info panel that is already open follows
+    /// the selection when moving left/right (the bag does not open it automatically).</summary>
+    private void BagInfoFollow()
+    {
+        if (!isPaintItemInfo || indexTitle < 1) return;
+        Item item = getItemFocus(3);
+        if (item != null) updateItemInfo(3, item);
+        else isPaintItemInfo = false;
+    }
+
+    private bool InfoArrowsNavigateSelection
+    {
+        get { return indexMenu == 0 || indexMenu == 4 || indexMenu == 5 || indexMenu == 6; }
+    }
+
+    private static bool TryGridDirection(out TabGridNavigation.Direction direction)
+    {
+        direction = TabGridNavigation.Direction.Left;
+        if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23]) return true;
+        direction = TabGridNavigation.Direction.Right;
+        if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22]) return true;
+        direction = TabGridNavigation.Direction.Up;
+        if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24]) return true;
+        direction = TabGridNavigation.Direction.Down;
+        return GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25];
+    }
+
+    // Shared grid policy for bag, equipment, mount and bijuu equipment. Detail panes never own arrows.
+    private void NavigateInfoItemGrid()
+    {
+        TabGridNavigation.Direction direction;
+        if (!TryGridDirection(out direction)) return;
+        int count = indexMenu == 0 ? Char.getMyChar().arrItemBag.Length : 5;
+        int next = indexMenu == 4 ? TabGridNavigation.MoveEquipment(indexSelect, direction)
+            : TabGridNavigation.Move(indexSelect, count, indexMenu == 0 ? columns : 1, direction);
+        if (next == TabGridNavigation.Title) { TrangBiBackToTitle(); return; }
+        indexSelect = next;
+        left = (center = null);
+        setLCR();
+        if (indexMenu == 0)
+        {
+            BagInfoFollow();
+            scrMain.moveTo(indexSelect / columns * scrMain.ITEM_SIZE);
+        }
+    }
+
+    // Crafting has an additional equipment row above materials. Resolve exactly one transition
+    // and consume the direction before refreshing commands, so title focus cannot fall through.
+    private bool NavigateCraftItemGrid()
+    {
+        if ((!isPaintUpGrade && !isPaintBox) || indexTitle < 1) return false;
+        TabGridNavigation.Direction direction;
+        if (!TryGridDirection(out direction)) return false;
+        bool equipmentRow = isPaintUpGrade && indexMenu == 0 && indexTitle == 1;
+        int count = equipmentRow ? 2 : isPaintUpGrade && indexMenu == 0 ? (arrItemUpGrade == null ? 0 : arrItemUpGrade.Length)
+            : isPaintBox && indexMenu == 0 ? (Char.getMyChar().arrItemBox == null ? 0 : Char.getMyChar().arrItemBox.Length)
+            : Char.getMyChar().arrItemBag.Length;
+        int next = TabGridNavigation.Move(indexSelect, count, equipmentRow ? 2 : columns, direction);
+        if (equipmentRow && direction == TabGridNavigation.Direction.Down)
+        {
+            indexTitle = 2; indexSelect = 0;
+        }
+        else if (next == TabGridNavigation.Title)
+        {
+            indexTitle = isPaintUpGrade && indexMenu == 0 && !equipmentRow && direction == TabGridNavigation.Direction.Up ? 1 : 0;
+            indexSelect = 0;
+            isPaintItemInfo = false;
+            scrInfo.clear();
+        }
+        else indexSelect = next;
+        GameCanvas.clearKeyHold();
+        GameCanvas.clearKeyPressed();
+        left = (center = null);
+        if (indexTitle == 0) updateKeyBuyItemUITitle();
+        else updateCommandForUI();
+        if (indexTitle > 0 && !equipmentRow) scrMain.moveTo(indexSelect / columns * scrMain.ITEM_SIZE);
+        return true;
+    }
+
     public void updateKeyUIInforMe()
     {
         if (!isPaintInfoMe || indexMenu == -1 || GameCanvas.currentDialog != null || (isselectedRow >= 1 && indexMenu == 1))
@@ -8052,76 +8217,26 @@ public class GameScr : mScreen, IActionListener, IChatable
             }
             setLCR();
         }
-        else if (isPaintItemInfo)
+        // Offline addition (user request): on large screens setLCR shows the focused item's info
+        // automatically, so this branch swallowed left/right and the selection could not move.
+        // Left/right now fall through to every tab's own navigation; up/down still scroll the info.
+        else if (isPaintItemInfo && !InfoArrowsNavigateSelection && !(GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23] || GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22]))
         {
+            // Offline change (user request): moveTo centres the row, so the first and last presses were
+            // clamped and the info did not move until several presses later. Each press now scrolls the
+            // info by exactly one line (no wrap-around).
             if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
             {
-                indexRow--;
-                if (indexRow < 0)
-                {
-                    indexRow = indexRowMax - 1;
-                }
-                scrInfo.moveTo(indexRow * scrInfo.ITEM_SIZE);
+                scrInfo.ScrollBy(-scrInfo.ITEM_SIZE);
             }
             else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
             {
-                indexRow++;
-                if (indexRow >= indexRowMax)
-                {
-                    indexRow = 0;
-                }
-                scrInfo.moveTo(indexRow * scrInfo.ITEM_SIZE);
+                scrInfo.ScrollBy(scrInfo.ITEM_SIZE);
             }
         }
         else if (indexMenu == 0)
         {
-            if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
-            {
-                indexSelect--;
-                if (indexSelect < 0)
-                {
-                    indexSelect = Char.getMyChar().arrItemBag.Length - 1;
-                }
-                left = (center = null);
-                setLCR();
-                scrMain.moveTo(indexSelect / columns * scrMain.ITEM_SIZE);
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
-            {
-                indexSelect++;
-                if (indexSelect >= Char.getMyChar().arrItemBag.Length)
-                {
-                    indexSelect = 0;
-                }
-                left = (center = null);
-                setLCR();
-                scrMain.moveTo(indexSelect / columns * scrMain.ITEM_SIZE);
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
-            {
-                if (indexSelect + columns <= Char.getMyChar().arrItemBag.Length - 1)
-                {
-                    indexSelect += columns;
-                }
-                left = (center = null);
-                setLCR();
-                scrMain.moveTo(indexSelect / columns * scrMain.ITEM_SIZE);
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
-            {
-                if (indexSelect >= 0 && indexSelect < columns)
-                {
-                    indexTitle = 0;
-                    indexSelect = 0;
-                }
-                else if (indexSelect - columns >= 0)
-                {
-                    indexSelect -= columns;
-                }
-                left = (center = null);
-                setLCR();
-                scrMain.moveTo(indexSelect / columns * scrMain.ITEM_SIZE);
-            }
+            NavigateInfoItemGrid();
         }
         else if (indexMenu == 1)
         {
@@ -8163,7 +8278,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                     indexSelect--;
                     if (indexSelect < 0)
                     {
-                        indexSelect = Char.getMyChar().nClass.skillTemplates.Length - 1;
+                        TrangBiBackToTitle();   // offline (user request): was wrap to the last skill
                     }
                 }
                 left = (center = null);
@@ -8180,7 +8295,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                     indexSelect++;
                     if (indexSelect >= Char.getMyChar().nClass.skillTemplates.Length)
                     {
-                        indexSelect = 0;
+                        TrangBiBackToTitle();   // offline (user request): was wrap to the first skill
                     }
                 }
                 left = (center = null);
@@ -8192,7 +8307,11 @@ public class GameScr : mScreen, IActionListener, IChatable
         }
         else if (indexMenu == 2)
         {
-            if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
+            if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23] || GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
+            {
+                TrangBiBackToTitle();   // offline (user request): left/right return to the tab title
+            }
+            else if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
             {
                 indexTitle--;
             }
@@ -8213,7 +8332,11 @@ public class GameScr : mScreen, IActionListener, IChatable
             {
                 indexRow = 0;
             }
-            if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
+            if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23] || GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
+            {
+                TrangBiBackToTitle();   // offline (user request): left/right return to the tab title
+            }
+            else if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
             {
                 if (indexRow == 0)
                 {
@@ -8238,226 +8361,29 @@ public class GameScr : mScreen, IActionListener, IChatable
         }
         else if (indexMenu == 4)
         {
-            int num = indexSelect;
-            if (indexSelect == 11 || indexSelect == 12 || indexSelect == 13 || indexSelect == 14)
-            {
-                if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[24] || GameCanvas.keyPressedz[23])
-                {
-                    indexSelect--;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[22] || GameCanvas.keyPressedz[25])
-                {
-                    indexSelect++;
-                }
-            }
-            else if (indexSelect == 9)
-            {
-                if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
-                {
-                    indexSelect -= 2;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
-                {
-                    indexSelect = 15;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
-                {
-                    indexSelect--;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
-                {
-                    indexSelect++;
-                }
-            }
-            else if (indexSelect == 10)
-            {
-                if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
-                {
-                    indexSelect -= 2;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
-                {
-                    indexSelect--;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[22] || GameCanvas.keyPressedz[25])
-                {
-                    indexSelect++;
-                }
-            }
-            else if (indexSelect == 15)
-            {
-                if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
-                {
-                    indexSelect = 9;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
-                {
-                    indexSelect--;
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22] || GameCanvas.keyPressedz[25])
-                {
-                    indexSelect = 0;
-                }
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
-            {
-                if (indexSelect <= 1)
-                {
-                    indexSelect = 0;
-                    indexTitle = 0;
-                }
-                else
-                {
-                    indexSelect -= 2;
-                }
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
-            {
-                indexSelect += 2;
-                if (indexSelect > 15)
-                {
-                    indexSelect = 0;
-                }
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
-            {
-                indexSelect--;
-                if (indexSelect < 0)
-                {
-                    indexSelect = 15;
-                }
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
-            {
-                indexSelect++;
-                if (indexSelect > 11)
-                {
-                    indexSelect = 0;
-                }
-            }
-            if (num != indexSelect)
-            {
-                left = (center = null);
-                setLCR();
-            }
+            NavigateInfoItemGrid();
         }
         else if (indexMenu == 5)
         {
-            if (GameCanvas.keyPressedz[Key.NUM2])
-            {
-                if (indexSelect == 4)
-                {
-                    indexSelect = 0;
-                    indexTitle--;
-                }
-                else
-                {
-                    indexSelect--;
-                    if (indexSelect < 0)
-                    {
-                        indexSelect = 0;
-                        indexTitle--;
-                    }
-                }
-                setLCR();
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
-            {
-                if (indexSelect >= 2 && indexSelect != 4)
-                {
-                    indexSelect = 4;
-                }
-                else
-                {
-                    indexSelect = 0;
-                }
-                setLCR();
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
-            {
-                if (indexSelect < 2)
-                {
-                    indexSelect = 4;
-                }
-                else
-                {
-                    indexSelect = 2;
-                }
-                setLCR();
-            }
-            else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
-            {
-                indexSelect++;
-                if (indexSelect >= 4)
-                {
-                    indexSelect = 0;
-                }
-                setLCR();
-            }
+            NavigateInfoItemGrid();
         }
         else if (indexMenu == 6)
         {
             if (indexBijuuMenu == 0)
             {
-                if (GameCanvas.keyPressedz[Key.NUM2])
-                {
-                    if (indexSelect == 4)
-                    {
-                        indexSelect = 0;
-                        indexTitle--;
-                    }
-                    else
-                    {
-                        indexSelect--;
-                        if (indexSelect < 0)
-                        {
-                            indexSelect = 0;
-                            indexTitle--;
-                        }
-                    }
-                    setLCR();
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM4])
-                {
-                    if (indexSelect >= 2 && indexSelect != 4)
-                    {
-                        indexSelect = 4;
-                    }
-                    else
-                    {
-                        indexSelect = 0;
-                    }
-                    setLCR();
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM6])
-                {
-                    if (indexSelect < 2)
-                    {
-                        indexSelect = 4;
-                    }
-                    else
-                    {
-                        indexSelect = 2;
-                    }
-                    setLCR();
-                }
-                else if (GameCanvas.keyPressedz[Key.NUM8])
-                {
-                    indexSelect++;
-                    if (indexSelect >= 4)
-                    {
-                        indexSelect = 0;
-                    }
-                    setLCR();
-                }
+                NavigateInfoItemGrid();
             }
             else if (indexBijuuMenu == 1)
             {
-                if (GameCanvas.keyPressedz[Key.NUM2])
+                if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23] || GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
+                {
+                    TrangBiBackToTitle();   // offline (user request): left/right return to the tab title
+                }
+                else if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
                 {
                     indexTitle--;
                 }
-                else if (GameCanvas.keyPressedz[Key.NUM8])
+                else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
                 {
                     indexTitle++;
                     if (indexTitle >= 5)
@@ -8468,7 +8394,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                     setLCR();
                 }
             }
-            else if (GameCanvas.keyPressedz[Key.NUM2])
+            else if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
             {
                 if (indexTitle == 1 && indexRow == -1)
                 {
@@ -8480,7 +8406,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                 }
                 scrInfo.moveTo(indexRow * scrInfo.ITEM_SIZE);
             }
-            else if (GameCanvas.keyPressedz[Key.NUM8])
+            else if (GameCanvas.keyPressedz[Key.NUM8] || GameCanvas.keyPressedz[25])
             {
                 if (indexTitle == 0)
                 {
@@ -8498,7 +8424,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                 left = (center = null);
                 setLCR();
             }
-            else if (GameCanvas.keyPressedz[Key.NUM4])
+            else if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[23])
             {
                 indexRow = -1;
                 if (indexTitle == 1)
@@ -8506,7 +8432,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                     indexSelect--;
                     if (indexSelect < 0)
                     {
-                        indexSelect = Char.getMyChar().nClass.skillTemplates.Length - 1;
+                        TrangBiBackToTitle();   // offline (user request): was wrap to the last skill
                     }
                 }
                 left = (center = null);
@@ -8515,7 +8441,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                 scrInfo.clear();
                 indexRow = 0;
             }
-            else if (GameCanvas.keyPressedz[Key.NUM6])
+            else if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[22])
             {
                 indexRow = -1;
                 if (indexTitle == 1)
@@ -8523,7 +8449,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                     indexSelect++;
                     if (indexSelect >= Char.getMyChar().nClass.skillTemplates.Length)
                     {
-                        indexSelect = 0;
+                        TrangBiBackToTitle();   // offline (user request): was wrap to the first skill
                     }
                 }
                 left = (center = null);
@@ -8532,6 +8458,12 @@ public class GameScr : mScreen, IActionListener, IChatable
                 scrInfo.clear();
                 indexRow = 0;
             }
+        }
+        if (indexTitle == 0 && indexMenu == 6)
+        {
+            isPaintItemInfo = false;
+            left = (center = null);
+            setLCR();
         }
         if (GameCanvas.isTouch)
         {
@@ -9445,6 +9377,7 @@ public class GameScr : mScreen, IActionListener, IChatable
         {
             return;
         }
+        if (NavigateCraftItemGrid()) return;
         if (indexTitle == 0)
         {
             updateKeyBuyItemUITitle();
@@ -9455,7 +9388,8 @@ public class GameScr : mScreen, IActionListener, IChatable
             // arrow keys (it only scrolled the info text); the arrows keep moving the item selection
             // below. The info panel can still be scrolled with the mouse. Same UI list as the grid
             // pointer handling in updateKeyBuyItemUITouch.
-            if (isPaintItemInfo && !IsGridShop)
+            // Upgrade tooltips are read-only detail panes; arrows/D-pad must navigate the slots.
+            if (isPaintItemInfo && !IsGridShop && !isPaintUpGrade)
             {
                 if (GameCanvas.keyPressedz[Key.NUM2] || GameCanvas.keyPressedz[24])
                 {
@@ -12293,7 +12227,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                         {
                             gETOUT = svAction;
                         }
-                        left = new Command(gETOUT, 111101);
+                        left = new Command(gETOUT, item38.quantity > 1 ? 900001 : 111101);
                         if (GameCanvas.isTouchControlLargeScreen)
                         {
                             updateItemInfo(4, item38);
@@ -12312,7 +12246,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                 {
                     if (Char.getMyChar().arrItemBag[indexSelect] != null)
                     {
-                        left = new Command(mResources.GETIN, 11113);
+                        left = new Command(mResources.GETIN, Char.getMyChar().arrItemBag[indexSelect].quantity > 1 ? 900003 : 11113);
                     }
                     else
                     {
@@ -16969,6 +16903,17 @@ public class GameScr : mScreen, IActionListener, IChatable
                         left = new Command(mResources.MOVEOUT, 1516);
                     }
                     center = new Command((!GameCanvas.isTouchControlLargeScreen) ? mResources.VIEW : string.Empty, 1515);
+                    // Offline change (user request, same as Trang bị): on large screens the focused item's
+                    // info is shown automatically; Enter / Circle then opens the "Tháo ra" menu (see updateKey).
+                    if (GameCanvas.isTouchControlLargeScreen)
+                    {
+                        updateItemInfo(41, currentCharViewInfo.arrItemMounts[indexSelect]);
+                        center = null;
+                    }
+                }
+                else
+                {
+                    isPaintItemInfo = false;
                 }
                 break;
             case 6:
@@ -16983,6 +16928,16 @@ public class GameScr : mScreen, IActionListener, IChatable
                                 left = new Command(mResources.MOVEOUT, 508);
                             }
                             center = new Command((!GameCanvas.isTouchControlLargeScreen) ? mResources.VIEW : string.Empty, 503);
+                            // Offline change (user request, same as Thú cưỡi): info shown automatically on large screens.
+                            if (GameCanvas.isTouchControlLargeScreen)
+                            {
+                                updateItemInfo(51, currentCharViewInfo.arrItemViThu[indexSelect]);
+                                center = null;
+                            }
+                        }
+                        else
+                        {
+                            isPaintItemInfo = false;
                         }
                         break;
                     }
@@ -17550,6 +17505,7 @@ public class GameScr : mScreen, IActionListener, IChatable
                 GameCanvas.endDlg();
                 break;
             case 2001:
+                GameCanvas.endDlg();   // offline fix: the "bỏ vật phẩm" yes/no dialog stayed open after "Có"
                 Service.gI().throwItem(indexSelect);
                 break;
             case 110022:
@@ -18428,6 +18384,15 @@ public class GameScr : mScreen, IActionListener, IChatable
             case 11110:
                 item = arrItemTradeOrder[indexSelect];
                 updateItemInfo(30, item);
+                break;
+            case 900001:
+                showStorageStackMenu(true);
+                break;
+            case 900003:
+                showStorageStackMenu(false);
+                break;
+            case 900002:
+                showStackSplit(true);
                 break;
             case 111101:
                 item = getItemFocus(4);
@@ -19680,6 +19645,7 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     private void actgetLuyenThachItems()
     {
+        if (requireSingleCraftMaterial()) return;
         if (Char.getMyChar().arrItemBag[indexSelect].template.type == 26 || Char.getMyChar().arrItemBag[indexSelect].template.id == 455 || Char.getMyChar().arrItemBag[indexSelect].template.id == 456)
         {
             if (Char.getMyChar().arrItemBag[indexSelect].template.type == 26 && Char.getMyChar().arrItemBag[indexSelect].template.id < 10)
@@ -19755,6 +19721,7 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     private void actUpPearlItems()
     {
+        if (requireSingleCraftMaterial()) return;
         if (Char.getMyChar().arrItemBag[indexSelect].template.type == 26)
         {
             for (int i = 0; i < arrItemUpPeal.Length; i++)
@@ -19968,6 +19935,7 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     private void actUpgrade_HanhTrang()
     {
+        if (requireSingleCraftMaterial()) return;
         if (Char.getMyChar().arrItemBag[indexSelect].isTypeBody())
         {
             if (Char.getMyChar().arrItemBag[indexSelect].template.level < 10 || Char.getMyChar().arrItemBag[indexSelect].template.type >= 10)
@@ -21130,12 +21098,40 @@ public class GameScr : mScreen, IActionListener, IChatable
         GameCanvas.menu.startAt(myVector, 0);
     }
 
-    private void actBagSplitItem()
+    private void actBagSplitItem() { showStackSplit(false); }
+
+    // Offline stack splitting reuses the existing numeric dialog and inputNumSplit command.
+    private void showStackSplit(bool box)
     {
-        if (Char.getMyChar().arrItemBag[indexSelect] != null && Char.getMyChar().arrItemBag[indexSelect].quantity > 1)
-        {
-            GameCanvas.inputDlg.show(mResources.INPUT_NUMSPLIT, new Command("OK", GameCanvas.instance, 88835, indexSelect + string.Empty), TField.INPUT_TYPE_NUMERIC);
-        }
+        Item[] slots = box ? Char.getMyChar().arrItemBox : Char.getMyChar().arrItemBag;
+        if (slots == null || indexSelect < 0 || indexSelect >= slots.Length) return;
+        Item item = slots[indexSelect];
+        if (item == null || item.quantity <= 1 || !NsoServer.Store.InventoryGrouping.CanStack(item.template.type, item.template.isUpToUp)) return;
+        GameCanvas.inputDlg.tfInput.setMaxTextLenght(5);
+        GameCanvas.inputDlg.show(mResources.INPUT_NUMSPLIT,
+            new Command("OK", GameCanvas.instance, 88835, (box ? "box:" : "") + indexSelect), TField.INPUT_TYPE_NUMERIC);
+    }
+
+    private void showStorageStackMenu(bool box)
+    {
+        MyVector actions = new MyVector();
+        actions.addElement(new Command(box ? mResources.GETOUT : mResources.GETIN, box ? 111101 : 11113));
+        Item[] slots = box ? Char.getMyChar().arrItemBox : Char.getMyChar().arrItemBag;
+        Item item = slots[indexSelect];
+        if (item != null && item.quantity > 1 && NsoServer.Store.InventoryGrouping.CanStack(item.template.type, item.template.isUpToUp))
+            actions.addElement(new Command("Tách số lượng", box ? 900002 : 110244));
+        actions.addElement(new Command(mResources.SORT, box ? 11112 : 110221));
+        GameCanvas.menu.startAt(actions, 0);
+    }
+
+    private bool requireSingleCraftMaterial()
+    {
+        var bag = Char.getMyChar().arrItemBag;
+        if (indexSelect < 0 || indexSelect >= bag.Length || bag[indexSelect] == null) return false;
+        Item item = bag[indexSelect];
+        if (item.quantity <= 1 || (item.template.type != 26 && item.template.type != 28)) return false;
+        GameCanvas.startOKDlg("Hãy tách nguyên liệu thành từng viên trước khi nâng cấp/luyện. Dùng Tách số lượng trong hành trang.");
+        return true;
     }
 
     private void domenuTeamLeft()
@@ -21156,62 +21152,41 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     public static void updateAutoMovetoMob()
     {
-        fardistandsX = new int[vMob.size()];
-        fardistandsY = new int[vMob.size()];
-        for (int i = 0; i < vMob.size(); i++)
-        {
-            if (i != index)
-            {
-                Mob mob = (Mob)vMob.elementAt(i);
-                if (!isAllmap)
-                {
-                    int num = Math.abs(mob.xFirst - pointCenterX);
-                    fardistandsX[i] = num;
-                    int num2 = Math.abs(mob.yFirst - pointCenterY);
-                    fardistandsY[i] = num2;
-                }
-                else
-                {
-                    int num3 = Math.abs(mob.xFirst - Char.getMyChar().cx);
-                    fardistandsX[i] = num3;
-                    int num4 = Math.abs(mob.yFirst - Char.getMyChar().cy);
-                    fardistandsY[i] = num4;
-                    rangeSearch = 700;
-                }
-            }
-        }
+        // No per-tick distance arrays: resolve the nearest eligible mob in moveFast itself.
         moveFast();
     }
 
+    private static long nextItemAutoPickup;
+    public static int ItemAutoPickupRadius = 120;
+    public static int ItemAutoPickupIntervalMs = 350;
+
+    // Offline exception requested by the user: only enabled Thien bien lenh may auto-pick.
+    // Ordinary play stays manual. Use normal server validation and leave distant loot in place.
     public static void autoPickItem()
     {
-        if (!isUseitemAuto)
+        Char c = Char.getMyChar();
+        if (!isUseitemAuto || auto != 1 || c.cHP <= 0 || c.statusMe == 14 || c.statusMe == 5
+            || GameCanvas.menu.showMenu || GameCanvas.currentDialog != null || ChatTextField.gI().isShow
+            || gI().isPaintPopup() || gI().isPaintUI()) return;
+        long now = mSystem.currentTimeMillis();
+        if (now < nextItemAutoPickup) return;
+        nextItemAutoPickup = now + System.Math.Max(100, ItemAutoPickupIntervalMs);
+        int radius = System.Math.Max(24, System.Math.Min(145, ItemAutoPickupRadius));
+        int sent = 0;
+        for (int i = 0; i < vItemMap.size() && sent < 8; i++)
         {
-            return;
-        }
-        for (int i = 0; i < vItemMap.size(); i++)
-        {
-            ItemMap itemMap = (ItemMap)vItemMap.elementAt(i);
-            if (Math.abs(Char.getMyChar().cx - itemMap.x) <= 320 && Math.abs(Char.getMyChar().cy - itemMap.y) <= 320)
-            {
-                isItemNearMe = true;
-                if (Char.getMyChar().arrItemBag[Char.getMyChar().arrItemBag.Length - 1] != null)
-                {
-                    if (!itemMap.template.isUpToUp)
-                    {
-                        isItemNearMe = false;
-                        break;
-                    }
-                    Service.gI().pickItem(itemMap.itemMapID);
-                }
-                else
-                {
-                    Service.gI().pickItem(itemMap.itemMapID);
-                }
-                continue;
-            }
-            isItemNearMe = false;
-            break;
+            ItemMap item = (ItemMap)vItemMap.elementAt(i);
+            if (item == null || item.template == null || item.status != 1) continue;
+            long dx = c.cx - item.x, dy = c.cy - item.y;
+            if (dx * dx + dy * dy > radius * radius) continue;
+            bool room = item.template.type == 19 || item.template.id == 218;
+            if (!room && c.arrItemBag != null)
+                foreach (Item bagItem in c.arrItemBag)
+                    if (bagItem == null || (item.template.isUpToUp && bagItem.template != null && bagItem.template.id == item.template.id))
+                    { room = true; break; }
+            if (!room) continue;
+            Service.gI().pickItem(item.itemMapID);
+            sent++;
         }
     }
 
@@ -21246,36 +21221,34 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     public static void moveFast()
     {
-        if (auto != 1 || Char.getMyChar().mobFocus != null || Char.getMyChar().npcFocus != null || Char.getMyChar().mobFocus != null || Char.getMyChar().statusMe == 14 || Char.getMyChar().cMP <= 0 || isItemNearMe || Char.getMyChar().itemFocus != null || mSystem.currentTimeMillis() - lastAutoMove + 2000 < 0)
-        {
-            return;
-        }
-        if (!isAllmap && Char.getMyChar().mobFocus != null && (Char.getMyChar().cx < pointCenterX - rangeSearch || Char.getMyChar().cy > pointCenterX + rangeSearch || Char.getMyChar().cy < pointCenterY - rangeSearch || Char.getMyChar().cy > pointCenterY + rangeSearch))
-        {
-            Char.getMyChar().cx = pointCenterX;
-            Char.getMyChar().cy = pointCenterY;
-        }
+        Char c = Char.getMyChar();
+        long now = mSystem.currentTimeMillis();
+        if (!isUseitemAuto || auto != 1 || c.mobFocus != null || c.npcFocus != null || c.charFocus != null
+            || c.statusMe == 14 || c.statusMe == 5 || c.cHP <= 0 || c.cMP <= 0 || c.itemFocus != null
+            || gI().lockAutoMove || now - lastAutoMove < 2000 || GameCanvas.menu.showMenu
+            || GameCanvas.currentDialog != null || ChatTextField.gI().isShow || gI().isPaintPopup() || gI().isPaintUI()) return;
+        Mob nearest = null;
+        long nearestDistance = long.MaxValue;
         for (int i = 0; i < vMob.size(); i++)
         {
-            if (i != index && fardistandsX[i] < rangeSearch && fardistandsY[i] < rangeSearch && Char.getMyChar().mobFocus == null)
-            {
-                Mob mob = (Mob)vMob.elementAt(i);
-                if (mob.status != 0 && mob.status != 1 && mob.levelBoss != 3)
-                {
-                    ServerEffect.addServerEffect(141, Char.getMyChar().cx, Char.getMyChar().cy, 2);
-                    Char.getMyChar().cx = mob.xFirst;
-                    Char.getMyChar().cy = mob.yFirst;
-                    Char.getMyChar().statusMe = 4;
-                    Char.getMyChar().mobFocus = mob;
-                    ServerEffect.addServerEffect(141, Char.getMyChar().cx, Char.getMyChar().cy, 2);
-                    Char.getMyChar().cxSend = mob.xFirst;
-                    Char.getMyChar().cySend = mob.yFirst;
-                    Service.gI().sendAttackMobFast(mob.mobId);
-                    index = i;
-                    lastAutoMove = mSystem.currentTimeMillis();
-                }
-            }
+            Mob mob = (Mob)vMob.elementAt(i);
+            if (mob == null || mob.hp <= 0 || mob.status == 0 || mob.status == 1 || mob.levelBoss == 3) continue;
+            if (!isAllmap && (System.Math.Abs(mob.xFirst - pointCenterX) > rangeSearch
+                || System.Math.Abs(mob.yFirst - pointCenterY) > rangeSearch)) continue;
+            long dx = mob.xFirst - c.cx, dy = mob.yFirst - c.cy;
+            long distance = dx * dx + dy * dy;
+            if (distance >= nearestDistance) continue;
+            nearest = mob; nearestDistance = distance; index = i;
         }
+        if (nearest == null) return;
+        ServerEffect.addServerEffect(141, c.cx, c.cy, 2);
+        c.cx = c.cxSend = nearest.xFirst;
+        c.cy = c.cySend = nearest.yFirst;
+        c.statusMe = 4;
+        c.mobFocus = nearest;
+        ServerEffect.addServerEffect(141, c.cx, c.cy, 2);
+        Service.gI().sendAttackMobFast(nearest.mobId);
+        lastAutoMove = now;
     }
 
     private void paintListRanked(mGraphics g)
@@ -22323,6 +22296,7 @@ public class GameScr : mScreen, IActionListener, IChatable
 
     private void act_update_khamngoc()
     {
+        if (requireSingleCraftMaterial()) return;
         if (Char.getMyChar().arrItemBag[indexSelect].isTypeNgocKham())
         {
             if (itemSplit == null)

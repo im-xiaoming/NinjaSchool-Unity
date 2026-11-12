@@ -29,6 +29,13 @@ namespace NsoServer.Net
             return -1;   // 547 (clone skills) and anything else: not supported offline
         }
 
+        // Reuse Char.learnSkill's book mapping when school shops classify neutral-sys books.
+        public static int BookClass(GameWorld world, int itemId)
+        {
+            var skill = world.FindSkillTemplate(BookToTemplate(itemId));
+            return skill == null ? 0 : skill.ClassId;
+        }
+
         private static int[] Find(PlayerState me, int templateId)
         {
             foreach (var s in me.Progress.Skills) if (s[0] == templateId) return s;
@@ -37,6 +44,33 @@ namespace NsoServer.Net
 
         // the `skill` row a learned skill currently uses
         public static SkillData Row(GameWorld world, int[] learned) { return world.FindSkill(learned[0], learned[1]); }
+
+        /// <summary>Char.saveRms: the client saves its skill bars (5 screen slots, 3 hot keys, current skill).
+        /// Only learned skills are kept.</summary>
+        public static void SaveRms(Message m, PlayerState me)
+        {
+            string key = m.Reader.ReadUTF();
+            int len = m.Reader.ReadInt();
+            if (len < 0 || len > m.Reader.Remaining) return;
+            var ab = new sbyte[len];
+            for (int i = 0; i < len; i++) ab[i] = m.Reader.ReadSByte();
+            switch (key)
+            {
+                case "KSkill": me.Progress.KSkill = Known(me, ab, 3); break;
+                case "OSkill": me.Progress.OSkill = Known(me, ab, 5); break;
+                case "CSkill": me.Progress.CSkill = ab; break;
+                default: return;
+            }
+            PlayerItems.Save(me);
+        }
+
+        private static sbyte[] Known(PlayerState me, sbyte[] ab, int slots)
+        {
+            var a = new sbyte[slots];
+            for (int i = 0; i < slots; i++)
+                a[i] = i < ab.Length && ab[i] != -1 && Find(me, ab[i]) != null ? ab[i] : (sbyte)-1;
+            return a;
+        }
 
         // Char.learnSkill
         public static void LearnSkill(PlayerState me, GameWorld world, PlayerItem item)
@@ -54,6 +88,7 @@ namespace NsoServer.Net
             var row = Row(world, learned);
             PlayerService.UseBookSkill(me, item.Index, row.Id);
             PlayerService.LoadSkill(me, world);
+            PlayerService.SkillBars(me);   // Char.useBookSkill: sendSkillShortcut
             if (me.SelectedSkill == null && tpl.Type == TypeAttack) Select(me, world, templateId);
             else PlayerCombat.SetAbility(me, world);
             PlayerTasks.OnLearnBook(me);
@@ -82,6 +117,7 @@ namespace NsoServer.Net
             PlayerCombat.SetAbility(me, world);
             PlayerTasks.OnSkillUp(me);
             PlayerService.LoadSkill(me, world);
+            PlayerService.SkillBars(me);   // Char.upSkill: sendSkillShortcut
             PlayerService.UpdateHp(me);
             PlayerService.UpdateMp(me);
             PlayerItems.Save(me);

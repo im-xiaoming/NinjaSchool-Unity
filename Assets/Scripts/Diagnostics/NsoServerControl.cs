@@ -16,6 +16,35 @@ public class NsoServerControl : MonoBehaviour
     [SerializeField] private int _wikiPort = 8787;
     [Tooltip("Open the wiki in the default browser when the game starts.")]
     [SerializeField] private bool _wikiOpenBrowser = false;
+    [Header("Player log (debug) — apply on next Play")]
+    [Tooltip("Write every player action (client message), server reply, server trace line and periodic state snapshot to a text file. Editor: <project>/Logs/PlayerLog; build: <persistentDataPath>/Logs/PlayerLog.")]
+    [SerializeField] private bool _playerLogEnabled = true;
+    [Tooltip("Also log every server-to-client message (much larger files).")]
+    [SerializeField] private bool _playerLogOutgoing = true;
+    [Tooltip("Seconds between two full state snapshots of the character (0 = none).")]
+    [SerializeField, Range(0, 60)] private int _playerLogSnapshotSeconds = 5;
+    [Tooltip("Payload bytes written in hex per message.")]
+    [SerializeField, Range(0, 512)] private int _playerLogPayloadBytes = 48;
+    [Tooltip("Number of log files kept (one per Play session); older ones are deleted.")]
+    [SerializeField, Range(1, 200)] private int _playerLogKeepFiles = 20;
+    /// <summary>Copies the player log settings into the server (ServerBootstrap, before the log opens).</summary>
+    public static void ApplyPlayerLog()
+    {
+        if (Active == null) return;
+        NsoServer.Net.PlayerLog.Enabled = Active._playerLogEnabled;
+        NsoServer.Net.PlayerLog.LogOutgoing = Active._playerLogOutgoing;
+        NsoServer.Net.PlayerLog.SnapshotSeconds = Active._playerLogSnapshotSeconds;
+        NsoServer.Net.PlayerLog.MaxPayloadBytes = Active._playerLogPayloadBytes;
+        NsoServer.Net.PlayerLog.KeepFiles = Active._playerLogKeepFiles;
+    }
+    public static string PlayerLogFolder
+    {
+        get
+        {
+            string root = Application.isEditor ? Path.Combine(Application.dataPath, "..") : Application.persistentDataPath;
+            return Path.GetFullPath(Path.Combine(root, "Logs", "PlayerLog"));
+        }
+    }
     public static bool WikiEnabled { get { return Active != null ? Active._wikiEnabled : true; } }
     public static int WikiPort { get { return Active != null ? Active._wikiPort : 8787; } }
     public static bool WikiOpenBrowser { get { return Active != null && Active._wikiOpenBrowser; } }
@@ -26,6 +55,7 @@ public class NsoServerControl : MonoBehaviour
     public string address = "";
     public string dataFolder = "";
     public string wikiUrl = "";
+    public string playerLogFile = "";
 
     private static string Resolve(string root, string relative)
     {
@@ -49,6 +79,7 @@ public class NsoServerControl : MonoBehaviour
         status = server != null ? "Running" : "Not running";
         address = server != null ? "in-process (no network)" : "";
         wikiUrl = ServerBootstrap.WikiUrl ?? "";
+        playerLogFile = NsoServer.Net.PlayerLog.FilePath ?? "";
         if (ServerBootstrap.TakeWikiOpenRequest()) Application.OpenURL(wikiUrl);   // the wiki itself runs on its own thread
     }
 

@@ -38,12 +38,25 @@ namespace NsoServer.Net
         public short X, Y, PreX, PreY;
         public int Speed = 5;
         public bool IsDead;
+        public bool BoxOpen;   // Char.getCommandBox() == RUONG_DO: the storage box UI was opened at Kamakura
+        // timed quest action in progress (Java isCatchItem / isFailure), see TaskMechanics.StartCatch
+        public long CatchUntil;
+        public bool CatchFailed;
+        public Action CatchDone;
         public bool IsChangeMap;
         public long TimeChangeMap;
 
         // Starting values of a level-1 character; they come from equipment, level and potential once those are ported.
         public int Hp = 50, MaxHp = 50, Mp = 100, MaxMp = 100;
         public long Exp, ExpDown;
+        public Action<string> InputHandler;
+        // Thiên biến lệnh auto-play (Char.isAutoPlay / range / typeAutoPickItem); the client does the fighting
+        public bool IsAutoPlay;
+        public int AutoRange, AutoPickType;
+        public int AutoOriginX, AutoOriginY;
+        public long LastAutoMove;
+        public long LastAutoCheck;
+        public long FishUntil;   // Cần câu vàng: the catch is decided at this time (0 = not fishing)   // Char.input: pending text box (PlayerLuong.ShowInput)
         public sbyte TypePk;
         // damage reduction / resistances used when monsters hit the character
         public int DameDown, Miss, ResFire, ResIce, ResWind;
@@ -114,7 +127,7 @@ namespace NsoServer.Net
             short y = m.Reader.ReadShort();
             short preX = me.X, preY = me.Y;
             if (me.X == x && me.Y == y) { ResetPoint(); return; }
-            if (System.Math.Abs(x - preX) > me.Speed * LimitSpeed) { ResetPoint(); return; }
+            if (!me.IsAutoPlay && System.Math.Abs(x - preX) > me.Speed * LimitSpeed) { ResetPoint(); return; }   // Zone: no speed check while auto-playing
             me.PreX = preX;
             me.PreY = preY;
             me.SetXY(x, y);
@@ -163,16 +176,21 @@ namespace NsoServer.Net
             if (grid.IsWood(cx, cy - 1)) return true;
             if (grid.IsRock(cx, cy - 1)) return true;
             if ((cx < 24 || cx > grid.PxW - 24) && !tile.IsInWaypoint(cx, cy)) return true;
-            if (cy >= grid.PxH - 24 && !tile.IsInWaypoint(cx, cy)) return true;
+            // Offline deviation: Java kills at cy >= pxh - 24, but in maps whose last tile row is solid ground (61, 63)
+            // the character stands at exactly pxh - 24 and died while walking. Standing on a T_TOP tile is not falling out.
+            if (cy >= grid.PxH - 24 && !tile.IsInWaypoint(cx, cy) && !grid.TileTypeAt(cx, cy, TileGrid.T_TOP)) return true;
             return false;
         }
 
         // Zone.requestChangeMap
         public void RequestChangeMap()
         {
-            if (me.IsDead) return;
+            // Offline deviation: Java returns silently, but the client has already locked itself on the black
+            // "loading" screen (Char.ischangingMap) and only RESET_POINT / MAP_INFO unlock it. The server's position
+            // can lag the client's by the last unsent move, so reply with RESET_POINT instead of leaving it black.
+            if (me.IsDead) { ResetPoint(); return; }
             var wp = me.Zone.Tile.FindWaypoint(me.X, me.Y);
-            if (wp == null) return;
+            if (wp == null) { PlayerLog.Event(me, "change map refused: no waypoint at the server position"); ResetPoint(); return; }
             me.TimeChangeMap = Now();
             int next = wp.Next;
             if (next == -1)
@@ -209,10 +227,11 @@ namespace NsoServer.Net
         public void ChangeMap(int id)
         {
             var tile = world.FindMap(id);
-            if (tile == null) { Dialog("Không tìm thấy nơi này!"); return; }
-            if (!tile.IsNormal) { Dialog("Khu vực này chưa được hỗ trợ ở bản offline."); return; }
+            // ResetPoint: unlock the client's black change-map screen when the move cannot happen (offline deviation)
+            if (tile == null) { ResetPoint(); Dialog("Không tìm thấy nơi này!"); return; }
+            if (!tile.IsNormal) { ResetPoint(); Dialog("Khu vực này chưa được hỗ trợ ở bản offline."); return; }
             int zoneId = world.RandomZoneId(id);
-            if (zoneId == -1) { Dialog("Không tìm thấy nơi này!"); return; }
+            if (zoneId == -1) { ResetPoint(); Dialog("Không tìm thấy nơi này!"); return; }
             me.IsChangeMap = true;
             Join(id, zoneId);
         }
@@ -220,14 +239,24 @@ namespace NsoServer.Net
         // Char.outZone + Char.joinZone: leave the current zone, clear the client's map, describe the new one
         private void Join(int mapId, int zoneId)
         {
-            var target = world.GetZone(mapId, zoneId);
+            JoinZone(world.GetZone(mapId, zoneId));
+        }
+
+        /// <summary>Moves the character into a zone (also a private instance, TaskMechanics) at its current X/Y.</summary>
+        public void JoinZone(Zone target)
+        {
+            int mapId = target.Tile.Id;
+            var old = me.Zone;
             me.Zone.Players.Remove(me);
+            if (old.IsInstance && old.Players.Count == 0) world.RemoveInstance(old);   // ChikatoyaTunnels.update: close when empty
             session.Send(new Message(Cmd.MAP_CLEAR));
             me.Zone = target;
             target.Players.Add(me);
-            session.Send(EnterWorld.MapInfo(mapId, me.X, me.Y, target));
+            session.Send(EnterWorld.MapInfo(mapId, me.X, me.Y, target, me));
+            TaskMechanics.RefreshVisible(me);
             session.Send(EnterWorld.MapItems(target.Tile, world, session.ZoomLevel));
             me.IsChangeMap = false;
+            PlayerLog.Event(me, "enter map " + mapId + " zone " + target.Id + (old != null ? " from map " + old.Tile.Id : ""));
             PlayerTasks.OnChangeMap(me, world, mapId);   // NV khám phá xa làng
         }
 
@@ -270,6 +299,7 @@ namespace NsoServer.Net
         // Char.startDie for ordinary maps: the character drops to the ground below it and waits to be revived.
         public void StartDie()
         {
+            PlayerLog.Event(me, "die");
             var tile = me.Zone.Tile;
             var grid = world.GetGrid(tile);
             me.Y = (short)(me.Y / 24 * 24);
@@ -334,7 +364,7 @@ namespace NsoServer.Net
             info.Writer.WriteSByte(Cmd.ME_LOAD_INFO);
             info.Writer.WriteInt(me.Progress != null ? (int)System.Math.Min(int.MaxValue, me.Progress.Xu) : 0);    // xu
             info.Writer.WriteInt(me.Progress != null ? (int)System.Math.Min(int.MaxValue, me.Progress.Yen) : 0);   // yen
-            info.Writer.WriteInt(0);          // luong
+            info.Writer.WriteInt(PlayerLuong.Get(me));   // luong
             info.Writer.WriteInt(me.Hp);
             info.Writer.WriteInt(me.Mp);
             info.Writer.WriteByte(0);         // captcha
@@ -345,8 +375,10 @@ namespace NsoServer.Net
         public void ReviveInPlace()
         {
             if (!me.IsDead) return;
-            // luong (gold) is bought with real money in the original; offline starts with none, so this path is closed
-            Dialog("Cần 1 lượng để hồi sinh tại chỗ.");
+            // Char.wakeUpFromDead(Message)
+            if (PlayerLuong.Get(me) < 1) { Dialog("Cần 1 lượng để hồi sinh tại chỗ."); return; }
+            PlayerLuong.Add(me, -1);
+            WakeUp();
         }
 
         private void SendMove()
@@ -359,7 +391,7 @@ namespace NsoServer.Net
         }
 
         // Service.resetPoint: tell the client where the server thinks it is
-        private void ResetPoint()
+        public void ResetPoint()
         {
             var ms = new Message(Cmd.RESET_POINT);
             ms.Writer.WriteShort(me.X);
@@ -377,6 +409,8 @@ namespace NsoServer.Net
         // On disconnect the position is saved (only on ordinary maps, which is all that can be entered now).
         public void SaveAndLeave()
         {
+            PlayerLog.Event(me, "leave game");
+            PlayerLog.Forget(me);
             me.Zone.Players.Remove(me);
             me.Record.MapId = me.MapId;
             me.Record.X = me.X;

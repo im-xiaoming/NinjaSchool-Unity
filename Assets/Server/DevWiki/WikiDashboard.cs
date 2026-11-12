@@ -174,7 +174,7 @@ namespace NsoServer.DevWiki
         private void SyncMap(PlayerState p)
         {
             p.Session.Send(new Message(Cmd.MAP_CLEAR));
-            p.Session.Send(EnterWorld.MapInfo(p.MapId, p.X, p.Y, p.Zone));
+            p.Session.Send(EnterWorld.MapInfo(p.MapId, p.X, p.Y, p.Zone, p));
             p.Session.Send(EnterWorld.MapItems(p.Zone.Tile, server.World, p.Session.ZoomLevel));
         }
     }

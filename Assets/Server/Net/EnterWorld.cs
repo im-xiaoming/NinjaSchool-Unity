@@ -21,21 +21,37 @@ namespace NsoServer.Net
             // a character saved on a map that cannot be entered (special maps are not ported yet) starts in Lang Tone
             var tile = world.FindMap(p.MapId);
             if (tile == null || !tile.IsNormal) { p.MapId = 22; p.X = 228; p.Y = 192; }
+            // a character saved inside a private instance (a gym of NV Thách đấu, the Chikatoya tunnel) has no zone to
+            // join: gyms send it back to their school (Gymnasium.close -> mapBeforeEnterPB), anything else to Lang Tone
+            if (world.RandomZoneId(p.MapId) < 0)
+            {
+                int back = Gymnasium.SchoolOf(p.MapId);
+                var xy = PlayerTasks.VillageXY(back);
+                p.MapId = back; p.X = xy[0]; p.Y = xy[1];
+            }
             var zone = world.GetZone(p.MapId, world.RandomZoneId(p.MapId));
             var state = new PlayerState { Record = p, Zone = zone, X = (short)p.X, Y = (short)p.Y, PreX = (short)p.X, PreY = (short)p.Y };
             zone.Players.Add(state);
             PlayerCombat.Init(state, world);   // level, potentials, inventory, basic skill, HP/MP and attack values
 
             session.Send(MobMe());
-            session.Send(DataBox());
+            session.Send(DataBox(state, world));
             session.Send(LoadAll(p, world, state));
             session.Send(NotMap(Cmd.ME_LOAD_ACTIVE, w => w.WriteByte(0)));
-            session.Send(MapInfo(p.MapId, p.X, p.Y, zone));
+            session.Send(MapInfo(p.MapId, p.X, p.Y, zone, state));
+            foreach (var it in zone.ItemMaps)   // quest-gated items (TaskMechanics) this character may see
+                if (it.GateTask >= 0 && TaskMechanics.CanSee(state, it))
+                {
+                    var add = new Message(PlayerService.ITEMMAP_ADD);
+                    add.Writer.WriteShort(it.Id); add.Writer.WriteShort(it.Item.Id); add.Writer.WriteShort(it.X); add.Writer.WriteShort(it.Y);
+                    session.Send(add);
+                }
             session.Send(MapItems(zone.Tile, world, session.ZoomLevel));
             session.Send(BijuuInfo(user.Id));
-            session.Send(SkillShortcut("OSkill", 5));
-            session.Send(SkillShortcut("KSkill", 3));
-            session.Send(SkillShortcut("CSkill", 5));
+            // Char.sendInfo: the saved shortcut bars (Char.onOSkill / onKSkill / onCSkill)
+            session.Send(PlayerService.SkillShortcut("OSkill", state.Progress.OSkill));
+            session.Send(PlayerService.SkillShortcut("KSkill", state.Progress.KSkill));
+            session.Send(PlayerService.SkillShortcut("CSkill", state.Progress.CSkill));
             return state;
         }
 
@@ -63,13 +79,23 @@ namespace NsoServer.Net
             return m;
         }
 
-        // Service.sendDataBox: empty storage box
-        private static Message DataBox()
+        // Service.sendDataBox: the storage box (coins in the box are not ported: 0)
+        public static Message DataBox(PlayerState me, GameWorld world)
         {
+            var box = me.Inventory.Box;
             var m = new Message(Cmd.OPEN_UI_BOX);
             m.Writer.WriteInt(0);
-            m.Writer.WriteByte(BoxCells);
-            for (int i = 0; i < BoxCells; i++) m.Writer.WriteShort(-1);
+            m.Writer.WriteByte(box.Length);
+            foreach (var item in box)
+            {
+                var t = item == null ? null : world.FindItem(item.Id);
+                if (t == null) { m.Writer.WriteShort(-1); continue; }
+                m.Writer.WriteShort(item.Id);
+                m.Writer.WriteBoolean(item.IsLock);
+                if ((t.Type >= 0 && t.Type <= 15) || t.Type == 34) m.Writer.WriteByte(item.Upgrade);   // isTypeBody || isTypeNgocKham
+                m.Writer.WriteBoolean(item.Expire > 0);
+                m.Writer.WriteShort(PlayerService.QuantityDisplay(item, t));
+            }
             return m;
         }
 
@@ -115,7 +141,7 @@ namespace NsoServer.Net
             foreach (int id in skillIds) w.WriteShort(id);
             w.WriteInt(state != null && state.Progress != null ? (int)System.Math.Min(int.MaxValue, state.Progress.Xu) : 0);    // xu
             w.WriteInt(state != null && state.Progress != null ? (int)System.Math.Min(int.MaxValue, state.Progress.Yen) : 0);   // yen
-            w.WriteInt(0);               // luong (gold) does not exist offline
+            w.WriteInt(state != null ? PlayerLuong.Get(state) : 0);   // luong
             w.WriteByte(inventory.Bag.Length);
             foreach (var item in inventory.Bag)
             {
@@ -169,7 +195,7 @@ namespace NsoServer.Net
         }
 
         // Service.sendZone
-        public static Message MapInfo(int mapId, int x, int y, Zone zone)
+        public static Message MapInfo(int mapId, int x, int y, Zone zone, PlayerState me = null)
         {
             var tile = zone.Tile;
             var m = new Message(Cmd.MAP_INFO);
@@ -218,13 +244,15 @@ namespace NsoServer.Net
             w.WriteByte(zone.Npcs.Count);
             foreach (var n in zone.Npcs)
             {
-                w.WriteByte(n.Status);
+                w.WriteByte(Escort.NpcStatus(me, n, Gymnasium.NpcStatus(zone, n)));   // the headmaster is hidden while its bot fights; Jaian shows on quest 17
                 w.WriteShort(n.X);
                 w.WriteShort(n.Y);
                 w.WriteByte(n.TemplateId);
             }
-            w.WriteByte(zone.ItemMaps.Count);   // items lying on the ground
-            foreach (var it in zone.ItemMaps) { w.WriteShort(it.Id); w.WriteShort(it.Item.Id); w.WriteShort(it.X); w.WriteShort(it.Y); }
+            int shown = 0;
+            foreach (var it in zone.ItemMaps) if (it.GateTask < 0) shown++;
+            w.WriteByte(shown);   // items lying on the ground (quest-gated ones follow per player, TaskMechanics.RefreshVisible)
+            foreach (var it in zone.ItemMaps) if (it.GateTask < 0) { w.WriteShort(it.Id); w.WriteShort(it.Item.Id); w.WriteShort(it.X); w.WriteShort(it.Y); }
             w.WriteUTF(tile.Name);
             w.WriteByte(tile.LocationStand.Count);
             foreach (var s in tile.LocationStand) { w.WriteByte(s[0]); w.WriteByte(s[1]); }

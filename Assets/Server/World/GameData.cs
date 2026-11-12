@@ -39,6 +39,7 @@ namespace NsoServer.World
     {
         private readonly Dictionary<int, TaskTemplateData> taskTemplates = new Dictionary<int, TaskTemplateData>();
         private readonly Dictionary<int, short[]> taskNpcs = new Dictionary<int, short[]>();
+        private readonly Dictionary<int, short[]> taskMaps = new Dictionary<int, short[]>();
         private readonly Dictionary<int, SkillTemplateData> skillTemplates = new Dictionary<int, SkillTemplateData>();
         private readonly Dictionary<int, List<StoreItem>> stores = new Dictionary<int, List<StoreItem>>();
         private readonly Random dataRng = new Random();
@@ -82,6 +83,13 @@ namespace NsoServer.World
         {
             short[] n;
             return taskNpcs.TryGetValue(taskId, out n) ? n : null;
+        }
+
+        // GameScr.getTaskMapId / task.maps: index 0 before acceptance, step + 1 while active.
+        public short[] TaskMaps(int taskId)
+        {
+            short[] maps;
+            return taskMaps.TryGetValue(taskId, out maps) ? maps : null;
         }
 
         public SkillTemplateData FindSkillTemplate(int id)
@@ -174,8 +182,13 @@ namespace NsoServer.World
 
         private void LoadTaskNpcs(SqlTable t)
         {
-            int id = t.Col("id"), npcs = t.Col("npcs");
-            foreach (var r in t.Rows) taskNpcs[int.Parse(r[id])] = Shorts(r[npcs]);
+            int id = t.Col("id"), npcs = t.Col("npcs"), maps = t.Col("maps");
+            foreach (var r in t.Rows)
+            {
+                int task = int.Parse(r[id]);
+                taskNpcs[task] = Shorts(r[npcs]);
+                taskMaps[task] = Shorts(r[maps]);
+            }
         }
 
         private void LoadSkillTemplates(SqlTable t)

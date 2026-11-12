@@ -71,18 +71,26 @@ namespace NsoServer
                     {
                         long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                         lock (World.SyncRoot)
-                            foreach (var z in World.AllZones())
+                            foreach (var z in World.AllZones().ToArray())   // copy: instances may close during the tick
                             {
                                 PlayerCombat.UpdateRecovery(z, World);   // dead monsters come back (Zone.updateRecovery)
                                 PlayerEffects.UpdateMobEffects(z);       // burn / freeze / stun end (Mob.update)
                                 PlayerItems.UpdateItemMaps(z);           // items on the ground vanish after 30 s
+                                if (!NsoServer.Net.Gymnasium.UpdateZone(z, World, now))   // NV Thách đấu room: headmaster AI, time limit
+                                    TaskMechanics.UpdateZone(z, now);    // quest nodes (ore, ice crystal) come back
                                 for (int i = z.Players.Count - 1; i >= 0; i--)
+                                {
+                                    PlayerLog.Tick((PlayerState)z.Players[i], now);                    // periodic STATE line (offline debug log)
                                     PlayerEffects.UpdateHalfSecond((PlayerState)z.Players[i], World);   // effects, HP/MP regeneration
+                                    TaskMechanics.UpdatePlayer((PlayerState)z.Players[i], now);         // timed quest actions
+                                    if (i < z.Players.Count) NsoServer.Net.Escort.UpdatePlayer((PlayerState)z.Players[i], World, now);   // NV Đưa Jaian trở về
+                                }
                                 MobBrain.UpdateZone(z, now);
                             }
                     }
                 }
                 catch (Exception ex) { Log("tick error: " + ex.Message); }
+                PlayerLog.Flush();
                 Thread.Sleep(500);
             }
         }
@@ -113,6 +121,6 @@ namespace NsoServer
             Log("Server stopped");
         }
 
-        public void Log(string text) { Logger(text); }
+        public void Log(string text) { PlayerLog.Trace(text); Logger(text); }   // the player log keeps every line unfiltered
     }
 }

@@ -41,7 +41,7 @@ namespace NsoServer.DevWiki
             w.Key("npcs"); Npcs(w, ctx);
             w.Key("maps"); Maps(w, ctx);
             w.Key("mobs"); Mobs(w, ctx);
-            w.Key("items"); Items(w, ctx);
+            w.Key("items"); Items(w, ctx, notesPath == null ? null : Path.Combine(Path.GetDirectoryName(notesPath), "..", "NsoStatic", "Data"));
             w.Key("shops"); Shops(w, ctx);
             w.Key("skills"); Skills(w, ctx);
             w.Key("effects"); Simple(w, tables["effect"], "id", new[] { "name", "type", "icon" });
@@ -357,7 +357,7 @@ namespace NsoServer.DevWiki
 
         // ---------------------------------------------------------------- items
 
-        private static void Items(JsonWriter w, Context c)
+        private static void Items(JsonWriter w, Context c, string projectArtDirectory)
         {
             var soldIn = new Dictionary<int, List<int[]>>();   // item -> [shop, xu, yen, luong, lock]
             var sd = c.T["store_data"];
@@ -391,6 +391,12 @@ namespace NsoServer.DevWiki
                 w.Prop("level", int.Parse(r[level]));
                 w.Prop("description", r[desc] ?? "");
                 w.Prop("icon", int.Parse(r[icon]));
+                // Project lookup includes every zoom; the wiki preview and running game may use different zooms.
+                var spriteFiles = ItemSpriteProjectFiles(projectArtDirectory, int.Parse(r[icon]));
+                string preferredSprite = null;
+                foreach (var file in spriteFiles) if ((bool)file["exists"]) preferredSprite = (string)file["path"];
+                w.Prop("spritePath", preferredSprite); // Compatibility for existing API consumers.
+                w.Key("spriteFiles"); w.Value(spriteFiles);
                 w.Prop("part", int.Parse(r[part]));
                 w.Prop("fashion", int.Parse(r[fashion]));
                 w.Prop("stackable", r[up] == "1" || r[up] == "true");
@@ -411,6 +417,45 @@ namespace NsoServer.DevWiki
                 w.EndObject();
             }
             w.EndArray();
+        }
+
+        private static List<Dictionary<string, object>> ItemSpriteProjectFiles(string directory, int icon)
+        {
+            var files = new List<Dictionary<string, object>>();
+            if (directory == null || icon < 0) return files;
+            for (int zoom = 1; zoom <= 4; zoom++)
+            {
+                string relative = "Img/Small/" + zoom + "/Small" + icon + ".png";
+                string full = Path.Combine(directory, relative);
+                bool exists = File.Exists(full);
+                int width = 0, height = 0;
+                if (exists)
+                {
+                    // Read only the PNG header; listing paths must not decode/load every texture.
+                    try
+                    {
+                        using (var stream = File.OpenRead(full))
+                        {
+                            var header = new byte[24];
+                            int count = 0, read;
+                            while (count < header.Length && (read = stream.Read(header, count, header.Length - count)) > 0) count += read;
+                            if (count == header.Length && header[0] == 137 && header[1] == 80)
+                            {
+                                width = header[16] << 24 | header[17] << 16 | header[18] << 8 | header[19];
+                                height = header[20] << 24 | header[21] << 16 | header[22] << 8 | header[23];
+                            }
+                        }
+                    }
+                    catch (IOException) { } // Asset may be replaced while the wiki is rebuilding.
+                    catch (UnauthorizedAccessException) { }
+                }
+                files.Add(new Dictionary<string, object> {
+                    { "zoom", zoom }, { "path", "Assets/StreamingAssets/NsoStatic/Data/" + relative },
+                    { "fullPath", Path.GetFullPath(full) },
+                    { "exists", exists }, { "width", width }, { "height", height }
+                });
+            }
+            return files;
         }
 
         // ---------------------------------------------------------------- shops

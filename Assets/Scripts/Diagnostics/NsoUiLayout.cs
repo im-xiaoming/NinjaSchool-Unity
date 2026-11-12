@@ -13,6 +13,8 @@ public class NsoUiLayout : MonoBehaviour
         public int bottomGap = 6;
         [Tooltip("Space between the left button and the left screen edge, and between the right button and the right screen edge.")]
         public int sidePadding = 2;
+        [Tooltip("Horizontal inset of popup bottom buttons from the logical panel edge. -2 aligns with paintFrame's outer border; narrow panels keep the legacy row to avoid overlap.")]
+        public int popupSideInset = -2;
     }
 
     [Serializable]

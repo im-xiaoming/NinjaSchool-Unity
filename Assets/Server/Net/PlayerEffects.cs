@@ -46,6 +46,7 @@ namespace NsoServer.Net
         public static void UpdateHalfSecond(PlayerState me, GameWorld world)
         {
             long now = Now();
+            PlayerItemUse.AutoTick(me, now);
             // EffectManager.update: drop expired effects
             for (int i = me.Effects.Count - 1; i >= 0; i--)
             {
@@ -53,6 +54,7 @@ namespace NsoServer.Net
                 var e = me.Effects[i];
                 me.Effects.RemoveAt(i);
                 PlayerService.RemoveEffect(me, e);
+                if (e.Type == PlayerBuff.TypeDamageUp) PlayerCombat.SetAbility(me, world);   // incrDame2 ends
             }
             if (me.IsDead) return;
             int hp = 0, mp = 0;
@@ -135,6 +137,7 @@ namespace NsoServer.Net
             long now = Now();
             foreach (var mob in zone.Mobs)
             {
+                if (mob.BurnEnd > 0) PlayerCombat.FireTick(zone, mob, now);   // Mob.update: effects.get(5) -> callFireEffect
                 if (mob.EffectEnd.Count == 0) continue;
                 List<int> done = null;
                 foreach (var kv in mob.EffectEnd) if (kv.Value <= now || mob.IsDead) (done ?? (done = new List<int>())).Add(kv.Key);

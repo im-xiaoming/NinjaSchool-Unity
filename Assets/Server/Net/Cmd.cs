@@ -14,6 +14,10 @@ namespace NsoServer.Net
         public const sbyte RETURN_POINT_MAP = 88;
         public const sbyte ME_LOAD_INFO = -123;
         public const sbyte PLAYER_MOVE = 1;
+        public const sbyte PLAYER_REMOVE = 2;
+        public const sbyte PLAYER_ADD = 3;
+        public const sbyte PLAYER_ATTACK_PLAYER = 61;
+        public const sbyte HAVE_ATTACK_PLAYER = 62;
         public const sbyte ZONE_CHANGE = 28;
         public const sbyte OPEN_UI_ZONE = 36;
         public const sbyte RESET_POINT = 52;

@@ -130,6 +130,7 @@ namespace NsoServer.Net
             try
             {
                 var data = m.GetData();
+                PlayerLog.Out(this, m.Command, data);   // offline debug log of every server reply
                 int num = data.Length;
                 lock (sendLock)
                 {

@@ -22,11 +22,11 @@ namespace NsoServer.Net
         // TaskName
         public const int TaskChaoLang = 0, TaskKienThuc = 1, TaskLanDauDungKiem = 2, TaskDietSenTruCoc = 3, TaskVatLieuTaoGiap = 4,
             TaskHaiThuoc = 5, TaskKhamPha = 6, TaskBaiHocVaoTruong = 7, TaskTimHieu3Truong = 8, TaskGiaTangSucManh = 9,
-            TaskNangCapTrangBi = 12, TaskTruyenTaiTinTuc = 15;
+            TaskBanHuuTamGiao = 11, TaskNangCapTrangBi = 12, TaskTruyenTaiTinTuc = 15;
 
         // NpcName
-        private const int Kanata = 0, Furoya = 1, Ameji = 2, Kiriko = 3, Tabemono = 4, Kamakura = 5, Kenshinto = 6, Umayaki = 7,
-            Toyotomi = 9, Ookamesama = 10, Kazeto = 11, Tajima = 12, Okanechan = 24, Goosho = 26;
+        private const int Kanata = 0, Furoya = 1, Ameji = 2, Kiriko = 3, Tabemono = 4, Kamakura = 5, Kenshinto = 6, Umayaki = 7, Umayaki2 = 8,
+            Toyotomi = 9, Ookamesama = 10, Kazeto = 11, Tajima = 12, Matsurugi = 23, Okanechan = 24, Goosho = 26;
 
         // StoreManager types
         private const int ShopWeapon = 2, ShopPotion = 6, ShopPotionLock = 7, ShopFood = 8, ShopFoodLock = 9, ShopMisc = 14, ShopBook = 15,
@@ -65,7 +65,7 @@ namespace NsoServer.Net
 
         // NPCs with a hand-ported menu (the cases of the switch in InitMenu). Read by the dev wiki (DevWiki/WikiData.cs).
         public static readonly int[] PortedNpcMenus =
-            { Kanata, Furoya, Ameji, Kiriko, Tabemono, Kamakura, Kenshinto, Okanechan, Umayaki, Tajima, Toyotomi, Ookamesama, Kazeto, Goosho };
+            { Kanata, Furoya, Ameji, Kiriko, Tabemono, Kamakura, Kenshinto, Okanechan, Umayaki, Umayaki2, Tajima, Toyotomi, Ookamesama, Kazeto, Goosho };
 
         // read-only views of the tables above for the dev wiki
         public static long[] RewardOf(int taskId)
@@ -117,6 +117,7 @@ namespace NsoServer.Net
         // User.selectChar: show the quest in progress
         public static void OnEnterWorld(PlayerState me, GameWorld world)
         {
+            TaskOrders.OnEnterWorld(me, world);
             var t = Current(me, world);
             if (t == null) return;
             UpdateTaskLevelUp(me, world);
@@ -130,6 +131,7 @@ namespace NsoServer.Net
         {
             int npcId = m.Reader.ReadShort();
             if (!HasNpc(me, npcId)) { PlayerService.ServerDialog(me, "Không tìm thấy NPC này"); return; }
+            me.BoxOpen = false;
             InitMenu(me, world, npcId);
             if (me.Menus.Count > 0) PlayerService.OpenUiMenu(me);
             else PlayerService.ClientMenu(me);
@@ -257,6 +259,12 @@ namespace NsoServer.Net
                     PlayerService.ServerMessage(me, "Bản offline: đã bỏ qua bước \"" + step + "\".");
                 }));
             }
+            // Char.initMenu: inside a gymnasium the NPC only offers "Rời khỏi nơi này" (zone.tilemap.isNhaThiDau)
+            if (Gymnasium.IsGym(me.Zone))
+            {
+                Add(me, "Rời khỏi nơi này", () => Gymnasium.Leave(me, world));
+                return;
+            }
             switch (npc)
             {
                 case Kanata: NpcKanata(me); break;
@@ -265,22 +273,34 @@ namespace NsoServer.Net
                 case Kiriko: NpcKiriko(me); break;
                 case Tabemono: NpcTabemono(me); break;
                 case Kamakura: NpcKamakura(me); break;
-                case Kenshinto: NpcTalk(me, Kenshinto, TaskChaoLang, 2, "Bạn muốn cải tiến trang bị?", "Nâng cấp trang bị: Uy tín, giá cả phải chăng"); break;
-                case Okanechan: NpcTalk(me, Okanechan, TaskChaoLang, 3, "Ta là hiện thân của thần tài sẽ mang đến tài lộc cho mọi người.", "Con hãy chăm đánh quái, làm nhiệm vụ để có thêm nhiều yên hơn."); break;
+                case Kenshinto: NpcKenshinto(me); break;
+                case Okanechan:
+                    PlayerLuong.NpcOkanechan(me, (n, a) => Add(me, n, a), items => SubMenu(me, items));
+                    NpcTalk(me, Okanechan, TaskChaoLang, 3, "Ta là hiện thân của thần tài sẽ mang đến tài lộc cho mọi người.", "Con hãy chăm đánh quái, làm nhiệm vụ để có thêm nhiều yên hơn."); break;
                 case Umayaki: NpcUmayaki(me, world); break;
+                case Umayaki2: NpcUmayaki2(me, world); break;
                 case Tajima: NpcTajima(me, world); break;
                 case Toyotomi: NpcTeacher(me, world, Toyotomi, 1, "Ninja Kiếm", 2, "Ninja Phi Tiêu", "Trường ta dạy kiếm và phi tiêu, chẳng dạy các vũ khí vô danh khác"); break;
                 case Ookamesama: NpcTeacher(me, world, Ookamesama, 3, "Ninja Kunai", 4, "Ninja Cung", "Học, để thành tài, để thành người tốt, chứ không phải để ganh đua với đời."); break;
                 case Kazeto: NpcTeacher(me, world, Kazeto, 5, "Ninja Đao", 6, "Ninja Quạt", "So với các trường khác, trường Gió là tốt nhất"); break;
                 case Goosho: NpcGoosho(me); break;
+                case TaskOrders.Rikudou:
+                    TaskOrders.NpcRikudou(me, world, (n, a) => Add(me, n, a), items => SubMenu(me, items));
+                    break;
+                case Escort.NpcJaian:   // Char.initMenu NpcName.JAIAN: "Đi nào" starts the escort (Escort.cs)
+                    Escort.InitMenu(me, (n, a) => Add(me, n, a));
+                    break;
+                case Matsurugi:   // Char.npcMatsurugi: a new key for the tunnel
+                    if (TaskMechanics.OnTunnelStep(me)) Add(me, "Nhận chìa khóa", () => TaskMechanics.GiveNewKey(me, world));
+                    break;
             }
         }
 
         // NPCs whose "Nói chuyện" entry advances talk steps on their own
         private static bool HasOwnTalkHook(int npc)
         {
-            return npc == Kiriko || npc == Tabemono || npc == Kenshinto || npc == Okanechan || npc == Kamakura || npc == Umayaki ||
-                   npc == Toyotomi || npc == Ookamesama || npc == Kazeto;
+            return npc == Kiriko || npc == Tabemono || npc == Kenshinto || npc == Okanechan || npc == Kamakura || npc == Umayaki || npc == Umayaki2 ||
+                   npc == Toyotomi || npc == Ookamesama || npc == Kazeto || npc == Escort.NpcJaian;
         }
 
         // the NPC that hands out and takes back a quest (first entry of the `task.npcs` row)
@@ -309,7 +329,10 @@ namespace NsoServer.Net
             if (task == TaskDietSenTruCoc && idx <= 1) return true;   // buy / eat food
             if (task == TaskKhamPha && idx >= 1 && idx <= 3) return true;   // reach places
             if (task == TaskGiaTangSucManh && idx <= 2) return true;  // learn a book, raise a skill, raise potential
-            if (task == TaskNangCapTrangBi) return false;             // upgrade is not ported
+            if (task == TaskBanHuuTamGiao && idx == 1) return true;  // removed offline, TaskNext jumps over it
+            if ((task == TaskMechanics.TaskThuThapNguyenLieu || task == TaskMechanics.TaskThuThapTinhTheBang || task == TaskMechanics.TaskLayNuocHangSau) && idx == 1) return true;   // TaskMechanics
+            if ((task == TaskMechanics.TaskTruyTimDiaDo || task == TaskMechanics.TaskTruyTimBaoVat) && idx == 1) return true;   // tunnel / dig
+            if (task == TaskNangCapTrangBi) return true;              // upgrade at Kenshinto (PlayerUpgrade), checked on equip
             return false;
         }
 
@@ -325,6 +348,7 @@ namespace NsoServer.Net
             me.Progress.TaskIndex = 0;
             me.Progress.TaskCount = t.Counts.Length > 0 && t.Counts[0] < 0 ? t.Counts[0] : 0;
             if (t.Id == TaskTruyenTaiTinTuc) PlayerItems.AddItemToBag(me, world, PlayerItems.NewItem(214, 3));   // three letters
+            TaskMechanics.OnTakeTask(me, world, t.Id);
             PlayerItems.Save(me);
             PlayerService.SendTaskInfo(me, t);
             if (t.Id == TaskLanDauDungKiem && me.Inventory.Equipment[1] != null) TaskNext(me);
@@ -336,11 +360,15 @@ namespace NsoServer.Net
         {
             if (!me.Progress.TaskActive) return;
             me.Progress.TaskIndex++;
+            // Offline deviation (user request 2026-11-12): the "Giao lưu bạn hữu" step of NV Bạn hữu tâm giao is removed
+            if (me.Record.TaskId == TaskBanHuuTamGiao && me.Progress.TaskIndex == 1) me.Progress.TaskIndex++;
             me.Progress.TaskCount = 0;
             var t = me.Session.Server.World.FindTask(me.Record.TaskId);
             if (t != null && me.Progress.TaskIndex > t.Counts.Length - 1) me.Progress.TaskIndex = Math.Max(0, t.Counts.Length - 1);
             PlayerItems.Save(me);
             PlayerService.TaskNext(me);
+            if (me.Record.TaskId == TaskBanHuuTamGiao && me.Progress.TaskIndex == 2) PlayerService.TaskNext(me);   // client skips the removed step too
+            TaskMechanics.RefreshVisible(me);   // ore / ice crystal appear on their step
         }
 
         // Char.updateTaskCount
@@ -353,6 +381,22 @@ namespace NsoServer.Net
             int idx = me.Progress.TaskIndex;
             if (idx < t.Counts.Length && me.Progress.TaskCount >= t.Counts[idx]) TaskNext(me);
             else PlayerItems.Save(me);
+        }
+
+        // Offline deviation (dev terminal /next): bypasses one step's requirements via Char.taskNext.
+        // Reuse TaskNext for saves, client sync, removed-step policy and visible quest objects.
+        // Accepting/finishing a quest stays explicit; /skip already covers whole-quest completion.
+        public static string NextTaskStep(PlayerState me, GameWorld world)
+        {
+            var t = world.FindTask(me.Record.TaskId);
+            if (t == null) return "Không còn nhiệm vụ nào.";
+            if (!me.Progress.TaskActive) return "Chưa nhận nhiệm vụ. Hãy nhận nhiệm vụ trước khi dùng /next.";
+            int lastStep = Math.Min(t.SubNames.Length, t.Counts.Length) - 1;
+            if (lastStep < 0) return "Nhiệm vụ không có bước hợp lệ.";
+            if (me.Progress.TaskIndex < 0 || me.Progress.TaskIndex > lastStep) return "Bước nhiệm vụ không hợp lệ.";
+            if (me.Progress.TaskIndex == lastStep) return "Đã ở bước cuối. Hãy trả nhiệm vụ hoặc dùng /skip để hoàn thành.";
+            TaskNext(me);
+            return "Nhiệm vụ '" + t.Name + "': bước " + (me.Progress.TaskIndex + 1) + " - " + t.SubNames[me.Progress.TaskIndex] + ".";
         }
 
         // Offline deviation (dev terminal /skip): completes the current quest at once. Takes it if not taken yet,
@@ -426,8 +470,24 @@ namespace NsoServer.Net
             me.Progress.TaskIndex = 0;
             me.Progress.TaskCount = 0;
             me.Record.TaskId++;
+            // Offline deviation (user request 2026-11-12): NV Bạn hữu tâm giao (11) is removed, the chain goes 10 -> 12.
+            // A second TASK_FINISH moves the client's ctaskId past it too.
+            bool skip = me.Record.TaskId == TaskBanHuuTamGiao;
+            if (skip) me.Record.TaskId++;
             PlayerItems.Save(me);
             PlayerService.TaskFinish(me);
+            if (skip) PlayerService.TaskFinish(me);
+        }
+
+        /// <summary>Offline deviation (user request 2026-11-12): NV Bạn hữu tâm giao is removed. A save sitting on it
+        /// (before this change) moves on to NV Nâng cấp trang bị at login.</summary>
+        public static void SkipRemovedTask(PlayerState me)
+        {
+            if (me.Record.TaskId != TaskBanHuuTamGiao) return;
+            me.Record.TaskId = TaskNangCapTrangBi;
+            me.Progress.TaskActive = false;
+            me.Progress.TaskIndex = 0;
+            me.Progress.TaskCount = 0;
         }
 
         // ---- quest hooks ----
@@ -615,6 +675,23 @@ namespace NsoServer.Net
             });
         }
 
+        // Char.npcKenshinto: the forge. UI 10 = upgrade, 31 = careful upgrade (luong), 12/11 = crystal merge (yen / xu),
+        // 13 = split. "Chuyển hóa" (33) and "Luyện ngọc" (46) are not ported.
+        private static void NpcKenshinto(PlayerState me)
+        {
+            Add(me, "Nâng cấp", () => SubMenu(me,
+                "Thường", (Action)(() => PlayerService.OpenUi(me, 10)),
+                "Cẩn thận", (Action)(() => PlayerService.OpenUi(me, 31)),
+                "Hướng dẫn", (Action)(() => PlayerService.NpcChat(me, Kenshinto, "Bỏ Trang bị và Đá vào trong khung để nâng cấp, Khi nâng cấp cẩn thận thì phải có lượng."))));
+            Add(me, "Luyện đá", () => SubMenu(me,
+                "Yên", (Action)(() => PlayerService.OpenUi(me, 12)),
+                "Xu", (Action)(() => PlayerService.OpenUi(me, 11))));
+            Add(me, "Tách", () => PlayerService.OpenUi(me, 13));
+            Add(me, "Chuyển hóa", () => PlayerService.OpenUi(me, 33));   // Char.npcKenshinto: UI 33
+
+            NpcTalk(me, Kenshinto, TaskChaoLang, 2, "Bạn muốn cải tiến trang bị?", "Nâng cấp trang bị: Uy tín, giá cả phải chăng");
+        }
+
         private static void NpcKiriko(PlayerState me)
         {
             Add(me, "Dược phẩm (Yên)", () => PlayerService.OpenUi(me, ShopPotionLock));
@@ -631,6 +708,9 @@ namespace NsoServer.Net
 
         private static void NpcKamakura(PlayerState me)
         {
+            Add(me, "Mở rương", () => SubMenu(me,
+                "Mở rương", (Action)(() => PlayerStorage.OpenBox(me, me.Session.Server.World)),
+                "Mở giới hạn xu", (Action)(() => PlayerLuong.RaiseXuMax(me, items => SubMenu(me, items)))));
             Add(me, "Lưu tọa độ", () =>
             {
                 if (IsVillageOrSchool(me.MapId))
@@ -656,8 +736,22 @@ namespace NsoServer.Net
             Add(me, "Làng Oshin", () => Teleport(me, world, 48));
         }
 
+        // Char.npcUmayaki_2: the carriage at the three schools
+        private static void NpcUmayaki2(PlayerState me, GameWorld world)
+        {
+            if (!IsVillageOrSchool(me.MapId) || IsVillage(me.MapId)) return;   // Char.isSchool
+            Add(me, "Trường Hirosaki", () => Teleport(me, world, 1));
+            Add(me, "Trường Haruna", () => Teleport(me, world, 27));
+            Add(me, "Trường Ookaza", () => Teleport(me, world, 72));
+            NpcTalk(me, Umayaki2, TaskChaoLang, 5, "Nhà bạn muốn đi đâu?", "Ngựa của ta rất khỏe có thể chạy ngàn dặm.", "Đi xe kéo của ta an toàn số một.");
+        }
+
+        // Char.npcTajima. Offline deviations: "[Bật/Tắt] nhận lời mời" (invites from other players) and "Thứ thân"
+        // (switch back from a clone) are left out, there are no other players and no clones offline. The offline
+        // "Nhận kiếm gỗ" entry stays, but gives a sword only when the character has none (it was unlimited).
         private static void NpcTajima(PlayerState me, GameWorld world)
         {
+            Add(me, "Hủy vật phẩm và nhiệm vụ", () => ClearTask(me, world));
             Add(me, "Nói chuyện", () =>
             {
                 var t = Current(me, world);
@@ -666,17 +760,69 @@ namespace NsoServer.Net
             });
             Add(me, "Nhận kiếm gỗ", () =>
             {
-                var sword = PlayerItems.NewItem(194, 1, false);
+                if (HasItem(me, WoodenSword)) { PlayerService.NpcChat(me, Tajima, "Con đã có kiếm gỗ rồi."); return; }
+                var sword = PlayerItems.NewItem(WoodenSword, 1, false);
                 sword.Options.Add(new PlayerItemOption { Id = 0, Param = 10 });
                 sword.Options.Add(new PlayerItemOption { Id = 9, Param = 10 });
                 if (!PlayerItems.AddItemToBag(me, world, sword)) PlayerService.ServerDialog(me, "Hành trang không đủ chỗ trống");
             });
         }
 
+        private const int WoodenSword = 194, DaCap9 = 8;   // ItemName: wooden sword, DA_CAP_9
+
+        // the item is in the bag, the box or worn
+        private static bool HasItem(PlayerState me, int id)
+        {
+            var inv = me.Inventory;
+            foreach (var a in new[] { inv.Bag, inv.Box, inv.Equipment })
+                if (a != null) foreach (var it in a) if (it != null && it.Id == id) return true;
+            return false;
+        }
+
+        /// <summary>Char.clearTask (Tajima "Hủy vật phẩm và nhiệm vụ"): from level 10, drops the quest in progress
+        /// (it can be taken again from its giver, from step 0) and every quest item (types 23, 24, 25) in the bag.
+        /// The client does the same on CLEAR_TASK (NOT_MAP -98, Char.clearTask).</summary>
+        public static void ClearTask(PlayerState me, GameWorld world)
+        {
+            if (me.Level < 10)
+            {
+                PlayerService.NpcChat(me, Tajima, "Trình độ của con không đạt cấp 10 nên không được sử dụng chức năng này");
+                return;
+            }
+            var bag = me.Inventory.Bag;
+            // removeItemBags(DA_CAP_9, 1): the stone given for NV 24 step 2
+            if (me.Record.TaskId == 24 && me.Progress.TaskActive && me.Progress.TaskIndex == 2)
+            {
+                int idx = -1;
+                for (int i = 0; i < bag.Length; i++) if (bag[i] != null && bag[i].Id == DaCap9) idx = i;
+                if (idx >= 0) PlayerItems.RemoveItem(me, idx, 1, true);
+            }
+            if (Escort.IsLeading(me)) Escort.Fail(me, true, Escort.FailOther);   // the escort belongs to the dropped quest
+            me.Progress.TaskActive = false;   // taskMain = null
+            me.Progress.TaskIndex = 0;
+            me.Progress.TaskCount = 0;
+            for (int i = 0; i < bag.Length; i++)
+            {
+                if (bag[i] == null) continue;
+                var t = world.FindItem(bag[i].Id);
+                if (t != null && (t.Type == 25 || t.Type == 23 || t.Type == 24)) bag[i] = null;
+            }
+            PlayerItems.Save(me);
+            var m = new Message(Cmd.NOT_MAP);   // Service.clearTask
+            m.Writer.WriteSByte(-98);
+            me.Session.Send(m);
+            PlayerLog.Event(me, "quest " + me.Record.TaskId + " and quest items dropped (Tajima)");
+            PlayerService.NpcChat(me, Tajima, "Tất cả vật phẩm nhiệm vụ và nhiệm vụ hiện tại trên người con đã được hủy.");
+        }
+
         // Toyotomi / Ookamesama / Kazeto
         private static void NpcTeacher(PlayerState me, GameWorld world, int npc, int class1, string name1, int class2, string name2, string talk)
         {
             Add(me, "Nhập học", () => SubMenu(me, name1, (Action)(() => Admission(me, world, class1, npc)), name2, (Action)(() => Admission(me, world, class2, npc))));
+            // Char.initMenu (NV_THACH_DAU, isSchool): "Vào phòng thi đấu". Offline: only on this headmaster's step.
+            if (IsVillageOrSchool(me.MapId) && !IsVillage(me.MapId) && OnStep(me, Gymnasium.TaskThachDau, Gymnasium.StepOf(npc)))
+                Add(me, "Vào phòng thi đấu", () => Gymnasium.Enter(me, world, npc));
+            PlayerLuong.TeacherMenu(me, world, npc, (n, a) => Add(me, n, a), items => SubMenu(me, items));
             Add(me, "Nói chuyện", () =>
             {
                 PlayerService.NpcChat(me, npc, talk);
@@ -776,6 +922,9 @@ namespace NsoServer.Net
             Array.Copy(CharacterProgressionRules.OriginalPotential(cls), me.Potential, 4);
             me.Progress.Skills.Clear();
             me.SelectedSkill = null;
+            me.Progress.OSkill = new sbyte[] { -1, -1, -1, -1, -1 };   // Char.selectClass
+            me.Progress.KSkill = new sbyte[] { -1, -1, -1 };
+            me.Progress.CSkill = new sbyte[0];
             PlayerService.SkillShortcut(me, "OSkill", 5);
             PlayerService.SkillShortcut(me, "KSkill", 3);
             PlayerService.SkillShortcut(me, "CSkill", 0);

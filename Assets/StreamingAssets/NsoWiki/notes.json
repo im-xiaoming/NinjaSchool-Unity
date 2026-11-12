@@ -1,168 +1,1229 @@
 {
   "_comment": "Hand-written collections of the dev wiki (Assets/Server/DevWiki). Each key is a collection, each value an array of documents with an \"id\". Keys starting with _ are ignored. Edit, then press 'Tải lại dữ liệu' in the page. status: done | partial | todo | skip.",
-
   "features": [
-    {"id": "wiki-effect-previews", "area": "Workbench", "title": "Slow looping effect previews", "status": "partial", "files": "DevWiki/WikiData.cs, WikiSprites.cs, WikiServer.cs, ServerBootstrap.cs; NsoWiki/effects.js, sprites.js, app.js, app.css, index.html", "notes": "Original status icons and separate nj_effect animation gallery. 4 fps, 6 visible loops maximum, 12 cards/page, 128-image cache; offscreen/hidden/route cleanup and pause button. Unity compile + JS syntax passed; browser validation pending."},
-    {"id":"wiki-sprites","area":"Workbench","title":"Original item and monster sprites","status":"partial","files":"DevWiki/WikiSprites.cs, NsoWiki/sprites.js","notes":"Item icons and representative mob/boss frames in lists/details/links/balance headings. Compile/syntax only; browser checks pending."},
-    {"id":"character-progression-profiles","area":"Workbench","title":"Character groups, Level-1 bases and progression preview","status":"partial","files":"World/CharacterProgressionRules.cs, Net/PlayerTuning.cs, DevWiki/WikiProgression.cs, NsoWiki/progression.js","notes":"Shared gameplay calculator; unclassed/shared-classed/per-class profiles, draft comparisons with three separate Unclassed / Wooden Sword / Classed boxes and scope selection in Step 01, collapsed-by-default growth panel/guidance, worked example and attribute glossary; save actions remain visible. Compile/syntax only; user validates runtime."},
-    {"id": "dashboard-editors", "area": "Workbench", "title": "Whole-game balancing dashboard", "status": "partial", "files": "DevWiki/WikiDashboard.cs, World/GameBalanceRules.cs, Net/PlayerTuning.cs, World/MobTuning.cs, NsoWiki/dashboard.js", "notes": "Global player/EXP/equipment coefficients and monster-template rules. Existing and future objects use durable config; raw player/item saves stay original. Compile/syntax only; user verifies runtime/restart/UI."},
-    {"id": "world-render-motion", "title": "Render-rate world and scroll motion", "status": "done", "notes": "Fractional camera/entity/projectile/pet/weather and list-content placement. Render caps 60-144; measured 60/120 paints per second at matching caps with logic fixed at 24. Original sprite pose counts remain finite; no all-scene/hardware 60 FPS guarantee."},
-    {"id": "workbench-controls", "area": "Debug tools", "title": "NSO Workbench: live state, persistent rules and detailed lookup", "status": "done", "files": "DevWiki/WikiControl.cs, World/LootRules.cs, NsoWiki/app.js, app.css", "notes": "Live character/map/quest/bag, validated loot settings, inspector, history and redesigned lookup. API 27/27, pure UI 18/18; browser visual QA pending."},
-    {"id": "smooth-hit-menu-effects", "area": "Presentation", "title": "High-FPS hit numbers, HP bars and F1 popup", "status": "done", "files": "Scripts/Application/Interp.cs, Screens/GameScr.cs, UI/Components/Menu.cs, Gameplay/Mobs/Mob.cs, Rendering/mGraphics.cs", "notes": "Fractional effects/menu motion and visual HP transition; recent menu reopen animates. Gameplay timing/HP/sprite poses unchanged. Play tests 17/17; runtime samples 72 text positions/16 logic, 38 menu positions/9 logic."},
-    {"id": "loot-exclusions", "area": "Items", "title": "No loot from dummies or overleveled kills", "status": "done", "files": "Net/PlayerItems.cs", "notes": "User confirmed: no dummy loot; no loot from mobs at least 10 levels below player. Includes quest drops, currency, sushi. Original ordinary-loot abs-gap<=7/chances unchanged."},
-    {"id": "client-skill-hit-timing", "area": "Chi?n ??u", "title": "??n ki?m kh?ng b? m?t khi FPS cao", "status": "done", "files": "Assets/Scripts/Gameplay/Entities/Char.cs", "notes": "Hit dispatch runs once after crossing the animation hit frame; live quest 2 dummy kill advanced progress to 1/10. Full manual quest chain remains unverified."},
-    { "id": "login", "area": "Khởi động", "title": "Phiên, đăng nhập, danh sách / tạo / chọn nhân vật", "status": "done", "files": "Net/Session.cs, Net/Controller.cs, Store/AccountStore.cs", "java": "network/*, model/User.java", "notes": "Bản offline tự đăng nhập vào 1 tài khoản cục bộ." },
-    { "id": "enter-world", "area": "Bản đồ", "title": "Vào map, thông tin map, cảnh vật, đồ nằm trên đất", "status": "done", "files": "Net/EnterWorld.cs", "java": "Service.loadAll, sendZone, sendItemMap", "notes": "entercheck: khớp Java từng byte." },
-    { "id": "move", "area": "Bản đồ", "title": "Di chuyển, đổi map / khu, chết, hồi sinh về làng đã lưu", "status": "done", "files": "Net/PlayerActions.cs", "java": "Zone.move, Char.changeMap/startDie/returnTownFromDead" },
-    { "id": "map-unlock", "area": "Bản đồ", "title": "Mở khoá map theo nhiệm vụ", "status": "done", "files": "World/MapUnlock.cs", "java": "Char.initListCanEnterMap" },
-    { "id": "special-maps", "area": "Bản đồ", "title": "Map đặc biệt: hang động, chiến trường, sự kiện, lãnh địa gia tộc", "status": "todo", "files": "", "java": "map/*Dungeon*, War.java", "notes": "Chỉ map type 0 (thường) chơi được." },
-    { "id": "mob-ai", "area": "Chiến đấu", "title": "Quái phát hiện và đánh người chơi", "status": "done", "files": "Net/MobBrain.cs", "java": "Mob.update, Mob.attack" },
-    { "id": "attack", "area": "Chiến đấu", "title": "Đánh quái: sát thương, chí mạng, né, chết, hồi sinh quái, exp, lên cấp", "status": "done", "files": "Net/PlayerCombat.cs", "java": "Char.attackMonster, Char.addExp, Mob.die/recovery" },
-    { "id": "skill-effects", "area": "Chiến đấu", "title": "Hiệu ứng kỹ năng lên quái: bỏng, đóng băng, choáng, trói, vô hiệu, Kakyuu (sushi)", "status": "done", "files": "Net/PlayerCombat.cs (Hit), Net/PlayerEffects.cs", "java": "Char.attackMonster(ArrayList), Mob.update" },
-    { "id": "pvp", "area": "Chiến đấu", "title": "Đánh người chơi khác, PK, tỷ thí", "status": "todo", "files": "", "java": "Char.attackPlayer" },
-    { "id": "skills-learn", "area": "Kỹ năng", "title": "Học từ sách, cộng điểm kỹ năng / tiềm năng, chọn chiêu, kỹ năng bị động", "status": "done", "files": "Net/PlayerSkills.cs", "java": "Char.learnSkill/upSkill/upPotential/selectSkill" },
-    { "id": "skills-buff", "area": "Kỹ năng", "title": "Kỹ năng buff / NPC / hồi sinh (type 2, 3, 4)", "status": "todo", "files": "", "java": "Char.useSkillBuff", "notes": "Chọn được nhưng không có tác dụng." },
-    { "id": "clone", "area": "Kỹ năng", "title": "Phân thân", "status": "todo", "files": "", "java": "model/CloneChar.java" },
-    { "id": "items-use", "area": "Vật phẩm", "title": "Túi đồ, dùng thuốc HP/MP, thức ăn, mặc / tháo trang bị, xem chi tiết", "status": "done", "files": "Net/PlayerItems.cs", "java": "Char.useItem/useEquipment/itemBodyToBag/requestItemInfo" },
-    { "id": "shops", "area": "Vật phẩm", "title": "Cửa hàng: danh sách, mua bằng xu / yên", "status": "done", "files": "Net/PlayerItems.cs", "java": "Char.buyItem, Store.buy, Char.requestItem", "notes": "Không có lượng." },
-    { "id": "drops", "area": "Vật phẩm", "title": "Rơi đồ và nhặt đồ: VP nhiệm vụ, yên, đồ ngẫu nhiên, trang bị; biến mất sau 30 s", "status": "done", "files": "Net/PlayerItems.cs", "java": "Mob.dead/dropItem, Char.pickItem, Zone.updateItemMap" },
-    { "id": "upgrade", "area": "Vật phẩm", "title": "Nâng cấp, tách, khảm ngọc, luyện đá, tinh luyện", "status": "todo", "files": "", "java": "Char.upgradeItem, splitItem, ..." },
-    { "id": "box", "area": "Vật phẩm", "title": "Rương đồ (Kamakura: Mở rương)", "status": "todo", "files": "", "java": "Char.openBox" },
-    { "id": "sell", "area": "Vật phẩm", "title": "Bán đồ, vứt đồ, sắp xếp túi", "status": "todo", "files": "", "java": "Char.sellItem, throwItem, sortBag" },
-    { "id": "mount-pet", "area": "Vật phẩm", "title": "Thú cưỡi, thú nuôi", "status": "todo", "files": "", "java": "Char.useMount, Pet" },
-    {"id": "regen", "area": "Hiệu ứng", "title": "HP/MP recovery from food, potions and equipment", "status": "done", "files": "Net/PlayerEffects.cs", "java": "EffectManager, Char.updateEveryHalfSecond/FiveSecond", "notes": "No unsourced natural recovery by default, per user correction. Java effect/equipment recovery preserved; regencheck 9/9."},
-    { "id": "quests", "area": "Nhiệm vụ", "title": "Nhiệm vụ chính: nhận, các bước, đếm, trả, thưởng (0–42), câu đố, nhập học", "status": "done", "files": "Net/PlayerTasks.cs", "java": "Char.openMenu/initMenu/menu/getTask/takingTask/taskNext/finishTask" },
-    { "id": "daily", "area": "Nhiệm vụ", "title": "Nhiệm vụ hằng ngày, tà thú, danh vọng", "status": "todo", "files": "", "java": "Char.taskDaily*" },
-    { "id": "npc-menus", "area": "NPC", "title": "Menu NPC làng và trường (xem collection npcs, status)", "status": "partial", "files": "Net/PlayerTasks.cs (InitMenu)", "java": "Char.initMenu, Char.menu" },
-    { "id": "social", "area": "Xã hội", "title": "Bạn bè, nhóm, giao dịch, gia tộc, chat", "status": "todo", "files": "", "java": "Char.addFriend, Party, Trade, Clan" },
-    { "id": "save", "area": "Lưu trữ", "title": "Lưu túi đồ, trang bị, xu, yên, nhiệm vụ, kỹ năng, tiềm năng, làng đã lưu", "status": "done", "files": "Store/PlayerProgress.cs, Store/PlayerInventory.cs (PlayerRecord.Data)", "java": "players columns" },
-    { "id": "devwiki", "area": "Công cụ", "title": "Website tra cứu (trang này)", "status": "done", "files": "Server/DevWiki/*, StreamingAssets/NsoWiki/*", "notes": "Chỉ dành cho debug: Editor / development build (#if), luồng riêng NsoDevWiki, 127.0.0.1:8787. Bản release không có." }
+    {"id": "supply-stacks-split", "area": "Inventory and storage", "title": "Sort supplies into counted stacks; split a chosen quantity", "status": "partial", "files": "Server/Store/InventoryGrouping.cs; Server/Net/PlayerItems.cs, PlayerStorage.cs, PlayerService.cs, PlayerUpgrade.cs, Controller.cs; Scripts/Gameplay/Entities/Char.cs, Screens/GameScr.cs, Application/GameCanvas.cs, Networking/Protocol/Service.cs and Controller.cs", "notes": "Explicit Sort merges nonexpiring compatible supplies (including food/crystals/star stones/insurance); equipment separate, max stack 32767. Bag/chest Split quantity creates one new stack in a free cell with server validation/ack. Food consumes one; legacy crafting asks for individual units and rejects grouped stones. No auto-grouping on acquisition. Unity compile/Console passed with zero current errors/warnings; loaded assembly contains CanStack/SplitStack. Gameplay validation left to user."},
+    {"id": "inventory-explicit-group-sort", "area": "Inventory and storage", "title": "Sort groups same-type items in bag and chest", "status": "partial", "files": "Server/Store/InventoryGrouping.cs, Server/Net/PlayerItems.cs, Controller.cs, Scripts/Gameplay/Entities/Char.cs", "notes": "Only on existing Sort button: shared stable type/template/lock ordering and compact slots; Java compatible stack merging retained with overflow guard. Missing BOX_SORT server handler added, bag and box share SortContainer. No automatic grouping on pickup/load/movement. Unity compile/Console passed with zero current errors/warnings; gameplay checks left to user."},
+    {"id": "school-element-shops", "area": "Shops", "title": "School NPC catalogs match school element", "status": "partial", "files": "Server/Net/PlayerItems.cs, Server/Net/PlayerSkills.cs", "notes": "Shared list/detail/buy filter by map 1 fire, 72 ice, 27 wind; visitor class irrelevant. Equipment uses StoreItem.Sys; books reuse skill-class mapping. Neutral supplies remain common; non-school stores unchanged. RestrictSchoolStores=true. Unity compile/Console passed with zero current errors/warnings; runtime shop verification left to user."},
+    {"id": "thien-bien-lenh-wiring", "area": "Items and automation", "title": "Thien bien lenh activates fighting, movement and nearby pickup", "status": "partial", "files": "Server/Net/PlayerItemUse.cs, PlayerActions.cs, Controller.cs; Scripts/Networking/Protocol/Controller.cs, Screens/GameScr.cs, Gameplay/Entities/Char.cs", "notes": "119 activates persistent auto and has validated server move handler. Nearest mob movement with range/2s throttle, fixed focus ordering. Explicit user exception: enabled item auto-picks within 120px every 350ms; normal play manual. Existing expiry, cooldown, bag/ownership validation retained. Unity compile/Console passed with zero current errors/warnings; physical/gameplay validation left to user."},
+    {"id": "manual-ground-pickup", "area": "Loot", "title": "Ground loot waits for manual interaction", "status": "partial", "files": "Scripts/Gameplay/Entities/Char.cs, Scripts/Screens/GameScr.cs, Scripts/Diagnostics/NsoGameControl.cs", "notes": "Removed newly introduced automatic nearby pickup/config and normal HutVP suction invocation. Explicit item interaction remains; real selection level and ground yen/single-credit pickup retained. Unity compile/Console passed with zero current errors/warnings; no gameplay tests."},
+    {"id": "character-level-auto-loot-yen", "area": "Progression and loot", "title": "Real character list level and manual ground yen pickup", "status": "partial", "files": "Server/Net/Controller.cs, Server/Net/PlayerItems.cs, Server/Net/PlayerService.cs, Scripts/Gameplay/Entities/Char.cs, Scripts/Diagnostics/NsoGameControl.cs", "notes": "Selection uses shared EXP table. Yen drops as ground bundles and credits once on explicit pickup, bag-full allowed. Newly added nearby auto-pickup was removed at user correction; ordinary suction invocation disabled. Runtime checks left to user."},
+    {"id": "quest-goto", "area": "Developer tools", "title": "/goto main quest objective", "status": "partial", "files": "Server/Net/QuestTravel.cs, Server/Net/DevTerminal.cs, Server/Net/TaskMechanics.cs, Server/World/GameData.cs, Server/World/World.cs", "notes": "Uses task.maps/current step and class school; lands at the map entrance (arrival point of a waypoint leading there, then LocationStand), NPC/required mob/drop/collection positions only as fallback. Reuses normal movement entry hooks; exploration can progress naturally. Does not skip/accept/finish quests. Special maps require normal NPC/item entry. Unity compile/Console passed with zero current errors/warnings; runtime checks left to user."},
+    {"id": "harder-combat-defaults", "area": "Combat balance", "title": "Stronger monsters and reduced dodge defaults", "status": "partial", "files": "Server/World/CombatRules.cs, NsoWiki/app.js", "notes": "Defaults: dodge scale 50%, monster accuracy 100%, dodge cap 40%, monster HP damage 150%. Same rules power gameplay and web Reset. Saved overrides win; no override file exists in current Editor data directory. JS syntax and Unity compile/Console passed with zero current errors/warnings. Runtime comparison left to user."},
+    {"id": "hp-recovery-weapon-diagnosis", "area": "Combat", "title": "Current gradual HP recovery comes from equipped +4 weapon", "status": "done", "files": "Server/Net/PlayerCombat.cs, Server/Net/PlayerEffects.cs", "notes": "Read-only save: equipped item 94 Bach Hac Kiem +4 has option [30,5] (+4 HP recovery every 5 seconds); type-3 threshold is active. No saved foodEffect and retained client effects empty. No gameplay/save edits. User can unequip the weapon to compare; legitimate equipment recovery retained. Runtime comparison not executed."},
+    {"id": "monster-hp-sync-correction", "area": "Combat", "title": "Consistent hit damage and no stat-refresh heal", "status": "partial", "files": "Server/Net/MobBrain.cs, Server/World/CombatRules.cs, Scripts/Networking/Protocol/Controller.cs, NsoWiki/app.js", "notes": "Scaled damage sent to victim matches server HP deduction; observers receive post-hit HP, victim excluded. Skill/potential refreshes preserve current HP/MP. Default monster damage now 100% instead of 20%; existing saved overrides retained, no override file found in current Editor data folder. JS syntax passed; Unity compile/Console passed with zero current errors/warnings. Runtime checks left to user."},
+    {"id": "miss-no-healing", "area": "Combat", "title": "MISS cannot add HP or MP", "status": "partial", "files": "Scripts/Gameplay/Entities/Char.cs", "notes": "Char.doInjure only subtracts positive damage; -1 MISS previously added 1 HP. Signed values retained for MISS text. Legitimate recovery/server damage rules unchanged. Read-only stopped-Editor baseline: natural regen zero and no client effects/auto healing. Unity compile passed with zero current Console errors/warnings; runtime symptom verification left to user."},
+    {"id": "map-close-and-next-step", "area": "Developer tools", "title": "Map Close only and /next quest step", "status": "partial", "files": "Scripts/Screens/MapScr.cs, Server/Net/DevTerminal.cs, Server/Net/PlayerTasks.cs", "notes": "Map Go To button hidden. /next advances an accepted intermediate quest step via existing TaskNext with save/sync/visibility hooks. Final step requires NPC report or /skip; no auto-accept. Unity compile passed with zero current Console errors/warnings; runtime checks left to user."},
+    {"id": "map-toggle-analog-cursor", "area": "Input", "title": "Share toggles map; left stick moves cursor", "status": "partial", "files": "Scripts/Input/NsoGamepadInput.cs, Scripts/Screens/MapScr.cs", "notes": "Offline input deviation: existing open/close commands; render-cadence analog movement with bounds, fractional accumulation and configurable Map Cursor Speed (120 logical px/s). Selecting does not trigger adminMove; Go To confirms. Unity compile/Console passed with zero current errors/warnings; physical-pad testing left to user."},
+    {"id": "share-map-handler-fix", "area": "Input", "title": "Correct Share/Create map action dispatch", "status": "partial", "files": "Scripts/Input/NsoGamepadInput.cs", "notes": "Attached DualSense HID select is Share/Create. Corrected no-op GameScr.perform call to actionPerform(110002,null), the actual map command handler. Unity compile passed with zero current Console errors/warnings; physical-button verification left to user."},
+    {"id": "share-map-gamepad", "area": "Input", "title": "Share/Create opens world map", "status": "partial", "files": "Scripts/Input/NsoGamepadInput.cs", "notes": "Gamepad.selectButton press in world invokes existing map command 110002. Releases held gameplay keys, consumes press, retains map arena restriction. Unity compiled with zero current Console errors/warnings; physical-pad validation pending."},
+    {"id": "shared-item-tab-navigation", "area": "Presentation", "title": "Shared grid/title navigation for item panels", "status": "partial", "files": "Scripts/UI/Components/TabGridNavigation.cs, Scripts/Screens/GameScr.cs", "notes": "Bag/equipment/mount/bijuu equipment, chest and upgrade share grid/title policy. Craft input consumed once to stop title reentry. Info panes release arrows; bijuu specialized pages clear focus at title. Unity compile passed with zero current Console errors/warnings; physical-controller checks left to user."},
+    {"id": "upgrade-controller-input", "area": "Presentation", "title": "Equipment upgrade controller navigation", "status": "partial", "files": "Scripts/Screens/GameScr.cs", "notes": "Normal/gold upgrade: Circle/Enter runs existing left select/action; arrows navigate slots instead of tooltip; Up from equipment row returns to tabs. Original upgrade handlers/confirmation unchanged. Unity compile passed with zero current Console errors/warnings; physical-controller checks left to user."},
+    {"id": "small1131-defringe", "area": "Art", "title": "Remove white matte contour from Small1131", "status": "done", "files": "Tools/Remove-SmallIconBackground.ps1, NsoStatic/Data/Img/Small/{2,3,4}/Small1131.png", "notes": "Opt-in zoom1 silhouette and original contour colors remove resampled white fringe. Interior pixels/dimensions/meta verified unchanged. Enlarged dark-background inspection passed. No Play/cache mutation. Command: -IconId 1131 -WhiteThreshold 160 -UseZoom1Silhouette."},
+    {"id": "small1131-background", "area": "Art", "title": "Small1131 original zoom restoration and background cleanup", "status": "done", "files": "NsoStatic/Data/Img/Small/{2,3,4}/Small1131.png, Tools/Remove-SmallIconBackground.ps1", "notes": "Restored zoom 4 from Git HEAD (64x56; working edit was 48x42). Edited file backed up under .codex/backups/nso-Small1131-20261112-193205. Completed user-selected code-based border-connected background removal via Tools/Remove-SmallIconBackground.ps1 (WhiteThreshold=235). Zoom 1 unchanged; 2/3/4 alpha cleared for 181/426/800 background pixels. Dimensions 16x14/32x28/48x42/64x56; unchanged foreground/RGB/meta verified after PNG save. Backups under .codex/backups/Small1131-20261112-193523. Runtime cache reload/visual check left to user."},
+    {"id": "item-all-sprite-paths", "area": "Workbench", "title": "All item sprite zoom paths and full path copying", "status": "partial", "files": "DevWiki/WikiData.cs, NsoWiki/sprites.js, app.js, app.css", "notes": "spriteFiles lists zoom 1-4, project path, absolute fullPath, existence and PNG dimensions. Per-zoom full-path copy button; original spritePath retained. JS syntax and Unity compile passed, zero current Console errors/warnings. User visual checks pending."},
+    {"id": "item-sprite-project-path", "area": "Workbench", "title": "Item sprite project path and copy button", "status": "partial", "files": "DevWiki/WikiData.cs, NsoWiki/app.js", "notes": "Item spritePath verifies original project PNG by icon ID and highest available zoom. Relative Assets path only, null for missing art. Detail copy button. JS syntax and Unity compile passed; zero current Console errors/warnings. User browser verification pending. Copy-path and missing-sprite Vietnamese labels repaired using explicit UTF-8; exact label and JS syntax checks passed."},
+    {"id": "world-map-command-input", "area": "Presentation", "title": "World map only and full-size button input", "status": "partial", "files": "Scripts/Screens/MapScr.cs", "notes": "User-requested removal of Change/local-map mode. Go To/Close hitboxes match image dimensions before input/paint. Actual bottom row excluded from map gestures. Unity compile passed with zero current Console errors/warnings. Runtime mouse verification pending."},
+    {"id": "popup-command-alignment", "area": "Presentation", "title": "Wide popup bottom button alignment", "status": "partial", "files": "Scripts/Screens/GameScr.cs, Scripts/Diagnostics/NsoUiLayout.cs", "notes": "Wide inventory/shop rows follow actual popup outer borders; centre uses image width. Narrow panels retain legacy row. Unity compiled successfully with zero current Console errors/warnings; user verifies visuals."},
+    {
+      "id": "wiki-effect-previews",
+      "area": "Workbench",
+      "title": "Slow looping effect previews",
+      "status": "partial",
+      "files": "DevWiki/WikiData.cs, WikiSprites.cs, WikiServer.cs, ServerBootstrap.cs; NsoWiki/effects.js, sprites.js, app.js, app.css, index.html",
+      "notes": "Original status icons and separate nj_effect animation gallery. 4 fps, 6 visible loops maximum, 12 cards/page, 128-image cache; offscreen/hidden/route cleanup and pause button. Unity compile + JS syntax passed; browser validation pending."
+    },
+    {
+      "id": "wiki-sprites",
+      "area": "Workbench",
+      "title": "Original item and monster sprites",
+      "status": "partial",
+      "files": "DevWiki/WikiSprites.cs, NsoWiki/sprites.js",
+      "notes": "Item icons and representative mob/boss frames in lists/details/links/balance headings. Compile/syntax only; browser checks pending."
+    },
+    {
+      "id": "character-progression-profiles",
+      "area": "Workbench",
+      "title": "Character groups, Level-1 bases and progression preview",
+      "status": "partial",
+      "files": "World/CharacterProgressionRules.cs, Net/PlayerTuning.cs, DevWiki/WikiProgression.cs, NsoWiki/progression.js",
+      "notes": "Shared gameplay calculator; unclassed/shared-classed/per-class profiles, draft comparisons with three separate Unclassed / Wooden Sword / Classed boxes and scope selection in Step 01, collapsed-by-default growth panel/guidance, worked example and attribute glossary; save actions remain visible. Compile/syntax only; user validates runtime."
+    },
+    {
+      "id": "dashboard-editors",
+      "area": "Workbench",
+      "title": "Whole-game balancing dashboard",
+      "status": "partial",
+      "files": "DevWiki/WikiDashboard.cs, World/GameBalanceRules.cs, Net/PlayerTuning.cs, World/MobTuning.cs, NsoWiki/dashboard.js",
+      "notes": "Global player/EXP/equipment coefficients and monster-template rules. Existing and future objects use durable config; raw player/item saves stay original. Compile/syntax only; user verifies runtime/restart/UI."
+    },
+    {
+      "id": "world-render-motion",
+      "title": "Render-rate world and scroll motion",
+      "status": "done",
+      "notes": "Fractional camera/entity/projectile/pet/weather and list-content placement. Render caps 60-144; measured 60/120 paints per second at matching caps with logic fixed at 24. Original sprite pose counts remain finite; no all-scene/hardware 60 FPS guarantee."
+    },
+    {
+      "id": "workbench-controls",
+      "area": "Debug tools",
+      "title": "NSO Workbench: live state, persistent rules and detailed lookup",
+      "status": "done",
+      "files": "DevWiki/WikiControl.cs, World/LootRules.cs, NsoWiki/app.js, app.css",
+      "notes": "Live character/map/quest/bag, validated loot settings, inspector, history and redesigned lookup. API 27/27, pure UI 18/18; browser visual QA pending."
+    },
+    {
+      "id": "smooth-hit-menu-effects",
+      "area": "Presentation",
+      "title": "High-FPS hit numbers, HP bars and F1 popup",
+      "status": "done",
+      "files": "Scripts/Application/Interp.cs, Screens/GameScr.cs, UI/Components/Menu.cs, Gameplay/Mobs/Mob.cs, Rendering/mGraphics.cs",
+      "notes": "Fractional effects/menu motion and visual HP transition; recent menu reopen animates. Gameplay timing/HP/sprite poses unchanged. Play tests 17/17; runtime samples 72 text positions/16 logic, 38 menu positions/9 logic."
+    },
+    {
+      "id": "loot-exclusions",
+      "area": "Items",
+      "title": "No loot from dummies or overleveled kills",
+      "status": "done",
+      "files": "Net/PlayerItems.cs",
+      "notes": "User confirmed: no dummy loot; no loot from mobs at least 10 levels below player. Includes quest drops, currency, sushi. Original ordinary-loot abs-gap<=7/chances unchanged."
+    },
+    {
+      "id": "client-skill-hit-timing",
+      "area": "Chi?n ??u",
+      "title": "??n ki?m kh?ng b? m?t khi FPS cao",
+      "status": "done",
+      "files": "Assets/Scripts/Gameplay/Entities/Char.cs",
+      "notes": "Hit dispatch runs once after crossing the animation hit frame; live quest 2 dummy kill advanced progress to 1/10. Full manual quest chain remains unverified."
+    },
+    {
+      "id": "login",
+      "area": "Khởi động",
+      "title": "Phiên, đăng nhập, danh sách / tạo / chọn nhân vật",
+      "status": "done",
+      "files": "Net/Session.cs, Net/Controller.cs, Store/AccountStore.cs",
+      "java": "network/*, model/User.java",
+      "notes": "Bản offline tự đăng nhập vào 1 tài khoản cục bộ."
+    },
+    {
+      "id": "enter-world",
+      "area": "Bản đồ",
+      "title": "Vào map, thông tin map, cảnh vật, đồ nằm trên đất",
+      "status": "done",
+      "files": "Net/EnterWorld.cs",
+      "java": "Service.loadAll, sendZone, sendItemMap",
+      "notes": "entercheck: khớp Java từng byte."
+    },
+    {
+      "id": "move",
+      "area": "Bản đồ",
+      "title": "Di chuyển, đổi map / khu, chết, hồi sinh về làng đã lưu",
+      "status": "done",
+      "files": "Net/PlayerActions.cs",
+      "java": "Zone.move, Char.changeMap/startDie/returnTownFromDead"
+    },
+    {
+      "id": "map-unlock",
+      "area": "Bản đồ",
+      "title": "Mở khoá map theo nhiệm vụ",
+      "status": "done",
+      "files": "World/MapUnlock.cs",
+      "java": "Char.initListCanEnterMap"
+    },
+    {
+      "id": "special-maps",
+      "area": "Bản đồ",
+      "title": "Map đặc biệt: hang động, chiến trường, sự kiện, lãnh địa gia tộc",
+      "status": "todo",
+      "files": "",
+      "java": "map/*Dungeon*, War.java",
+      "notes": "Chỉ map type 0 (thường) chơi được."
+    },
+    {
+      "id": "mob-ai",
+      "area": "Chiến đấu",
+      "title": "Quái phát hiện và đánh người chơi",
+      "status": "done",
+      "files": "Net/MobBrain.cs",
+      "java": "Mob.update, Mob.attack"
+    },
+    {
+      "id": "attack",
+      "area": "Chiến đấu",
+      "title": "Đánh quái: sát thương, chí mạng, né, chết, hồi sinh quái, exp, lên cấp",
+      "status": "done",
+      "files": "Net/PlayerCombat.cs",
+      "java": "Char.attackMonster, Char.addExp, Mob.die/recovery"
+    },
+    {
+      "id": "skill-effects",
+      "area": "Chiến đấu",
+      "title": "Hiệu ứng kỹ năng lên quái: bỏng, đóng băng, choáng, trói, vô hiệu, Kakyuu (sushi)",
+      "status": "done",
+      "files": "Net/PlayerCombat.cs (Hit), Net/PlayerEffects.cs",
+      "java": "Char.attackMonster(ArrayList), Mob.update"
+    },
+    {
+      "id": "pvp",
+      "area": "Chiến đấu",
+      "title": "Đánh người chơi khác, PK, tỷ thí",
+      "status": "todo",
+      "files": "",
+      "java": "Char.attackPlayer"
+    },
+    {
+      "id": "skills-learn",
+      "area": "Kỹ năng",
+      "title": "Học từ sách, cộng điểm kỹ năng / tiềm năng, chọn chiêu, kỹ năng bị động",
+      "status": "done",
+      "files": "Net/PlayerSkills.cs",
+      "java": "Char.learnSkill/upSkill/upPotential/selectSkill"
+    },
+    {
+      "id": "skills-buff",
+      "area": "Kỹ năng",
+      "title": "Kỹ năng buff / NPC / hồi sinh (type 2, 3, 4)",
+      "status": "todo",
+      "files": "",
+      "java": "Char.useSkillBuff",
+      "notes": "Chọn được nhưng không có tác dụng."
+    },
+    {
+      "id": "clone",
+      "area": "Kỹ năng",
+      "title": "Phân thân",
+      "status": "todo",
+      "files": "",
+      "java": "model/CloneChar.java"
+    },
+    {
+      "id": "items-use",
+      "area": "Vật phẩm",
+      "title": "Túi đồ, dùng thuốc HP/MP, thức ăn, mặc / tháo trang bị, xem chi tiết",
+      "status": "done",
+      "files": "Net/PlayerItems.cs",
+      "java": "Char.useItem/useEquipment/itemBodyToBag/requestItemInfo"
+    },
+    {
+      "id": "shops",
+      "area": "Vật phẩm",
+      "title": "Cửa hàng: danh sách, mua bằng xu / yên",
+      "status": "done",
+      "files": "Net/PlayerItems.cs",
+      "java": "Char.buyItem, Store.buy, Char.requestItem",
+      "notes": "Không có lượng."
+    },
+    {
+      "id": "drops",
+      "area": "Vật phẩm",
+      "title": "Rơi đồ và nhặt đồ: VP nhiệm vụ, yên, đồ ngẫu nhiên, trang bị; biến mất sau 30 s",
+      "status": "done",
+      "files": "Net/PlayerItems.cs",
+      "java": "Mob.dead/dropItem, Char.pickItem, Zone.updateItemMap"
+    },
+    {
+      "id": "upgrade",
+      "area": "Vật phẩm",
+      "title": "Nâng cấp, tách, khảm ngọc, luyện đá, tinh luyện",
+      "status": "todo",
+      "files": "",
+      "java": "Char.upgradeItem, splitItem, ..."
+    },
+    {
+      "id": "box",
+      "area": "Vật phẩm",
+      "title": "Rương đồ (Kamakura: Mở rương)",
+      "status": "todo",
+      "files": "",
+      "java": "Char.openBox"
+    },
+    {
+      "id": "sell",
+      "area": "Vật phẩm",
+      "title": "Bán đồ, vứt đồ, sắp xếp túi",
+      "status": "todo",
+      "files": "",
+      "java": "Char.sellItem, throwItem, sortBag"
+    },
+    {
+      "id": "mount-pet",
+      "area": "Vật phẩm",
+      "title": "Thú cưỡi, thú nuôi",
+      "status": "todo",
+      "files": "",
+      "java": "Char.useMount, Pet"
+    },
+    {
+      "id": "regen",
+      "area": "Hiệu ứng",
+      "title": "HP/MP recovery from food, potions and equipment",
+      "status": "done",
+      "files": "Net/PlayerEffects.cs",
+      "java": "EffectManager, Char.updateEveryHalfSecond/FiveSecond",
+      "notes": "No unsourced natural recovery by default, per user correction. Java effect/equipment recovery preserved; regencheck 9/9."
+    },
+    {
+      "id": "quests",
+      "area": "Nhiệm vụ",
+      "title": "Nhiệm vụ chính: nhận, các bước, đếm, trả, thưởng (0–42), câu đố, nhập học",
+      "status": "done",
+      "files": "Net/PlayerTasks.cs",
+      "java": "Char.openMenu/initMenu/menu/getTask/takingTask/taskNext/finishTask"
+    },
+    {
+      "id": "daily",
+      "area": "Nhiệm vụ",
+      "title": "Nhiệm vụ hằng ngày, tà thú, danh vọng",
+      "status": "todo",
+      "files": "",
+      "java": "Char.taskDaily*"
+    },
+    {
+      "id": "npc-menus",
+      "area": "NPC",
+      "title": "Menu NPC làng và trường (xem collection npcs, status)",
+      "status": "partial",
+      "files": "Net/PlayerTasks.cs (InitMenu)",
+      "java": "Char.initMenu, Char.menu"
+    },
+    {
+      "id": "social",
+      "area": "Xã hội",
+      "title": "Bạn bè, nhóm, giao dịch, gia tộc, chat",
+      "status": "todo",
+      "files": "",
+      "java": "Char.addFriend, Party, Trade, Clan"
+    },
+    {
+      "id": "save",
+      "area": "Lưu trữ",
+      "title": "Lưu túi đồ, trang bị, xu, yên, nhiệm vụ, kỹ năng, tiềm năng, làng đã lưu",
+      "status": "done",
+      "files": "Store/PlayerProgress.cs, Store/PlayerInventory.cs (PlayerRecord.Data)",
+      "java": "players columns"
+    },
+    {
+      "id": "devwiki",
+      "area": "Công cụ",
+      "title": "Website tra cứu (trang này)",
+      "status": "done",
+      "files": "Server/DevWiki/*, StreamingAssets/NsoWiki/*",
+      "notes": "Chỉ dành cho debug: Editor / development build (#if), luồng riêng NsoDevWiki, 127.0.0.1:8787. Bản release không có."
+    },
+    {
+      "id": "rikudou-task-orders",
+      "area": "Server",
+      "title": "Rikudou daily and beast quests",
+      "status": "partial",
+      "files": "Net/TaskOrders.cs, Store/PlayerProgress.cs, Net/PlayerTasks.cs, Net/PlayerCombat.cs, Net/PlayerItems.cs",
+      "notes": "Port of TaskOrder/TaskFactory and Char order/cancel/finish/work TaskDay and TaskBoss; cmds 96/97/98; daily reset at login on a new local date. Compile only."
+    },
+    {
+      "id": "item-use-order",
+      "area": "Server",
+      "title": "TYPE_ORDER items up to level 39",
+      "status": "partial",
+      "files": "Net/PlayerItemUse.cs, Net/Controller.cs, Net/PlayerItems.cs, Store/PlayerProgress.cs",
+      "notes": "Ported: Bach bien / Kha di lenh (cmd 12), Phuc nang 38, giay vun 251, point books 252/253/308/309. Skipped (luong-only or missing systems): 215/229, 240/241, 444/469, 572, 222-228, 736/763. Compile only."
+    },
+    {
+      "id": "luong",
+      "area": "Server",
+      "title": "Luong, simulated top-up and luong features",
+      "status": "partial",
+      "files": "Net/PlayerLuong.cs and callers",
+      "notes": "Balance + ME_UP_GOLD, Okanechan top-up/exchange (text box cmd 92), luong shop, revive, careful upgrade, bags, tẩy điểm, Nấm linh chi, Hoàn cốt chi chú. Compile only."
+    },
+    {
+      "id": "luong-more",
+      "area": "Server",
+      "title": "Chuyển hóa, auto-play, coin limit, fishing",
+      "status": "partial",
+      "files": "Net/PlayerUpgrade.cs, Net/PlayerItemUse.cs, Net/PlayerLuong.cs",
+      "notes": "Convert upgrade (NOT_MAP -88), Thiên biến lệnh (cmd 119), Kamakura Mở giới hạn xu (coinMax), Cần câu vàng. Compile only."
+    }
   ],
-
   "constraints": [
-    {"id": "workbench-rule-save", "area": "Debug tools", "title": "Explicit validated local save", "status": "done", "notes": "Current revision and session token required; atomic save before live replacement. Host/Origin checked, no CORS/arbitrary commands. Defaults unchanged until Save & Apply."},
-    {"id": "loot-exclusions", "title": "Training dummy / overlevel loot blocked", "status": "done", "files": "Net/PlayerItems.cs: CanDropLoot, OnMobDead, Drop", "notes": "Template 0 or player.Level - mob.Level >= DropLevelGapLimit blocks all loot. Kill counts and experience rules unchanged. Quest-item drops are intentionally included."},
-    { "id": "weapon-required", "area": "Chiến đấu", "rule": "Phải mặc vũ khí phù hợp với trường mới đánh được (trừ chưa vào trường dùng kiếm gỗ)", "message": "Vũ khí không thích hợp", "where": "PlayerCombat.AttackMonster" },
-    { "id": "skill-cooldown", "area": "Chiến đấu", "rule": "Đòn đánh bị bỏ qua nếu chưa hết thời gian hồi chiêu (skill.cooldown, ms)", "where": "PlayerCombat.AttackMonster" },
-    { "id": "skill-mana", "area": "Chiến đấu", "rule": "Không đủ MP thì không ra chiêu", "message": "Không đủ MP để sử dụng", "where": "PlayerCombat.AttackMonster" },
-    { "id": "miss", "area": "Chiến đấu", "rule": "Né: random(mob.level+10) so với random(exactly+100); chí mạng: fatal > random(1000)", "where": "PlayerCombat.AttackMonster" },
-    { "id": "kakyuu", "area": "Chiến đấu", "rule": "Kakyuu (skill tpl 4) chỉ nướng quái khi đủ điều kiện, nếu không báo", "message": "Đối phương quá mạnh bạn không thể thi triển thuật này!", "where": "PlayerCombat.Hit" },
-    { "id": "effect-chance", "area": "Chiến đấu", "rule": "Bỏng 7/16: 4 s; băng 25/34: 3 s; choáng 43: 2 s; trói 24 và vô hiệu 40: param giây; skill lửa/băng/gió: 2/2/1 s, tỷ lệ = param0 %", "where": "PlayerCombat.Hit" },
-    { "id": "buy-needs-task3", "area": "Cửa hàng", "rule": "Chỉ mua được khi đã qua NV diệt sên trừ cóc (taskId >= 3)", "message": "Hãy hoàn nhiệm vụ diệt trừ cóc để sử dụng chức năng này.", "where": "PlayerItems.BuyItem" },
-    { "id": "no-luong", "area": "Cửa hàng", "rule": "Đồ giá lượng không mua được", "message": "Vật phẩm cần lượng, bản offline không có lượng.", "where": "PlayerItems.BuyItem" },
-    { "id": "money", "area": "Cửa hàng", "rule": "Không đủ xu / yên thì không mua; yên tối đa 2.000.000.000", "message": "Không đủ tiền.", "where": "PlayerItems.BuyItem, AddYen" },
-    { "id": "bag-full", "area": "Vật phẩm", "rule": "Hết chỗ trong hành trang: không nhận / mua / trả nhiệm vụ cần chỗ", "message": "Hành trang không đủ chỗ trống", "where": "PlayerItems, PlayerTasks.FinishTask" },
-    { "id": "equip-level", "area": "Vật phẩm", "rule": "Dùng / mặc đồ cần level >= level của đồ", "where": "PlayerItems.UseItem" },
-    { "id": "hp-full", "area": "Vật phẩm", "rule": "Không dùng thuốc khi HP/MP đã đầy", "message": "HP đã đầy. / MP đã đầy.", "where": "PlayerItems.UseItem" },
-    { "id": "book-class", "area": "Kỹ năng", "rule": "Sách võ công phải đúng trường và chưa học", "message": "Sách này không đúng với trường bạn! / Chiêu này đã học!", "where": "PlayerSkills.LearnSkill" },
-    { "id": "skill-level", "area": "Kỹ năng", "rule": "Cộng điểm kỹ năng cần đủ level của điểm tiếp theo (skill.level) và có điểm kỹ năng", "message": "Trình độ không đủ yêu cầu. / Bạn không đủ điểm.", "where": "PlayerSkills.UpSkill" },
-    { "id": "drop-owner", "area": "Rơi đồ", "rule": "Đồ rơi thuộc người giết trong 20 s đầu, biến mất sau 30 s", "message": "Vật phẩm của người khác", "where": "PlayerItems.PickItem, UpdateItemMaps" },
-    { "id": "drop-rates", "area": "Rơi đồ", "rule": "VP nhiệm vụ 1/3 (heo rừng luôn rơi rìu); boss không rơi đồ thường; chênh lệch level > 7 không rơi; 10% yên, 10% vật phẩm, 5% trang bị trong khoảng ±7 level", "where": "PlayerItems.OnMobDead" },
-    { "id": "quest-npc", "area": "Nhiệm vụ", "rule": "Mỗi bước có NPC riêng (task.npcs[index+1]); -1 = thầy/cô của trường; NPC phải đứng trong khu hiện tại", "message": "Không tìm thấy NPC này", "where": "PlayerTasks.TaskNpcId, HasNpc" },
-    { "id": "quest-skip", "area": "Nhiệm vụ", "rule": "Bước chưa port được cơ chế (status skip trong quests) có mục 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ", "where": "PlayerTasks.InitMenu, IsStepSupported" },
-    { "id": "quiz", "area": "Nhiệm vụ", "rule": "Câu đố: trả lời đúng đủ 5 câu thì qua 5 bước; sai thì hỏi lại", "where": "PlayerTasks.QuestionAndAnswer, Answer" },
-    { "id": "admission", "area": "Nhiệm vụ", "rule": "Nhập học ở thầy/cô (cần NV tìm hiểu 3 trường); nhận vũ khí và sách của trường", "where": "PlayerTasks.Admission" },
-    { "id": "mp-min", "area": "Chỉ số", "rule": "MP tối đa không dưới 100 (giá trị Java cho nhân vật mới)", "where": "PlayerCombat.SetAbility" }
+    {
+      "id": "workbench-rule-save",
+      "area": "Debug tools",
+      "title": "Explicit validated local save",
+      "status": "done",
+      "notes": "Current revision and session token required; atomic save before live replacement. Host/Origin checked, no CORS/arbitrary commands. Defaults unchanged until Save & Apply."
+    },
+    {
+      "id": "loot-exclusions",
+      "title": "Training dummy / overlevel loot blocked",
+      "status": "done",
+      "files": "Net/PlayerItems.cs: CanDropLoot, OnMobDead, Drop",
+      "notes": "Template 0 or player.Level - mob.Level >= DropLevelGapLimit blocks all loot. Kill counts and experience rules unchanged. Quest-item drops are intentionally included."
+    },
+    {
+      "id": "weapon-required",
+      "area": "Chiến đấu",
+      "rule": "Phải mặc vũ khí phù hợp với trường mới đánh được (trừ chưa vào trường dùng kiếm gỗ)",
+      "message": "Vũ khí không thích hợp",
+      "where": "PlayerCombat.AttackMonster"
+    },
+    {
+      "id": "skill-cooldown",
+      "area": "Chiến đấu",
+      "rule": "Đòn đánh bị bỏ qua nếu chưa hết thời gian hồi chiêu (skill.cooldown, ms)",
+      "where": "PlayerCombat.AttackMonster"
+    },
+    {
+      "id": "skill-mana",
+      "area": "Chiến đấu",
+      "rule": "Không đủ MP thì không ra chiêu",
+      "message": "Không đủ MP để sử dụng",
+      "where": "PlayerCombat.AttackMonster"
+    },
+    {
+      "id": "miss",
+      "area": "Chiến đấu",
+      "rule": "Né: random(mob.level+10) so với random(exactly+100); chí mạng: fatal > random(1000)",
+      "where": "PlayerCombat.AttackMonster"
+    },
+    {
+      "id": "kakyuu",
+      "area": "Chiến đấu",
+      "rule": "Kakyuu (skill tpl 4) chỉ nướng quái khi đủ điều kiện, nếu không báo",
+      "message": "Đối phương quá mạnh bạn không thể thi triển thuật này!",
+      "where": "PlayerCombat.Hit"
+    },
+    {
+      "id": "effect-chance",
+      "area": "Chiến đấu",
+      "rule": "Bỏng 7/16: 4 s; băng 25/34: 3 s; choáng 43: 2 s; trói 24 và vô hiệu 40: param giây; skill lửa/băng/gió: 2/2/1 s, tỷ lệ = param0 %",
+      "where": "PlayerCombat.Hit"
+    },
+    {
+      "id": "buy-needs-task3",
+      "area": "Cửa hàng",
+      "rule": "Chỉ mua được khi đã qua NV diệt sên trừ cóc (taskId >= 3)",
+      "message": "Hãy hoàn nhiệm vụ diệt trừ cóc để sử dụng chức năng này.",
+      "where": "PlayerItems.BuyItem"
+    },
+    {
+      "id": "no-luong",
+      "area": "Cửa hàng",
+      "rule": "Đồ giá lượng không mua được",
+      "message": "Vật phẩm cần lượng, bản offline không có lượng.",
+      "where": "PlayerItems.BuyItem"
+    },
+    {
+      "id": "money",
+      "area": "Cửa hàng",
+      "rule": "Không đủ xu / yên thì không mua; yên tối đa 2.000.000.000",
+      "message": "Không đủ tiền.",
+      "where": "PlayerItems.BuyItem, AddYen"
+    },
+    {
+      "id": "bag-full",
+      "area": "Vật phẩm",
+      "rule": "Hết chỗ trong hành trang: không nhận / mua / trả nhiệm vụ cần chỗ",
+      "message": "Hành trang không đủ chỗ trống",
+      "where": "PlayerItems, PlayerTasks.FinishTask"
+    },
+    {
+      "id": "equip-level",
+      "area": "Vật phẩm",
+      "rule": "Dùng / mặc đồ cần level >= level của đồ",
+      "where": "PlayerItems.UseItem"
+    },
+    {
+      "id": "hp-full",
+      "area": "Vật phẩm",
+      "rule": "Không dùng thuốc khi HP/MP đã đầy",
+      "message": "HP đã đầy. / MP đã đầy.",
+      "where": "PlayerItems.UseItem"
+    },
+    {
+      "id": "book-class",
+      "area": "Kỹ năng",
+      "rule": "Sách võ công phải đúng trường và chưa học",
+      "message": "Sách này không đúng với trường bạn! / Chiêu này đã học!",
+      "where": "PlayerSkills.LearnSkill"
+    },
+    {
+      "id": "skill-level",
+      "area": "Kỹ năng",
+      "rule": "Cộng điểm kỹ năng cần đủ level của điểm tiếp theo (skill.level) và có điểm kỹ năng",
+      "message": "Trình độ không đủ yêu cầu. / Bạn không đủ điểm.",
+      "where": "PlayerSkills.UpSkill"
+    },
+    {
+      "id": "drop-owner",
+      "area": "Rơi đồ",
+      "rule": "Đồ rơi thuộc người giết trong 20 s đầu, biến mất sau 30 s",
+      "message": "Vật phẩm của người khác",
+      "where": "PlayerItems.PickItem, UpdateItemMaps"
+    },
+    {
+      "id": "drop-rates",
+      "area": "Rơi đồ",
+      "rule": "VP nhiệm vụ 1/3 (heo rừng luôn rơi rìu); boss không rơi đồ thường; chênh lệch level > 7 không rơi; 10% yên, 10% vật phẩm, 5% trang bị trong khoảng ±7 level",
+      "where": "PlayerItems.OnMobDead"
+    },
+    {
+      "id": "quest-npc",
+      "area": "Nhiệm vụ",
+      "rule": "Mỗi bước có NPC riêng (task.npcs[index+1]); -1 = thầy/cô của trường; NPC phải đứng trong khu hiện tại",
+      "message": "Không tìm thấy NPC này",
+      "where": "PlayerTasks.TaskNpcId, HasNpc"
+    },
+    {
+      "id": "quest-skip",
+      "area": "Nhiệm vụ",
+      "rule": "Bước chưa port được cơ chế (status skip trong quests) có mục 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ",
+      "where": "PlayerTasks.InitMenu, IsStepSupported"
+    },
+    {
+      "id": "quiz",
+      "area": "Nhiệm vụ",
+      "rule": "Câu đố: trả lời đúng đủ 5 câu thì qua 5 bước; sai thì hỏi lại",
+      "where": "PlayerTasks.QuestionAndAnswer, Answer"
+    },
+    {
+      "id": "admission",
+      "area": "Nhiệm vụ",
+      "rule": "Nhập học ở thầy/cô (cần NV tìm hiểu 3 trường); nhận vũ khí và sách của trường",
+      "where": "PlayerTasks.Admission"
+    },
+    {
+      "id": "mp-min",
+      "area": "Chỉ số",
+      "rule": "MP tối đa không dưới 100 (giá trị Java cho nhân vật mới)",
+      "where": "PlayerCombat.SetAbility"
+    }
   ],
-
   "commands": [
-    { "id": "c2s:-30/-103", "dir": "client→server", "cmd": -30, "sub": -103, "name": "REQUEST_ITEM (mở shop)", "handler": "PlayerItems.RequestShop", "status": "done" },
-    { "id": "c2s:-30/-109", "dir": "client→server", "cmd": -30, "sub": -109, "name": "POTENTIAL_UP", "handler": "PlayerSkills.UpPotential", "status": "done" },
-    { "id": "c2s:-30/-108", "dir": "client→server", "cmd": -30, "sub": -108, "name": "SKILL_UP", "handler": "PlayerSkills.UpSkill", "status": "done" },
-    { "id": "c2s:-28/-115", "dir": "client→server", "cmd": -28, "sub": -115, "name": "REQUEST_ICON", "handler": "Controller.SendIcon", "status": "done" },
-    { "id": "c2s:-28/-108", "dir": "client→server", "cmd": -28, "sub": -108, "name": "REQUEST_NPCTEMPLATE", "handler": "Controller.SendMobTemplate", "status": "done" },
-    { "id": "c2s:-28/-126", "dir": "client→server", "cmd": -28, "sub": -126, "name": "SELECT_PLAYER", "handler": "Controller", "status": "done" },
-    { "id": "c2s:-28/-125", "dir": "client→server", "cmd": -28, "sub": -125, "name": "CREATE_PLAYER", "handler": "Controller.CreateCharacter", "status": "done" },
-    { "id": "c2s:1", "dir": "client→server", "cmd": 1, "name": "PLAYER_MOVE", "handler": "PlayerActions.Move", "status": "done" },
-    { "id": "c2s:-17", "dir": "client→server", "cmd": -17, "name": "MAP_CHANGE", "handler": "PlayerActions.RequestChangeMap", "status": "done" },
-    { "id": "c2s:36", "dir": "client→server", "cmd": 36, "name": "OPEN_UI_ZONE", "handler": "PlayerActions.OpenUiZone", "status": "done" },
-    { "id": "c2s:28", "dir": "client→server", "cmd": 28, "name": "ZONE_CHANGE", "handler": "PlayerActions.ChangeZone", "status": "done" },
-    { "id": "c2s:-9", "dir": "client→server", "cmd": -9, "name": "ME_BACK (về làng khi chết)", "handler": "PlayerActions.ReturnTownFromDead", "status": "done" },
-    { "id": "c2s:-10", "dir": "client→server", "cmd": -10, "name": "ME_LIVE (hồi sinh tại chỗ)", "handler": "PlayerActions.ReviveInPlace", "status": "done" },
-    { "id": "c2s:41", "dir": "client→server", "cmd": 41, "name": "SKILL_SELECT", "handler": "PlayerSkills.SelectSkill", "status": "done" },
-    { "id": "c2s:60", "dir": "client→server", "cmd": 60, "name": "PLAYER_ATTACK_NPC (đánh quái)", "handler": "PlayerCombat.AttackMonster", "status": "done" },
-    { "id": "c2s:40", "dir": "client→server", "cmd": 40, "name": "OPEN_UI_MENU (bấm NPC)", "handler": "PlayerTasks.OpenMenu", "status": "done" },
-    { "id": "c2s:29", "dir": "client→server", "cmd": 29, "name": "MENU (chọn mục menu NPC)", "handler": "PlayerTasks.Menu", "status": "done" },
-    { "id": "c2s:47", "dir": "client→server", "cmd": 47, "name": "TASK_GET (trả lời hộp xác nhận)", "handler": "PlayerTasks.GetTask", "status": "done" },
-    { "id": "c2s:11", "dir": "client→server", "cmd": 11, "name": "ITEM_USE", "handler": "PlayerItems.UseItem", "status": "done" },
-    { "id": "c2s:13", "dir": "client→server", "cmd": 13, "name": "ITEM_BUY", "handler": "PlayerItems.BuyItem", "status": "done" },
-    { "id": "c2s:15", "dir": "client→server", "cmd": 15, "name": "ITEM_BODY_TO_BAG (tháo đồ)", "handler": "PlayerItems.ItemBodyToBag", "status": "done" },
-    { "id": "c2s:42", "dir": "client→server", "cmd": 42, "name": "REQUEST_ITEM_INFO", "handler": "PlayerItems.RequestItemInfo", "status": "done" },
-    { "id": "c2s:-14", "dir": "client→server", "cmd": -14, "name": "ITEMMAP_MYPICK (nhặt đồ)", "handler": "PlayerItems.PickItem", "status": "done" },
-    { "id": "c2s:other", "dir": "client→server", "cmd": null, "name": "Các lệnh khác (bán, vứt, nâng cấp, chat, bạn bè, nhóm...)", "handler": "bỏ qua", "status": "todo" },
-    { "id": "s2c:63", "dir": "server→client", "cmd": 63, "name": "OPEN_UI_NEWMENU (menu NPC)", "handler": "PlayerService.OpenUiMenu", "status": "done" },
-    { "id": "s2c:39", "dir": "server→client", "cmd": 39, "name": "OPEN_UI_CONFIRM", "handler": "PlayerService.OpenUiConfirm", "status": "done" },
-    { "id": "s2c:38", "dir": "server→client", "cmd": 38, "name": "NPC_CHAT", "handler": "PlayerService.NpcChat", "status": "done" },
-    { "id": "s2c:47-50", "dir": "server→client", "cmd": 47, "name": "TASK_GET / NEXT / FINISH / UPDATE (47/48/49/50)", "handler": "PlayerService.SendTaskInfo, TaskNext, TaskFinish, TaskCount", "status": "done" },
-    { "id": "s2c:8", "dir": "server→client", "cmd": 8, "name": "ITEM_BAG_ADD", "handler": "PlayerItems.AddItemToBag", "status": "done" },
-    { "id": "s2c:18", "dir": "server→client", "cmd": 18, "name": "ITEM_USE_UPTOUP", "handler": "PlayerService.UseItemUpToUp", "status": "done" },
-    { "id": "s2c:33", "dir": "server→client", "cmd": 33, "name": "OPEN_UI_SHOP", "handler": "PlayerItems.RequestShop", "status": "done" },
-    { "id": "s2c:6", "dir": "server→client", "cmd": 6, "name": "ITEMMAP_ADD / -14 pick / -15 remove", "handler": "PlayerService", "status": "done" },
-    { "id": "s2c:85-91", "dir": "server→client", "cmd": 85, "name": "NPC_IS_* (trạng thái quái: lửa, băng, gió, trói, vô hiệu)", "handler": "PlayerService.MobState", "status": "done" },
-    { "id": "s2c:-30/-122,-121", "dir": "server→client", "cmd": -30, "name": "ME_HP / ME_MP (sub -122 / -121), -111 loadHP", "handler": "PlayerService.UpdateHp/UpdateMp/LoadHp", "status": "done" },
-    { "id": "s2c:-30/-101,-99", "dir": "server→client", "cmd": -30, "name": "Hiệu ứng nhân vật thêm / xoá (sub -101 / -99)", "handler": "PlayerService.AddEffect/RemoveEffect", "status": "done" },
-    { "id": "s2c:-30/-126,-125", "dir": "server→client", "cmd": -30, "name": "ME_LOAD_CLASS / ME_LOAD_SKILL", "handler": "PlayerService.LoadClass/LoadSkill", "status": "done" },
-    { "id": "s2c:-8,95", "dir": "server→client", "cmd": -8, "name": "Nhận yên (-8) / xu (95)", "handler": "PlayerItems.AddYen/AddXu", "status": "done" },
-    { "id": "c2s:-23", "dir": "client→server", "cmd": -23, "name": "CHAT_MAP → dev terminal", "handler": "DevTerminal.Run", "status": "done" }
+    {"id": "goto", "cmd": "/goto", "notes": "Teleport to the entrance of the current main quest map (objective or giver/report NPC map). Does not skip the current step. No fixed target or special-map destinations return an explanation; dead/catch/fishing state refused."},
+    {"id": "next", "cmd": "/next", "notes": "Dev terminal: advance current accepted quest by one existing progression transition. Final step: report to NPC or /skip. No auto-accept."},
+    {
+      "id": "c2s:-30/-103",
+      "dir": "client→server",
+      "cmd": -30,
+      "sub": -103,
+      "name": "REQUEST_ITEM (mở shop)",
+      "handler": "PlayerItems.RequestShop",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-30/-109",
+      "dir": "client→server",
+      "cmd": -30,
+      "sub": -109,
+      "name": "POTENTIAL_UP",
+      "handler": "PlayerSkills.UpPotential",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-30/-108",
+      "dir": "client→server",
+      "cmd": -30,
+      "sub": -108,
+      "name": "SKILL_UP",
+      "handler": "PlayerSkills.UpSkill",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-28/-115",
+      "dir": "client→server",
+      "cmd": -28,
+      "sub": -115,
+      "name": "REQUEST_ICON",
+      "handler": "Controller.SendIcon",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-28/-108",
+      "dir": "client→server",
+      "cmd": -28,
+      "sub": -108,
+      "name": "REQUEST_NPCTEMPLATE",
+      "handler": "Controller.SendMobTemplate",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-28/-126",
+      "dir": "client→server",
+      "cmd": -28,
+      "sub": -126,
+      "name": "SELECT_PLAYER",
+      "handler": "Controller",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-28/-125",
+      "dir": "client→server",
+      "cmd": -28,
+      "sub": -125,
+      "name": "CREATE_PLAYER",
+      "handler": "Controller.CreateCharacter",
+      "status": "done"
+    },
+    {
+      "id": "c2s:1",
+      "dir": "client→server",
+      "cmd": 1,
+      "name": "PLAYER_MOVE",
+      "handler": "PlayerActions.Move",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-17",
+      "dir": "client→server",
+      "cmd": -17,
+      "name": "MAP_CHANGE",
+      "handler": "PlayerActions.RequestChangeMap",
+      "status": "done"
+    },
+    {
+      "id": "c2s:36",
+      "dir": "client→server",
+      "cmd": 36,
+      "name": "OPEN_UI_ZONE",
+      "handler": "PlayerActions.OpenUiZone",
+      "status": "done"
+    },
+    {
+      "id": "c2s:28",
+      "dir": "client→server",
+      "cmd": 28,
+      "name": "ZONE_CHANGE",
+      "handler": "PlayerActions.ChangeZone",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-9",
+      "dir": "client→server",
+      "cmd": -9,
+      "name": "ME_BACK (về làng khi chết)",
+      "handler": "PlayerActions.ReturnTownFromDead",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-10",
+      "dir": "client→server",
+      "cmd": -10,
+      "name": "ME_LIVE (hồi sinh tại chỗ)",
+      "handler": "PlayerActions.ReviveInPlace",
+      "status": "done"
+    },
+    {
+      "id": "c2s:41",
+      "dir": "client→server",
+      "cmd": 41,
+      "name": "SKILL_SELECT",
+      "handler": "PlayerSkills.SelectSkill",
+      "status": "done"
+    },
+    {
+      "id": "c2s:60",
+      "dir": "client→server",
+      "cmd": 60,
+      "name": "PLAYER_ATTACK_NPC (đánh quái)",
+      "handler": "PlayerCombat.AttackMonster",
+      "status": "done"
+    },
+    {
+      "id": "c2s:40",
+      "dir": "client→server",
+      "cmd": 40,
+      "name": "OPEN_UI_MENU (bấm NPC)",
+      "handler": "PlayerTasks.OpenMenu",
+      "status": "done"
+    },
+    {
+      "id": "c2s:29",
+      "dir": "client→server",
+      "cmd": 29,
+      "name": "MENU (chọn mục menu NPC)",
+      "handler": "PlayerTasks.Menu",
+      "status": "done"
+    },
+    {
+      "id": "c2s:47",
+      "dir": "client→server",
+      "cmd": 47,
+      "name": "TASK_GET (trả lời hộp xác nhận)",
+      "handler": "PlayerTasks.GetTask",
+      "status": "done"
+    },
+    {
+      "id": "c2s:11",
+      "dir": "client→server",
+      "cmd": 11,
+      "name": "ITEM_USE",
+      "handler": "PlayerItems.UseItem",
+      "status": "done"
+    },
+    {
+      "id": "c2s:13",
+      "dir": "client→server",
+      "cmd": 13,
+      "name": "ITEM_BUY",
+      "handler": "PlayerItems.BuyItem",
+      "status": "done"
+    },
+    {
+      "id": "c2s:15",
+      "dir": "client→server",
+      "cmd": 15,
+      "name": "ITEM_BODY_TO_BAG (tháo đồ)",
+      "handler": "PlayerItems.ItemBodyToBag",
+      "status": "done"
+    },
+    {
+      "id": "c2s:42",
+      "dir": "client→server",
+      "cmd": 42,
+      "name": "REQUEST_ITEM_INFO",
+      "handler": "PlayerItems.RequestItemInfo",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-14",
+      "dir": "client→server",
+      "cmd": -14,
+      "name": "ITEMMAP_MYPICK (nhặt đồ)",
+      "handler": "PlayerItems.PickItem",
+      "status": "done"
+    },
+    {
+      "id": "c2s:other",
+      "dir": "client→server",
+      "cmd": null,
+      "name": "Các lệnh khác (bán, vứt, nâng cấp, chat, bạn bè, nhóm...)",
+      "handler": "bỏ qua",
+      "status": "todo"
+    },
+    {
+      "id": "s2c:63",
+      "dir": "server→client",
+      "cmd": 63,
+      "name": "OPEN_UI_NEWMENU (menu NPC)",
+      "handler": "PlayerService.OpenUiMenu",
+      "status": "done"
+    },
+    {
+      "id": "s2c:39",
+      "dir": "server→client",
+      "cmd": 39,
+      "name": "OPEN_UI_CONFIRM",
+      "handler": "PlayerService.OpenUiConfirm",
+      "status": "done"
+    },
+    {
+      "id": "s2c:38",
+      "dir": "server→client",
+      "cmd": 38,
+      "name": "NPC_CHAT",
+      "handler": "PlayerService.NpcChat",
+      "status": "done"
+    },
+    {
+      "id": "s2c:47-50",
+      "dir": "server→client",
+      "cmd": 47,
+      "name": "TASK_GET / NEXT / FINISH / UPDATE (47/48/49/50)",
+      "handler": "PlayerService.SendTaskInfo, TaskNext, TaskFinish, TaskCount",
+      "status": "done"
+    },
+    {
+      "id": "s2c:8",
+      "dir": "server→client",
+      "cmd": 8,
+      "name": "ITEM_BAG_ADD",
+      "handler": "PlayerItems.AddItemToBag",
+      "status": "done"
+    },
+    {
+      "id": "s2c:18",
+      "dir": "server→client",
+      "cmd": 18,
+      "name": "ITEM_USE_UPTOUP",
+      "handler": "PlayerService.UseItemUpToUp",
+      "status": "done"
+    },
+    {
+      "id": "s2c:33",
+      "dir": "server→client",
+      "cmd": 33,
+      "name": "OPEN_UI_SHOP",
+      "handler": "PlayerItems.RequestShop",
+      "status": "done"
+    },
+    {
+      "id": "s2c:6",
+      "dir": "server→client",
+      "cmd": 6,
+      "name": "ITEMMAP_ADD / -14 pick / -15 remove",
+      "handler": "PlayerService",
+      "status": "done"
+    },
+    {
+      "id": "s2c:85-91",
+      "dir": "server→client",
+      "cmd": 85,
+      "name": "NPC_IS_* (trạng thái quái: lửa, băng, gió, trói, vô hiệu)",
+      "handler": "PlayerService.MobState",
+      "status": "done"
+    },
+    {
+      "id": "s2c:-30/-122,-121",
+      "dir": "server→client",
+      "cmd": -30,
+      "name": "ME_HP / ME_MP (sub -122 / -121), -111 loadHP",
+      "handler": "PlayerService.UpdateHp/UpdateMp/LoadHp",
+      "status": "done"
+    },
+    {
+      "id": "s2c:-30/-101,-99",
+      "dir": "server→client",
+      "cmd": -30,
+      "name": "Hiệu ứng nhân vật thêm / xoá (sub -101 / -99)",
+      "handler": "PlayerService.AddEffect/RemoveEffect",
+      "status": "done"
+    },
+    {
+      "id": "s2c:-30/-126,-125",
+      "dir": "server→client",
+      "cmd": -30,
+      "name": "ME_LOAD_CLASS / ME_LOAD_SKILL",
+      "handler": "PlayerService.LoadClass/LoadSkill",
+      "status": "done"
+    },
+    {
+      "id": "s2c:-8,95",
+      "dir": "server→client",
+      "cmd": -8,
+      "name": "Nhận yên (-8) / xu (95)",
+      "handler": "PlayerItems.AddYen/AddXu",
+      "status": "done"
+    },
+    {
+      "id": "c2s:-23",
+      "dir": "client→server",
+      "cmd": -23,
+      "name": "CHAT_MAP → dev terminal",
+      "handler": "DevTerminal.Run",
+      "status": "done"
+    }
   ],
-
   "config": [
-    {"id":"f6-workbench","title":"F6 default-browser shortcut","default":"Dev tab action","desc":"Open balance web uses the current WikiUrl/#dashboard and OS default browser. No saved setting; hint reports availability/errors. Compile-only verified."},
-    {"id":"wiki-sprite-cache","title":"Wiki sprite cache","default":"16 MiB FIFO; one-hour browser cache","desc":"Read-only original assets, highest available zoom 4..1; portraits are static. Missing assets show fallback. Cache resets with wiki/Play lifecycle."},
-    {"id":"character-progression","title":"Character progression profiles","default":"Empty profiles: native base, 100% growth, +0 per level","desc":"game-balance.json v2: characterProgression[0|classed|classId][stat]={base?,growthPercent?,growthFlat?}. Per-class fields inherit shared classed values. Schema and formulas: docs/CHARACTER_PROGRESSION.md."},
-    {"id": "smooth-world-motion", "title": "NSO Game Control / Smooth World Motion", "default": true, "files": "Scripts/Diagnostics/NsoGameControl.cs, Application/Interp.cs", "notes": "Render-only fractional world/camera/projectile placement. Smooth Effects also controls list scrolling and weather particles. Target Frame Rate now accepts 60-144; this is a requested cap, not guaranteed hardware throughput."},
-    {"id": "instant-movement-stop", "title": "NSO Game Control / Instant Movement Stop", "default": true, "files": "Scripts/Diagnostics/NsoGameControl.cs", "notes": "Stops grounded manual movement on the last horizontal button release. Disable to restore original one-unit-per-tick inertia. Jump/fall, remote and destination movement are excluded."},
-    {"id": "workbench-loot-rules", "title": "GameWorld.LootRules via #settings", "default": "blockTrainingDummy=true; blockOverlevel=true; overlevelGap=10; limitOrdinaryLoot=true; ordinaryMaxGap=7", "files": "World/LootRules.cs, GameServer.cs, DevWiki/WikiControl.cs", "notes": "game-rules.json in save folder, loaded in release too. Global/ordinary gates separately adjustable. Next loot event uses successful save."},
-    {"id": "effect-presentation", "title": "NSO Game Control effect presentation", "default": "Smooth Effects=true; Mob Health Seconds=0.12; Menu Open Seconds=0.14", "files": "Scripts/Diagnostics/NsoGameControl.cs", "notes": "Inspector runtime options; durations clamped to 0..0.5 s. Disabling smoothing restores snapped drawing. Minimum opening blocks selection until visible."},
-    {"id": "drop-level-gap-limit", "title": "GameWorld.LootRules.OverlevelGap", "default": 10, "files": "World/LootRules.cs", "notes": "Active value editable at #settings, persisted in game-rules.json; default 10. PlayerItems.DropLevelGapLimit is only the detached-state fallback. Ordinary max gap 7 is separate."},
-    {"id": "NaturalRegenPercent", "file": "Server/Net/PlayerEffects.cs", "default": 0, "desc": "Disabled by default: no unsourced HP/MP gain. Positive values explicitly opt into the former offline addition; not a Workbench loot setting."},
-    {"id": "NaturalRegenMs", "file": "Server/Net/PlayerEffects.cs", "default": 5000, "desc": "Five-second equipment recovery interval, also used by optional positive natural recovery. Keeping 5000 preserves Java equipment timing."},
-    { "id": "_wikiEnabled", "file": "NSO Server Control (Inspector)", "default": true, "desc": "Bật website tra cứu khi chạy game (Editor / development build)." },
-    { "id": "_wikiPort", "file": "NSO Server Control (Inspector)", "default": 8787, "desc": "Cổng đầu tiên của website; bận thì thử 9 cổng kế tiếp." },
-    { "id": "_wikiOpenBrowser", "file": "NSO Server Control (Inspector)", "default": false, "desc": "Tự mở trình duyệt khi game chạy." },
-    { "id": "_saveSubfolder", "file": "NSO Server Control (Inspector)", "default": "NsoData", "desc": "Thư mục lưu save trong persistentDataPath." },
-    { "id": "_staticSubfolder", "file": "NSO Server Control (Inspector)", "default": "NsoStatic", "desc": "Thư mục dữ liệu tĩnh (tables.txt, Data) trong StreamingAssets." }
+    {
+      "id": "player-log",
+      "title": "Player Log",
+      "default": true,
+      "where": "NSO Server Control > Player log (enabled, outgoing, snapshot seconds 5, payload bytes 48, keep files 20)",
+      "notes": "Logs/PlayerLog/player_<time>.log in the project folder: IN client actions, OUT server replies, LOG server trace, EVT events, STATE snapshots. Server/Net/PlayerLog.cs."
+    },
+    {"id": "gamepad-share-opens-map", "title": "Share Opens Map", "default": true, "where": "NSO Gamepad Input > Share Opens Map", "notes": "Share/Create/Select opens world map only while in gameplay; off restores configurable _create key code."},
+    {"id": "popup-side-inset", "title": "Popup command horizontal inset", "default": -2, "where": "NSO UI Layout > Bottom Buttons > Popup Side Inset", "notes": "Logical pixels relative to wide panel edges. -2 matches paintFrame outer border. Live; narrow rows unchanged."},
+    {
+      "id": "f6-workbench",
+      "title": "F6 default-browser shortcut",
+      "default": "Dev tab action",
+      "desc": "Open balance web uses the current WikiUrl/#dashboard and OS default browser. No saved setting; hint reports availability/errors. Compile-only verified."
+    },
+    {
+      "id": "wiki-sprite-cache",
+      "title": "Wiki sprite cache",
+      "default": "16 MiB FIFO; one-hour browser cache",
+      "desc": "Read-only original assets, highest available zoom 4..1; portraits are static. Missing assets show fallback. Cache resets with wiki/Play lifecycle."
+    },
+    {
+      "id": "character-progression",
+      "title": "Character progression profiles",
+      "default": "Empty profiles: native base, 100% growth, +0 per level",
+      "desc": "game-balance.json v2: characterProgression[0|classed|classId][stat]={base?,growthPercent?,growthFlat?}. Per-class fields inherit shared classed values. Schema and formulas: docs/CHARACTER_PROGRESSION.md."
+    },
+    {
+      "id": "smooth-world-motion",
+      "title": "NSO Game Control / Smooth World Motion",
+      "default": true,
+      "files": "Scripts/Diagnostics/NsoGameControl.cs, Application/Interp.cs",
+      "notes": "Render-only fractional world/camera/projectile placement. Smooth Effects also controls list scrolling and weather particles. Target Frame Rate now accepts 60-144; this is a requested cap, not guaranteed hardware throughput."
+    },
+    {
+      "id": "instant-movement-stop",
+      "title": "NSO Game Control / Instant Movement Stop",
+      "default": true,
+      "files": "Scripts/Diagnostics/NsoGameControl.cs",
+      "notes": "Stops grounded manual movement on the last horizontal button release. Disable to restore original one-unit-per-tick inertia. Jump/fall, remote and destination movement are excluded."
+    },
+    {
+      "id": "workbench-loot-rules",
+      "title": "GameWorld.LootRules via #settings",
+      "default": "blockTrainingDummy=true; blockOverlevel=true; overlevelGap=10; limitOrdinaryLoot=true; ordinaryMaxGap=7",
+      "files": "World/LootRules.cs, GameServer.cs, DevWiki/WikiControl.cs",
+      "notes": "game-rules.json in save folder, loaded in release too. Global/ordinary gates separately adjustable. Next loot event uses successful save."
+    },
+    {
+      "id": "effect-presentation",
+      "title": "NSO Game Control effect presentation",
+      "default": "Smooth Effects=true; Mob Health Seconds=0.12; Menu Open Seconds=0.14",
+      "files": "Scripts/Diagnostics/NsoGameControl.cs",
+      "notes": "Inspector runtime options; durations clamped to 0..0.5 s. Disabling smoothing restores snapped drawing. Minimum opening blocks selection until visible."
+    },
+    {
+      "id": "drop-level-gap-limit",
+      "title": "GameWorld.LootRules.OverlevelGap",
+      "default": 10,
+      "files": "World/LootRules.cs",
+      "notes": "Active value editable at #settings, persisted in game-rules.json; default 10. PlayerItems.DropLevelGapLimit is only the detached-state fallback. Ordinary max gap 7 is separate."
+    },
+    {
+      "id": "NaturalRegenPercent",
+      "file": "Server/Net/PlayerEffects.cs",
+      "default": 0,
+      "desc": "Disabled by default: no unsourced HP/MP gain. Positive values explicitly opt into the former offline addition; not a Workbench loot setting."
+    },
+    {
+      "id": "NaturalRegenMs",
+      "file": "Server/Net/PlayerEffects.cs",
+      "default": 5000,
+      "desc": "Five-second equipment recovery interval, also used by optional positive natural recovery. Keeping 5000 preserves Java equipment timing."
+    },
+    {
+      "id": "_wikiEnabled",
+      "file": "NSO Server Control (Inspector)",
+      "default": true,
+      "desc": "Bật website tra cứu khi chạy game (Editor / development build)."
+    },
+    {
+      "id": "_wikiPort",
+      "file": "NSO Server Control (Inspector)",
+      "default": 8787,
+      "desc": "Cổng đầu tiên của website; bận thì thử 9 cổng kế tiếp."
+    },
+    {
+      "id": "_wikiOpenBrowser",
+      "file": "NSO Server Control (Inspector)",
+      "default": false,
+      "desc": "Tự mở trình duyệt khi game chạy."
+    },
+    {
+      "id": "_saveSubfolder",
+      "file": "NSO Server Control (Inspector)",
+      "default": "NsoData",
+      "desc": "Thư mục lưu save trong persistentDataPath."
+    },
+    {
+      "id": "_staticSubfolder",
+      "file": "NSO Server Control (Inspector)",
+      "default": "NsoStatic",
+      "desc": "Thư mục dữ liệu tĩnh (tables.txt, Data) trong StreamingAssets."
+    },
+    {
+      "id": "task-orders",
+      "title": "TaskOrders tunables",
+      "detail": "TaskOrders.LevelRequire, DayPerDay, BossPerDay, BeastItemPerDay, DayCountMin/Max, DayLevelRange, reward fields, ExcludedMaps."
+    },
+    {
+      "id": "item-use-order",
+      "title": "PlayerItemUse tunables",
+      "detail": "PhucNangYenMin/Max, GiayVunPerBook, LimitKyNangSo, LimitTiemNangSo, LimitPhongLoi, LimitBangHoa, KhaDiMaps."
+    },
+    {
+      "id": "luong",
+      "title": "PlayerLuong tunables",
+      "detail": "TopUpCards, TopUpLuongPerVnd, XuPerLuong, YenPerLuong, ExchangeMin, ExchangeXuMax, BagItems/BagCells, NamLinhChiMs."
+    },
+    {
+      "id": "luong-more",
+      "title": "Fishing / coin limit tunables",
+      "detail": "PlayerItemUse.FishWaitMs, FishItems, FishRates; PlayerLuong.XuMaxStep, XuMaxCap, XuMaxFeePerStep."
+    }
   ],
-
   "deviations": [
-    {"id":"character-progression-profiles","title":"Configurable native character progression","why":"User requested intuitive base/growth controls without replacing class mechanics.","how":"Optional base/growthPercent/growthFlat profiles augment native curves; classed allocated points remain separate. Empty profiles keep original behavior. Balance v2 accepts v1; previews do not save or publish."},
-    {"id": "dashboard-editors", "title": "Global game balancing", "why": "User clarified durable whole-game tuning, not a current-character/session editor.", "how": "#dashboard writes game-balance.json (player/potential percent + flat, future EXP gain, global/template effective equipment options) and monster-tuning.json. Existing and future objects use these rules without rewriting raw player allocations/item options. Protected API, explicit save/reset, read-only previews and normal protocol refresh. Compile-only validation; user handles runtime debugging."},
-    {"id": "workbench-dark-theme", "title": "Dark workbench and larger typography", "why": "User requested dark mode, larger and heavier text, and Apple fonts.", "how": "Dark default, one Apple-first system UI font stack with Segoe UI fallback across all text including code/JSON/IDs, 15-17px reading text. No font downloads or external services; browser QA left to user."},
-    {"id": "wheel-normalization", "title": "Mouse wheel units", "why": "Input System normalized notches were divided by 120 again, rounding scrolling to zero.", "how": "Bridge honors scrollDeltaBehavior; divide only native Windows units by 120. Existing WheelStepPx remains 24; user verifies hardware scrolling."},
-    {"id": "notice-smoothing", "title": "Render-rate notification text", "why": "User reported stepped scrolling MP-full text.", "how": "Info/InfoMe interpolate text placement under Smooth Effects; preserve original timing and fixed clipping. Final revision compile-only verified; user handles visual debugging."},
-    {"id": "render-rate-world-motion", "title": "Fractional world and list-content painting", "status": "done", "notes": "Original client paints integer positions at low logic rate. Extend existing Interp snapshots and scoped GUI transforms across world renderers; nested projectiles replace parent residuals. Scroll hit-testing and logic offsets remain unchanged; viewport/origin/paint cleanup restores transforms. Map transitions/teleports snap. No sprite frame synthesis or gameplay timing change."},
-    {"id": "instant-movement-stop", "title": "Release manual ground movement without friction delay", "status": "done", "notes": "Original client Char.updateCharRun decreases cvx by one per tick: observed 9 ticks/0.375 s and 36 extra pixels at speed 8. Keyboard arrow/number-pad and pointer movement release now request an immediate stop; configurable in Inspector. Movement speed, airborne motion and destination paths unchanged."},
-    {"id": "workbench-loot-config", "title": "Persistent configurable offline loot gates", "status": "done", "java": "Mob.dead / Mob.dropItem", "notes": "User requested web settings. Per-world immutable validated policy replaces active hardcoded gates; defaults retain prior behavior and Java probabilities. No player/static/reference file writes."},
-    {"id": "effect-presentation", "title": "Render-time effect interpolation and popup/HP transitions", "status": "done", "notes": "Original client GameScr updateFlyText/updateSplash, Menu updateMenu, Mob paint remain logic-owned. Fractional painting adds intermediate positions and visual HP easing; recently reopened menus get a minimum opening instead of snapping. Server damage and effect lifetimes unchanged."},
-    {"id": "global-overlevel-loot-gate", "title": "All loot blocked at 10-level overlevel gap", "status": "done", "java": "Mob.dead, Mob.dropItem", "notes": "User decision 2026-11-11: block quest items, ordinary items/currency and sushi at >=10 levels below player. Dummy exclusion matches Java and also covers sushi. Original ordinary-loot seven-level gate remains."},
-    {"id": "client-skill-hit-frame", "title": "Unity render/logic skill timing", "status": "done", "files": "Assets/Scripts/Gameplay/Entities/Char.cs", "notes": "Original client Char.updateSkillPaint/setAttack uses exact hit-frame equality. Offline Unity timing uses >= with one dispatch per cast before cleanup because rendering can skip the exact frame between logic ticks. Damage/range/cooldown unchanged."},
-    {"id": "natural-regen", "title": "Unsourced natural recovery disabled", "why": "User corrected the prior free-recovery behavior. Java requires effects or equipment.", "how": "NaturalRegenPercent defaults to 0; old positive branch is opt-in only. Food/potion/equipment remain unchanged.", "enabled": false},
-    { "id": "skip-steps", "title": "Bỏ qua bước nhiệm vụ chưa port", "why": "Hang động, hộ tống Jaian, câu cá, xách nước, hằng ngày, bạn bè, nâng cấp, chiến trường chưa có.", "how": "Menu 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ." },
-    { "id": "generic-talk", "title": "Bước 'nói chuyện' ở NPC chưa port menu", "why": "Để chuỗi nhiệm vụ không bị kẹt.", "how": "Mục menu tên theo bước, bấm là qua bước." },
-    { "id": "no-luong", "title": "Không có lượng", "why": "Bản offline không nạp tiền.", "how": "" },
-    { "id": "auto-login", "title": "Tự đăng nhập 1 tài khoản cục bộ", "why": "Offline.", "how": "2 test đăng nhập sai mật khẩu / tên sai luôn fail (dự kiến)." },
-    { "id": "menu-removed-entries", "title": "Menu không còn Thủ khố, Tự sát, Khu vực", "why": "User decision (permanent, 2026-11-12).", "how": "GameScr.actMenu no longer adds them; perform cases 110022-110024 are kept." },
-    { "id": "auto-extras-removed", "title": "Bỏ các tùy chọn tự động phụ và tự kết nối lại", "why": "User decision (permanent, 2026-11-12).", "how": "Auto panel shows only the 8 original rows; reMap, ChuyenMapHetBoss, isDieMP, isTinhAnh, isThuLinh and autoReconnect were deleted, defaults kept as fixed behaviour." },
-    { "id": "basic-skill-growth", "title": "Chiêu cơ bản tự tăng cấp khi chưa vào trường", "why": "User request (2026-11-12); the data has one row for skill template 0.", "how": "Class 0 gets one automatic point of skill template 0 per level (max BasicSkillGrowth.MaxPoint = 9), each point -CooldownStepMs (20) cooldown. Rows ids 30001..30009 are generated on client (Controller.AddBasicSkillGrowth) and server (GameWorld.AddBasicSkillGrowth); PlayerCombat.SyncBasicSkill applies it on enter and level-up." },
-    { "id": "chat-dev-terminal", "title": "Khung chat là terminal lệnh dev", "why": "User request (2026-11-12).", "how": "The original chat icon opens ChatTextField; The terminal is the original message window (alert popup, message-style title) with the chat input line under it. /command lines go as CHAT_MAP (-23) to Server/Net/DevTerminal.cs (/help, /skip = finish the current quest via PlayerTasks.SkipTask; /lv = +1 level, /tolv n = up to level n (0..150) via PlayerCombat.AddExp; /clear is client-side); lines without / are local public chat (bubble over the player) and replies with SERVER_MESSAGE (-24) prefixed by char 7, shown in the window. No public chat offline." }
+    {
+      "id": "skill-animation-per-tick",
+      "title": "Animation skill chạy theo tick logic, không theo FPS",
+      "why": "Client gốc vẽ 1 lần mỗi tick và tăng frame skill trong lúc vẽ; Unity vẽ 60-144 fps nên skill chạy nhanh gấp 3-6 lần.",
+      "how": "Char.paintCharWithSkill chỉ tăng indexSkill/i0-i2/tạo mũi tên ở lần vẽ đầu sau mỗi tick (Main.LogicTick); các lần vẽ sau vẽ lại cùng frame."
+    },
+    {
+      "id": "tajima-menu",
+      "title": "Menu Tajima: bỏ 'nhận lời mời' và 'Thứ thân', kiếm gỗ chỉ nhận một lần",
+      "why": "Offline không có người chơi khác (lời mời) và không có phân thân; 'Nhận kiếm gỗ' (thêm offline) trước đây nhận vô hạn.",
+      "how": "PlayerTasks.NpcTajima: 'Hủy vật phẩm và nhiệm vụ' (Char.clearTask, cần cấp 10), 'Nói chuyện', 'Nhận kiếm gỗ' chỉ khi chưa có kiếm gỗ trong hành trang/rương/trang bị."
+    },
+    {"id": "supply-stacks-split", "title": "Counted supply stacks and bag/chest split command", "why": "User clarified actual one-cell stacks with quantities, excluding equipment, and requested quantity splitting.", "notes": "Extends original stack eligibility for supplies on explicit Sort. NOT_MAP -85 split request/ack extended with container flag; clone metadata and preserve quantities. Expiring instances not merged. Legacy crafting remains unit-based: split materials first."},
+    {"id": "inventory-explicit-group-sort", "title": "Group inventory by type on explicit Sort", "why": "User requested same-type grouping in bag and box only when pressing Sort.", "notes": "Shared pure ordering policy for client/server; existing bagSort/boxSort merging and ack protocol retained. Type, id, lock and original index determine deterministic order. No automatic reordering."},
+    {"id": "school-element-shops", "title": "School-specific elemental catalogs", "why": "User requested NPCs at each school sell that school element only.", "notes": "Filters existing Char.requestItem/Store.show/Store.buy catalog consistently; no item-table rewrite. Neutral supplies retained, classed skill books filtered by element. Other maps unchanged."},
+    {"id": "thien-bien-lenh-auto-pick", "title": "Enabled item is the exception to manual ground pickup", "why": "User explicitly requested Thien bien lenh auto-pick after reporting it inactive.", "notes": "Existing item automation/protocol completed; no global suction. While item and persistent auto active, normal nearby pickup requests run. Off/pause stops requests. Range origin, server expiry/item validation and cooldown constrain auto movement."},
+    {"id": "manual-ground-pickup", "title": "Manual ground-loot interaction in ordinary play", "why": "User clarified they do not want automatic suction or pickup.", "notes": "Supersedes nearby-auto-pickup: no Char.update auto collector or GameScr.update suction invocation. Ground items/yen use explicit interaction and normal server checks. Separately invoked legacy auto-play/task routines are outside this change."},
+    {"id": "nearby-auto-pickup", "title": "Nearby all-item auto pickup without auto-play", "why": "User reported no automatic pickup and requested yen on the ground.", "notes": "Reuses Char.autoPickItemMap and normal server validation; configurable 120px/350ms defaults, no movement. Yen ground drops match Mob.dropItem(YEN), pickup packet is sole client credit; server rewards still use AddYen normally."},
+    {"id": "quest-goto", "title": "Dev terminal teleport to main quest objective", "why": "User requested /goto to travel to the next needed main-quest location.", "notes": "QuestTravel resolves existing task map/NPC/spawns; normal map travel bypasses walking/unlock routing. Quest advancement remains in existing hooks; no direct TaskNext or reward grant. Private-instance entry rules retained."},
+    {"id": "harder-combat-defaults", "title": "Harder monster combat default profile", "why": "User requested stronger monsters and reduced player dodge after equipment recovery was identified.", "notes": "CombatRules defaults 50/100/40/150 for dodge scale/monster accuracy/dodge cap/damage. No raw character stats or save changes. Web tunables and explicit saved overrides retained."},
+    {"id": "monster-hp-sync-correction", "title": "Use actual damage in monster-hit packets; stat refresh does not heal", "why": "User still saw full HP recovery on hits and reported monsters too weak.", "notes": "Supersedes raw-display/scaled-deduction Java Mob.attack behavior: scale once before packets; post-hit observer HP; no duplicate victim observer hit. Client ME_LOAD_SKILL/UPDATE_POTENTIAL clamp HP/MP rather than fill them. Default damage factor 100% by request; web/saved overrides remain supported."},
+    {"id": "miss-no-healing", "title": "Reject negative injury deltas as healing", "why": "User reported HP rising without items; -1 MISS from Java Mob.attack display protocol was subtracted as damage.", "notes": "Client Char.doInjure subtracts HPShow/MPShow only if positive. Original signed values retained for MISS display. Food/potions/equipment recovery paths unchanged."},
+    {"id": "terminal-next-step", "title": "Dev terminal /next bypasses one quest step", "why": "User requested advancing to the next quest step and hiding the map Go To button.", "notes": "NextTaskStep validates active quest/index, then reuses Char.taskNext port. It does not finish or accept quests; /skip retains completion. Map left command null; legacy travel handler remains unbound."},
+    {"id": "map-toggle-analog-cursor", "title": "Controller map toggle and analog cursor", "why": "User requested Share/Create to open and close the map and left stick to move its cursor.", "notes": "MapScr.updateKey extended with render-cadence cursor movement; analog selection never invokes legacy adminMove. Existing Go To and close commands retained; speed configurable in NsoGamepadInput."},
+    {"id": "share-map-gamepad", "title": "Offline gamepad Share/Create map shortcut", "why": "Explicit user request for Share to open the map.", "notes": "Reuses GameScr.doShowMap via action 110002; no gameplay or map rendering changes."},
+    {"id": "shared-item-tab-navigation", "title": "Shared non-wrapping item-grid focus", "why": "User requested child cells return to tabs consistently like inventory, including upgrade, equipment, mount, chest and bijuu.", "notes": "Pure TabGridNavigation shared via GameScr adapters; left/right boundary -> title, Up -> parent. Equipment vertical shape preserved; upgrade hierarchy explicit. Original action/confirmation/gameplay handlers unchanged."},
+    {"id": "upgrade-controller-input", "title": "Equipment upgrade keyboard/gamepad navigation", "why": "Large-screen upgrade has no centre select command; tooltip captured directional keys and equipment row could not return to tabs.", "notes": "Scoped to isPaintUpGrade: Enter invokes left action, directions navigate slots, Up returns to title. Existing validation/confirmation/cost/probability preserved."},
+    {"id": "world-map-only", "title": "Remove MapScr local-map mode and Change command", "why": "Explicit user request: unnecessary third button and its features removed.", "notes": "Original MapScr 1001/local-map paint/bounds removed. World map, Go To and Close retained. Command hitboxes follow image size and actual bottom-row position; map gestures exclude this row."},
+    {"id": "popup-command-alignment", "title": "Wide popup commands follow panel bounds", "why": "GameScr.paint fixed -160/-35/+88 offsets disagree with the 310-pixel panel and actual button width.", "notes": "Presentation only: configurable inset -2 matches paintFrame outer border. Narrow layouts, command actions and vertical row unchanged."},
+    {
+      "id": "character-progression-profiles",
+      "title": "Configurable native character progression",
+      "why": "User requested intuitive base/growth controls without replacing class mechanics.",
+      "how": "Optional base/growthPercent/growthFlat profiles augment native curves; classed allocated points remain separate. Empty profiles keep original behavior. Balance v2 accepts v1; previews do not save or publish."
+    },
+    {
+      "id": "dashboard-editors",
+      "title": "Global game balancing",
+      "why": "User clarified durable whole-game tuning, not a current-character/session editor.",
+      "how": "#dashboard writes game-balance.json (player/potential percent + flat, future EXP gain, global/template effective equipment options) and monster-tuning.json. Existing and future objects use these rules without rewriting raw player allocations/item options. Protected API, explicit save/reset, read-only previews and normal protocol refresh. Compile-only validation; user handles runtime debugging."
+    },
+    {
+      "id": "workbench-dark-theme",
+      "title": "Dark workbench and larger typography",
+      "why": "User requested dark mode, larger and heavier text, and Apple fonts.",
+      "how": "Dark default, one Apple-first system UI font stack with Segoe UI fallback across all text including code/JSON/IDs, 15-17px reading text. No font downloads or external services; browser QA left to user."
+    },
+    {
+      "id": "wheel-normalization",
+      "title": "Mouse wheel units",
+      "why": "Input System normalized notches were divided by 120 again, rounding scrolling to zero.",
+      "how": "Bridge honors scrollDeltaBehavior; divide only native Windows units by 120. Existing WheelStepPx remains 24; user verifies hardware scrolling."
+    },
+    {
+      "id": "notice-smoothing",
+      "title": "Render-rate notification text",
+      "why": "User reported stepped scrolling MP-full text.",
+      "how": "Info/InfoMe interpolate text placement under Smooth Effects; preserve original timing and fixed clipping. Final revision compile-only verified; user handles visual debugging."
+    },
+    {
+      "id": "render-rate-world-motion",
+      "title": "Fractional world and list-content painting",
+      "status": "done",
+      "notes": "Original client paints integer positions at low logic rate. Extend existing Interp snapshots and scoped GUI transforms across world renderers; nested projectiles replace parent residuals. Scroll hit-testing and logic offsets remain unchanged; viewport/origin/paint cleanup restores transforms. Map transitions/teleports snap. No sprite frame synthesis or gameplay timing change."
+    },
+    {
+      "id": "instant-movement-stop",
+      "title": "Release manual ground movement without friction delay",
+      "status": "done",
+      "notes": "Original client Char.updateCharRun decreases cvx by one per tick: observed 9 ticks/0.375 s and 36 extra pixels at speed 8. Keyboard arrow/number-pad and pointer movement release now request an immediate stop; configurable in Inspector. Movement speed, airborne motion and destination paths unchanged."
+    },
+    {
+      "id": "workbench-loot-config",
+      "title": "Persistent configurable offline loot gates",
+      "status": "done",
+      "java": "Mob.dead / Mob.dropItem",
+      "notes": "User requested web settings. Per-world immutable validated policy replaces active hardcoded gates; defaults retain prior behavior and Java probabilities. No player/static/reference file writes."
+    },
+    {
+      "id": "effect-presentation",
+      "title": "Render-time effect interpolation and popup/HP transitions",
+      "status": "done",
+      "notes": "Original client GameScr updateFlyText/updateSplash, Menu updateMenu, Mob paint remain logic-owned. Fractional painting adds intermediate positions and visual HP easing; recently reopened menus get a minimum opening instead of snapping. Server damage and effect lifetimes unchanged."
+    },
+    {
+      "id": "global-overlevel-loot-gate",
+      "title": "All loot blocked at 10-level overlevel gap",
+      "status": "done",
+      "java": "Mob.dead, Mob.dropItem",
+      "notes": "User decision 2026-11-11: block quest items, ordinary items/currency and sushi at >=10 levels below player. Dummy exclusion matches Java and also covers sushi. Original ordinary-loot seven-level gate remains."
+    },
+    {
+      "id": "client-skill-hit-frame",
+      "title": "Unity render/logic skill timing",
+      "status": "done",
+      "files": "Assets/Scripts/Gameplay/Entities/Char.cs",
+      "notes": "Original client Char.updateSkillPaint/setAttack uses exact hit-frame equality. Offline Unity timing uses >= with one dispatch per cast before cleanup because rendering can skip the exact frame between logic ticks. Damage/range/cooldown unchanged."
+    },
+    {
+      "id": "natural-regen",
+      "title": "Unsourced natural recovery disabled",
+      "why": "User corrected the prior free-recovery behavior. Java requires effects or equipment.",
+      "how": "NaturalRegenPercent defaults to 0; old positive branch is opt-in only. Food/potion/equipment remain unchanged.",
+      "enabled": false
+    },
+    {
+      "id": "skip-steps",
+      "title": "Bỏ qua bước nhiệm vụ chưa port",
+      "why": "Hang động, câu cá, xách nước, hằng ngày, bạn bè, nâng cấp, chiến trường chưa có.",
+      "how": "Menu 'Bỏ qua: <bước>' ở NPC giao nhiệm vụ."
+    },
+    {
+      "id": "jaian-escort",
+      "title": "Hộ tống Jaian: thông báo thất bại, chữ vàng",
+      "why": "Java im lặng khi hộ tống thất bại; người chơi muốn dòng 'do <tên> hộ tống' màu vàng.",
+      "how": "Gửi SUB_COMMAND -90 (PROTECT_FAR / PROTECT_INJURE của client). Quái đánh Jaian như Java (MobBrain). Char.cs vẽ dòng hộ tống bằng tahoma_7_yellow. Net/Escort.cs."
+    },
+    {
+      "id": "bottom-floor-no-death",
+      "title": "Không chết khi đứng trên mặt đất ở hàng ô cuối map",
+      "why": "Map 61, 63 có hàng ô cuối là mặt đất; luật Java cy >= pxh - 24 giết người đang đi trên đó.",
+      "how": "PlayerActions.IsCrossMap bỏ qua luật đáy map khi ô dưới chân là T_TOP."
+    },
+    {
+      "id": "change-map-reset-point",
+      "title": "Chuyển map không thành: gửi RESET_POINT",
+      "why": "Java im lặng khi không tìm thấy waypoint ở vị trí server; client đã khóa màn hình đen (ischangingMap) nên đen mãi.",
+      "how": "PlayerActions.RequestChangeMap / ChangeMap gửi RESET_POINT ở mọi nhánh không chuyển map, client mở khóa và đi tiếp sẽ chuyển lại."
+    },
+    {
+      "id": "generic-talk",
+      "title": "Bước 'nói chuyện' ở NPC chưa port menu",
+      "why": "Để chuỗi nhiệm vụ không bị kẹt.",
+      "how": "Mục menu tên theo bước, bấm là qua bước."
+    },
+    {
+      "id": "no-luong",
+      "title": "Không có lượng",
+      "why": "Bản offline không nạp tiền.",
+      "how": ""
+    },
+    {
+      "id": "auto-login",
+      "title": "Tự đăng nhập 1 tài khoản cục bộ",
+      "why": "Offline.",
+      "how": "2 test đăng nhập sai mật khẩu / tên sai luôn fail (dự kiến)."
+    },
+    {
+      "id": "menu-removed-entries",
+      "title": "Menu không còn Thủ khố, Tự sát, Khu vực",
+      "why": "User decision (permanent, 2026-11-12).",
+      "how": "GameScr.actMenu no longer adds them; perform cases 110022-110024 are kept."
+    },
+    {
+      "id": "auto-extras-removed",
+      "title": "Bỏ các tùy chọn tự động phụ và tự kết nối lại",
+      "why": "User decision (permanent, 2026-11-12).",
+      "how": "Auto panel shows only the 8 original rows; reMap, ChuyenMapHetBoss, isDieMP, isTinhAnh, isThuLinh and autoReconnect were deleted, defaults kept as fixed behaviour."
+    },
+    {
+      "id": "basic-skill-growth",
+      "title": "Chiêu cơ bản tự tăng cấp khi chưa vào trường",
+      "why": "User request (2026-11-12); the data has one row for skill template 0.",
+      "how": "Class 0 gets one automatic point of skill template 0 per level (max BasicSkillGrowth.MaxPoint = 9), each point -CooldownStepMs (20) cooldown. Rows ids 30001..30009 are generated on client (Controller.AddBasicSkillGrowth) and server (GameWorld.AddBasicSkillGrowth); PlayerCombat.SyncBasicSkill applies it on enter and level-up."
+    },
+    {
+      "id": "chat-dev-terminal",
+      "title": "Khung chat là terminal lệnh dev",
+      "why": "User request (2026-11-12).",
+      "how": "The original chat icon opens ChatTextField; The terminal is the original message window (alert popup, message-style title) with the chat input line under it. /command lines go as CHAT_MAP (-23) to Server/Net/DevTerminal.cs (/help, /skip = finish the current quest via PlayerTasks.SkipTask; /lv = +1 level, /tolv n = up to level n (0..150) via PlayerCombat.AddExp; /clear is client-side); lines without / are local public chat (bubble over the player) and replies with SERVER_MESSAGE (-24) prefixed by char 7, shown in the window. No public chat offline."
+    },
+    {
+      "id": "gym-challenge",
+      "title": "NV Thách đấu (quest 13) gym fight",
+      "detail": "Net/Gymnasium.cs ports Gymnasium + Bot/AttackAround/MoveWithinCustom. Offline deviations: 'Vào phòng thi đấu' only on the matching headmaster's step (1 Ookamesama, 2 Kazeto, 3 Toyotomi; Java offered it on any step and advanced on any win); bot skill range fixed at dx/dy + 100 (Java added 100 per tick); HAVE_ATTACK_PLAYER carries the HP after the hit; PvP (PLAYER_ATTACK_PLAYER 61) is accepted only against the gym bot."
+    },
+    {
+      "id": "quest11-no-friend-step",
+      "title": "Quest 11 removed",
+      "detail": "Quest 11 (NV Bạn hữu tâm giao) is removed: finishing quest 10 goes straight to 12, saves on 11 move to 12 at login (PlayerTasks.SkipRemovedTask). User request 2026-11-12."
+    },
+    {
+      "id": "simulated-topup",
+      "title": "Simulated luong top-up",
+      "detail": "PlayerLuong.TopUp at Okanechan; Java tops up through its payment website. Luong is saved per character (Java: account)."
+    },
+    {
+      "id": "fishing-chat",
+      "title": "Fishing line-break text as server message",
+      "detail": "PlayerItemUse.FinishFishing; Java uses a zone chat bubble."
+    },
+    {
+      "id": "equip-tab-keys",
+      "title": "Trang bị tab: arrows and Enter with auto item info",
+      "detail": "GameScr.updateKeyUIInforMe / updateKey: left/right move between slots, up/down scroll the info, Enter runs Chọn (11082)."
+    },
+    {
+      "id": "skill-bar",
+      "title": "Skill bar shown after first book skill; all 5 slots assignable",
+      "detail": "GameScr.hasBookSkill / doSetOnScreenSkill (user request). Server now saves OSkill/KSkill/CSkill (Char.saveRms)."
+    }
   ],
-
   "issues": [
-    {"id": "quest-2-dummy-hit", "title": "Quest 2: cannot hit training dummy at high FPS", "status": "done", "notes": "Confirmed render-driven index skips logic hit-frame equality. Fixed with once-per-cast threshold crossing. Live five client attacks killed dummy; quest count 0 -> 1. Remaining kills need user manual replay."},
-    { "id": "not-played", "title": "Chưa kiểm tra trong game thật", "status": "todo", "detail": "Nhiệm vụ, shop, rơi đồ, kỹ năng mới chỉ qua test tự động (Tools/ServerTests)." },
-    { "id": "login-tests", "title": "2 test đăng nhập fail", "status": "skip", "detail": "Dự kiến: bản offline luôn đăng nhập 1 tài khoản." }
+    {
+      "id": "quest-2-dummy-hit",
+      "title": "Quest 2: cannot hit training dummy at high FPS",
+      "status": "done",
+      "notes": "Confirmed render-driven index skips logic hit-frame equality. Fixed with once-per-cast threshold crossing. Live five client attacks killed dummy; quest count 0 -> 1. Remaining kills need user manual replay."
+    },
+    {
+      "id": "not-played",
+      "title": "Chưa kiểm tra trong game thật",
+      "status": "todo",
+      "detail": "Nhiệm vụ, shop, rơi đồ, kỹ năng mới chỉ qua test tự động (Tools/ServerTests)."
+    },
+    {
+      "id": "login-tests",
+      "title": "2 test đăng nhập fail",
+      "status": "skip",
+      "detail": "Dự kiến: bản offline luôn đăng nhập 1 tài khoản."
+    }
   ],
-
   "tests": [
-    {"id": "regencheck", "title": "No unsourced HP/MP recovery", "status": "done", "command": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- regencheck", "notes": "9/9 after default-off fix; same test failed 7 cases before. Valid food/potion/equipment, expiry, caps and death preserved."},
-    {"id": "workbench-webcheck", "title": "Workbench API and pure UI checks", "status": "done", "command": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- webcheck; node Tools/verify_workbench_ui.cjs", "notes": "API 27/27; UI generators 18/18; JS syntax and Unity current compile/Console clean. Browser automation unavailable; visual/click/mobile QA pending."},
-    {"id": "effect-presentation", "title": "Visual timing regression", "status": "done", "command": "unity command script eval --file Tools/verify_effect_presentation.cs --project-path \"C:/My project\" --format json", "notes": "17/17 in Play mode; verify_skill_hit_frame 8/8. Current Unity compile/Console clean. No release build/full combat visual play-through."},
-    {"id": "lootcheck", "title": "Loot exclusion regression", "status": "done", "command": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- lootcheck", "notes": "9/9: template vs runtime ID, gap 9/10/11, direction, configurable threshold, quest/currency/sushi blocked paths. questcheck 16/16 and progresscheck 12/12 also passed."},
-    {"id": "client-skill-hit-frame", "title": "Client skill timing regression", "status": "done", "command": "unity command script eval --file Tools/verify_skill_hit_frame.cs --project-path 'C:/My project' --format json", "notes": "Play mode in world: 8/8 (early, exact, skipped, ended, duplicate, next cast, death). No packets/save changes from synthetic test."},
-    { "id": "questcheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- questcheck", "covers": "NV 0–3: chào làng, câu đố, kiếm gỗ, bù nhìn, mua và ăn cơm nắm", "result": "16/16 pass (2026-11-11)" },
-    { "id": "progresscheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- progresscheck", "covers": "rơi VP nhiệm vụ, nhặt, nhập học, sách, điểm kỹ năng / tiềm năng, vũ khí trường", "result": "12/12 pass (2026-11-11)" },
-    { "id": "combatcheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- combatcheck", "covers": "đánh quái, exp, chết, hồi sinh", "result": "pass" },
-    { "id": "entercheck", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- entercheck C:/NSO_OFFLINE/captures/enter_map22.txt 22", "covers": "vào map 22 khớp Java", "result": "khớp từng byte" },
-    { "id": "wiki", "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- wiki", "covers": "dựng db.json của website tra cứu và chạy website không cần Unity", "result": "" }
+    {
+      "id": "regencheck",
+      "title": "No unsourced HP/MP recovery",
+      "status": "done",
+      "command": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- regencheck",
+      "notes": "9/9 after default-off fix; same test failed 7 cases before. Valid food/potion/equipment, expiry, caps and death preserved."
+    },
+    {
+      "id": "workbench-webcheck",
+      "title": "Workbench API and pure UI checks",
+      "status": "done",
+      "command": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- webcheck; node Tools/verify_workbench_ui.cjs",
+      "notes": "API 27/27; UI generators 18/18; JS syntax and Unity current compile/Console clean. Browser automation unavailable; visual/click/mobile QA pending."
+    },
+    {
+      "id": "effect-presentation",
+      "title": "Visual timing regression",
+      "status": "done",
+      "command": "unity command script eval --file Tools/verify_effect_presentation.cs --project-path \"C:/My project\" --format json",
+      "notes": "17/17 in Play mode; verify_skill_hit_frame 8/8. Current Unity compile/Console clean. No release build/full combat visual play-through."
+    },
+    {
+      "id": "lootcheck",
+      "title": "Loot exclusion regression",
+      "status": "done",
+      "command": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- lootcheck",
+      "notes": "9/9: template vs runtime ID, gap 9/10/11, direction, configurable threshold, quest/currency/sushi blocked paths. questcheck 16/16 and progresscheck 12/12 also passed."
+    },
+    {
+      "id": "client-skill-hit-frame",
+      "title": "Client skill timing regression",
+      "status": "done",
+      "command": "unity command script eval --file Tools/verify_skill_hit_frame.cs --project-path 'C:/My project' --format json",
+      "notes": "Play mode in world: 8/8 (early, exact, skipped, ended, duplicate, next cast, death). No packets/save changes from synthetic test."
+    },
+    {
+      "id": "questcheck",
+      "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- questcheck",
+      "covers": "NV 0–3: chào làng, câu đố, kiếm gỗ, bù nhìn, mua và ăn cơm nắm",
+      "result": "16/16 pass (2026-11-11)"
+    },
+    {
+      "id": "progresscheck",
+      "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- progresscheck",
+      "covers": "rơi VP nhiệm vụ, nhặt, nhập học, sách, điểm kỹ năng / tiềm năng, vũ khí trường",
+      "result": "12/12 pass (2026-11-11)"
+    },
+    {
+      "id": "combatcheck",
+      "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- combatcheck",
+      "covers": "đánh quái, exp, chết, hồi sinh",
+      "result": "pass"
+    },
+    {
+      "id": "entercheck",
+      "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- entercheck C:/NSO_OFFLINE/captures/enter_map22.txt 22",
+      "covers": "vào map 22 khớp Java",
+      "result": "khớp từng byte"
+    },
+    {
+      "id": "wiki",
+      "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- wiki",
+      "covers": "dựng db.json của website tra cứu và chạy website không cần Unity",
+      "result": ""
+    }
   ]
 }

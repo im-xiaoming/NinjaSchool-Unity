@@ -44,7 +44,11 @@ namespace NsoServer.Net
 
         public void OnMessage(Message m)
         {
-            lock (Gate) Handle(m);
+            lock (Gate)
+            {
+                PlayerLog.In(session, actions != null ? actions.State : null, m);   // offline debug log of every player action
+                Handle(m);
+            }
         }
 
         private void Handle(Message m)
@@ -63,15 +67,30 @@ namespace NsoServer.Net
                     case Cmd.ZONE_CHANGE: if (actions != null) actions.ChangeZone(m); break;
                     case 41: if (actions != null) PlayerCombat.SelectSkill(m, actions.State, session.Server.World); break; // SKILL_SELECT
                     case 60: if (actions != null) PlayerCombat.AttackMonster(m, actions.State, session.Server.World); break; // PLAYER_ATTACK_NPC
+                    case PlayerItemUse.CmdAutoAttackMove: if (actions != null) PlayerItemUse.MoveForAuto(m, actions.State, session.Server.World); break;
+                    case 61: if (actions != null) Gymnasium.AttackPlayer(m, actions.State, session.Server.World); break;  // PLAYER_ATTACK_PLAYER (NV Thách đấu only)
                     // NPC menus and quests (PlayerTasks)
                     case 40: if (actions != null) PlayerTasks.OpenMenu(m, actions.State, session.Server.World); break;   // OPEN_UI_MENU
                     case 29: if (actions != null) PlayerTasks.Menu(m, actions.State, session.Server.World); break;       // MENU
                     case 47: if (actions != null) PlayerTasks.GetTask(m, actions.State, session.Server.World); break;    // TASK_GET
                     // items and shops (PlayerItems)
-                    case 11: if (actions != null) PlayerItems.UseItem(m, actions.State, session.Server.World); break;        // ITEM_USE
+                    case 11: if (actions != null) PlayerItems.UseItem(m, actions.State, session.Server.World); break;
+                    case 12: if (actions != null) PlayerItemUse.ChangeMap(m, actions.State, session.Server.World); break;   // ITEM_USE_CHANGE_MAP
+                    case 92: if (actions != null) PlayerLuong.Input(m, actions.State); break;   // OPEN_TEXT_BOX_ID: text box answer        // ITEM_USE
                     case 13: if (actions != null) PlayerItems.BuyItem(m, actions.State, session.Server.World); break;        // ITEM_BUY
                     case 15: if (actions != null) PlayerItems.ItemBodyToBag(m, actions.State, session.Server.World); break;  // ITEM_BODY_TO_BAG
                     case 42: if (actions != null) PlayerItems.RequestItemInfo(m, actions.State, session.Server.World); break; // REQUEST_ITEM_INFO
+                    // storage box, selling, throwing (PlayerStorage)
+                    case 14: if (actions != null) PlayerStorage.Sale(m, actions.State, session.Server.World); break;        // ITEM_SALE
+                    case 16: if (actions != null) PlayerStorage.BoxToBag(m, actions.State, session.Server.World); break;    // ITEM_BOX_TO_BAG
+                    case 17: if (actions != null) PlayerStorage.BagToBox(m, actions.State, session.Server.World); break;    // ITEM_BAG_TO_BOX
+                    case -12: if (actions != null) PlayerStorage.Throw(m, actions.State, session.Server.World); break;      // ME_THROW
+                    case 74: if (actions != null) PlayerBuff.Use(m, actions.State, session.Server.World); break;   // USE_SKILL_MY_BUFF
+                    // Kenshinto's forge (PlayerUpgrade)
+                    case 19: if (actions != null) PlayerUpgrade.UpPearl(m, actions.State, session.Server.World, true); break;   // UPPEARL (xu)
+                    case 20: if (actions != null) PlayerUpgrade.UpPearl(m, actions.State, session.Server.World, false); break;  // UPPEARL_LOCK (yen, then xu)
+                    case 21: if (actions != null) PlayerUpgrade.Upgrade(m, actions.State, session.Server.World); break;        // UPGRADE
+                    case 22: if (actions != null) PlayerUpgrade.Split(m, actions.State, session.Server.World); break;          // SPLIT
                     case -14: if (actions != null) PlayerItems.PickItem(m, actions.State, session.Server.World); break;      // ITEMMAP_MYPICK
                     case -23: if (actions != null) DevTerminal.Run(m, actions, session.Server.World); break; // CHAT_MAP: dev terminal (offline)
                     case Cmd.SUB_COMMAND: if (actions != null) OnSubCommand(m); break;
@@ -80,7 +99,7 @@ namespace NsoServer.Net
             }
             catch (Exception ex)
             {
-                session.Server.Log("Client " + session.Id + " message error: " + ex.Message);
+                session.Server.Log("Client " + session.Id + " message error (cmd " + m.Command + "): " + ex);   // full stack trace for debugging
             }
         }
 
@@ -160,6 +179,9 @@ namespace NsoServer.Net
                 case Cmd.UPDATE_ITEM: SendNotMap(sub, session.Server.Static.Item); break;
                 case -115: SendIcon(m); break; // REQUEST_ICON
                 case -108: SendMobTemplate(m); break; // REQUEST_NPCTEMPLATE
+                case -109: SendMapTemplate(m); break; // REQUEST_MAPTEMPLATE
+                case PlayerUpgrade.CmdConvertUpgrade: if (actions != null) PlayerUpgrade.ConvertUpgrade(m, actions.State, session.Server.World); break;   // CONVERT_UPGRADE
+                case PlayerStorage.StackSplitSub: if (actions != null) PlayerStorage.SplitStack(m, actions.State, session.Server.World); break;
                 case Cmd.CLIENT_OK:
                     if (!clientOk) { clientOk = true; SendCharList(); }
                     break;
@@ -223,7 +245,8 @@ namespace NsoServer.Net
                 w.WriteByte(p.Gender);
                 w.WriteUTF(p.Name);
                 w.WriteUTF(ClassName(p.ClassId));
-                w.WriteByte(Level(p.Exp));
+                // Same experience table as PlayerCombat.Init; never show the old phase-1 stub.
+                w.WriteByte(session.Server.World != null ? session.Server.World.GetLevel(p.Exp) : 1);
                 w.WriteShort(p.Head);
                 w.WriteShort(p.Weapon);
                 w.WriteShort(p.Body);
@@ -242,14 +265,25 @@ namespace NsoServer.Net
             return id >= 0 && id < ClassNames.Length ? ClassNames[id] : ClassNames[0];
         }
 
-        // Level derived from exp: replaced by the real exp table in phase 3. Level 1 until then.
-        private static int Level(long exp) { return 1; }
-
         private Message NotMap(sbyte sub)
         {
             var ms = new Message(Cmd.NOT_MAP);
             ms.Writer.WriteSByte(sub);
             return ms;
+        }
+
+        // Service.requestMapTemplate: the client has no res/map file for this map (e.g. the gyms 0/56/73, the tunnel 78)
+        // and waits for the tiles of the player's current map. Without the reply the screen stays black.
+        private void SendMapTemplate(Message m)
+        {
+            if (actions == null || actions.State.Zone == null) return;
+            var grid = session.Server.World.GetGrid(actions.State.Zone.Tile);
+            if (grid == null) return;
+            var ms = NotMap(-109);
+            ms.Writer.WriteByte(grid.Tmw);
+            ms.Writer.WriteByte(grid.Tmh);
+            for (int i = 0; i < grid.Tmw * grid.Tmh; i++) ms.Writer.WriteByte(grid.Maps[i]);
+            session.Send(ms);
         }
 
         private void SendNotMap(sbyte sub, byte[] payload)
@@ -361,6 +395,8 @@ namespace NsoServer.Net
                 case -109: PlayerSkills.UpPotential(m, actions.State, world); break;    // POTENTIAL_UP
                 case -108: PlayerSkills.UpSkill(m, actions.State, world); break;        // SKILL_UP
                 case -107: PlayerItems.BagSort(actions.State, world); break;            // BAG_SORT
+                case -106: PlayerItems.BoxSort(actions.State, world); break;            // BOX_SORT
+                case -67: PlayerSkills.SaveRms(m, actions.State); break;                // SAVE_RMS
                 default: session.Server.Log("Client " + session.Id + ": sub " + sub); break;
             }
         }

@@ -9,8 +9,10 @@ namespace NsoServer.World
     public sealed class CombatRules
     {
         public readonly int DodgeScalePercent, MobAccuracyScalePercent, MaxDodgeChancePercent, MobDamagePercent;
-        public CombatRules(int dodgeScalePercent = 100, int mobAccuracyScalePercent = 100,
-            int maxDodgeChancePercent = 100, int mobDamagePercent = 20)
+        // Offline balance defaults requested by the user: harder monster hits and less player dodge.
+        // The same defaults feed gameplay and the Workbench reset; saved explicit overrides still win.
+        public CombatRules(int dodgeScalePercent = 50, int mobAccuracyScalePercent = 100,
+            int maxDodgeChancePercent = 40, int mobDamagePercent = 150)
         {
             if (dodgeScalePercent < 0 || dodgeScalePercent > 500 || mobAccuracyScalePercent < 0 || mobAccuracyScalePercent > 500 ||
                 maxDodgeChancePercent < 0 || maxDodgeChancePercent > 100 || mobDamagePercent < 0 || mobDamagePercent > 500)

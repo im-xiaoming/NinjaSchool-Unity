@@ -33,6 +33,8 @@ public static class ServerBootstrap
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= Shutdown;
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += Shutdown;
 #endif
+        // tiles for server-made map pictures (treasure maps); the Editor reads the client's Resources files
+        NsoServer.Net.TilePicture.TileRoot = System.IO.Path.Combine(Application.dataPath, "Resources", "res");
         try
         {
             server = new GameServer(new ServerConfig
@@ -45,6 +47,8 @@ public static class ServerBootstrap
             server.Static = new NsoServer.Net.FileStaticData(staticDir);
             var tables = NsoServer.Data.TableFile.Load(System.IO.Path.Combine(staticDir, "tables.txt"));
             server.World = new NsoServer.World.GameWorld(tables, System.IO.Path.Combine(staticDir, "Data"));
+            NsoServerControl.ApplyPlayerLog();
+            NsoServer.Net.PlayerLog.Open(NsoServerControl.PlayerLogFolder);   // offline debug log of the player's actions/state
             server.Start();
             StartWiki(tables, server.World);
         }
@@ -108,5 +112,6 @@ public static class ServerBootstrap
         GameServer stoppingServer = server;
         server = null;
         stoppingServer.Stop();
+        NsoServer.Net.PlayerLog.Close();
     }
 }

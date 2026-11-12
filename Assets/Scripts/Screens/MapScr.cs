@@ -4,8 +4,6 @@ public class MapScr : mScreen, IActionListener
 {
 	private static MapScr instance;
 
-	private bool modeCurrentMap;
-
 	public static Image imgMap = null;
 
 	public static Image imgX;
@@ -102,11 +100,9 @@ public class MapScr : mScreen, IActionListener
 
 	private int maxPY;
 
-	private int xM;
-
-	private int yM;
-
 	private bool trans;
+
+	private UnityEngine.Vector2 controllerCursorRemainder;
 
 	private int lastX;
 
@@ -117,49 +113,21 @@ public class MapScr : mScreen, IActionListener
 	public MapScr()
 	{
 		right = new Command(mResources.CLOSE, this, 1000, null);
-		center = new Command(mResources.CHANGE, this, 1001, null);
-		left = new Command(string.Empty, this, 14004, null);
+		// Offline deviation from MapScr: world map only, per user request.
+		center = null;
+		// Offline UI deviation: no Go To button on the world map, per user request.
+		left = null;
 	}
 
 	protected void resetCMLim()
 	{
-		int imageWidth = mGraphics.getImageWidth(TileMap.imgMiniMap);
-		xM = (GameCanvas.w - imageWidth) / 2;
-		yM = (GameCanvas.h - 20 - mGraphics.getImageHeight(TileMap.imgMiniMap)) / 2;
-		if (xM < 0)
-		{
-			xM = 0;
-		}
-		if (yM < 0)
-		{
-			yM = 0;
-		}
-		if (modeCurrentMap)
-		{
-			mcmxLim = imageWidth + 20 - GameCanvas.w;
-			mcmyLim = mGraphics.getImageHeight(TileMap.imgMiniMap) + 40 - GameCanvas.h;
-			maxPX = imageWidth + 20;
-			maxPY = imageWidth + 40;
-			if (maxPY < GameCanvas.h - 26)
-			{
-				maxPY = GameCanvas.h - 26;
-			}
-			if (maxPX < GameCanvas.w)
-			{
-				maxPX = GameCanvas.w;
-			}
-			mfx = xM + Char.getMyChar().cx / 12;
-			mfy = yM + Char.getMyChar().cy / 12;
-		}
-		else
-		{
-			mcmxLim = 340 - GameCanvas.w;
-			mcmyLim = 340 - GameCanvas.h;
-			mfx = x[TileMap.mapID] + dx;
-			mfy = y[TileMap.mapID] + dy;
-			maxPX = 330 + dx;
-			maxPY = 310 + dy;
-		}
+		mcmxLim = 340 - GameCanvas.w;
+		mcmyLim = 340 - GameCanvas.h;
+		mfx = x[TileMap.mapID] + dx;
+		mfy = y[TileMap.mapID] + dy;
+		maxPX = 330 + dx;
+		maxPY = 310 + dy;
+
 		maxPX -= 10;
 		maxPY -= 10;
 		if (mcmxLim < 0)
@@ -189,9 +157,10 @@ public class MapScr : mScreen, IActionListener
 	{
 		base.switchToMe();
 		right = new Command(mResources.CLOSE, this, 1000, null);
-		center = new Command(mResources.CHANGE, this, 1001, null);
+		// Offline deviation from MapScr: world map only, per user request.
+		center = null;
 
-		left = new Command(mResources.GOTO, this, 14004, null);
+		left = null;
 		if (imgMap == null)
 		{
 			imgMap = GameCanvas.loadImage("/wm");
@@ -211,6 +180,9 @@ public class MapScr : mScreen, IActionListener
 		resetCMLim();
 		findMapNearestPoint();
 		TileMap.oldMapID = TileMap.mapID;
+		trans = false;
+		controllerCursorRemainder = UnityEngine.Vector2.zero;
+		LayoutCommands();
 	}
 
 	public override void unLoad()
@@ -220,164 +192,80 @@ public class MapScr : mScreen, IActionListener
 
 	public override void paint(mGraphics g)
 	{
+		LayoutCommands();
 		bool flag = false;
 		g.setColor(0);
 		g.fillRect(0, 0, GameCanvas.w, GameCanvas.h);
 		g.translate(10, 10);
 		g.translate(-mcmx, -mcmy);
-		if (modeCurrentMap)
+		if (GameCanvas.w > mapW && GameCanvas.h > mapH)
 		{
-			g.drawImage(TileMap.imgMiniMap, xM, yM, 0);
-			int num;
-			int num2;
-			for (int i = 0; i < GameScr.vMob.size(); i++)
-			{
-				Mob mob = (Mob)GameScr.vMob.elementAt(i);
-				num = mob.x / 12;
-				num2 = mob.y / 12;
-				if (mob.level < Char.getMyChar().clevel - 2)
-				{
-					g.setColor(11184810);
-				}
-				else if (mob.level > Char.getMyChar().clevel + 2)
-				{
-					g.setColor(16711680);
-				}
-				else
-				{
-					g.setColor(16776960);
-				}
-				g.fillRect(xM + num - 1, yM + num2 - 1, 3, 3);
-			}
-			for (int j = 0; j < GameScr.vParty.size(); j++)
-			{
-				Party party = (Party)GameScr.vParty.elementAt(j);
-				if (party.c != null && party.c != Char.getMyChar())
-				{
-					num = party.c.cx / 12;
-					num2 = party.c.cy / 12;
-					if (GameCanvas.gameTick % 10 < 8)
-					{
-						g.setColor(16777215);
-						g.fillRect(xM + num - 2, yM + num2 - 2, 5, 5);
-						g.setColor(65280);
-						g.fillRect(xM + num - 1, yM + num2 - 1, 3, 3);
-					}
-				}
-			}
-			int num3 = GameScr.gI().getTaskNpcId();
-			for (int k = 0; k < GameScr.vNpc.size(); k++)
-			{
-				Npc npc = (Npc)GameScr.vNpc.elementAt(k);
-				num = npc.cx / 12;
-				num2 = npc.cy / 12;
-				g.setColor(16777215);
-				g.fillRect(xM + num - 2, yM + num2 - 2, 5, 5);
-				g.setColor(65280);
-				g.fillRect(xM + num - 1, yM + num2 - 1, 3, 3);
-				g.drawImage(imgX, xM + num, yM + num2, mGraphics.VCENTER | mGraphics.HCENTER);
-				flag = true;
-			}
-			for (sbyte b = 0; b < TileMap.vGo.size(); b = (sbyte)(b + 1))
-			{
-				Waypoint waypoint = (Waypoint)TileMap.vGo.elementAt(b);
-				num = (waypoint.minX + waypoint.maxX) / 2 / 12;
-				num2 = (waypoint.minY + waypoint.maxY) / 2 / 12;
-				if (GameCanvas.gameTick % 10 < 8)
-				{
-					g.setColor(0);
-					g.fillRect(xM + num - 2, yM + num2 - 2, 5, 5);
-					g.setColor(16777215);
-					g.fillRect(xM + num - 1, yM + num2 - 1, 3, 3);
-				}
-			}
-			num = Char.getMyChar().cx / 12;
-			num2 = Char.getMyChar().cy / 12;
-			g.setColor(16777215);
-			g.fillRect(xM + num - 2, yM + num2 - 2, 5, 5);
-			if (GameCanvas.gameTick % 10 > 5)
-			{
-				g.setColor(255);
-				g.fillRect(xM + num - 1, yM + num2 - 1, 3, 3);
-			}
-			g.drawImage(imgPointer, mfx - 2, mfy, 0);
-			base.paint(g);
-			if (!flag)
-			{
-				mFont.tahoma_7_white.drawString(g, TileMap.mapName, 10, GameCanvas.h - 17, 0);
-			}
+			g.drawImage(imgMap, GameCanvas.hw, GameCanvas.hh, StaticObj.VCENTER_HCENTER);
+		}
+		else if (GameCanvas.w > mapW)
+		{
+			g.drawImage(imgMap, GameCanvas.hw, 0, StaticObj.TOP_CENTER);
+		}
+		else if (GameCanvas.h > mapH)
+		{
+			g.drawImage(imgMap, 0, GameCanvas.hh, StaticObj.VCENTER_LEFT);
 		}
 		else
 		{
-			if (GameCanvas.w > mapW && GameCanvas.h > mapH)
-			{
-				g.drawImage(imgMap, GameCanvas.hw, GameCanvas.hh, StaticObj.VCENTER_HCENTER);
-			}
-			else if (GameCanvas.w > mapW)
-			{
-				g.drawImage(imgMap, GameCanvas.hw, 0, StaticObj.TOP_CENTER);
-			}
-			else if (GameCanvas.h > mapH)
-			{
-				g.drawImage(imgMap, 0, GameCanvas.hh, StaticObj.VCENTER_LEFT);
-			}
-			else
-			{
-				g.drawImage(imgMap, 0, 0, 0);
-			}
-			if (TileMap.mapID < TileMap.mapNames.Length && TileMap.mapID >= 0)
-			{
-				int align = 0;
-				if (x[TileMap.mapID] != 1 || y[TileMap.mapID] != 1)
-				{
-					align = ((x[TileMap.mapID] >= 100) ? ((x[TileMap.mapID] > 200) ? 1 : 2) : 0);
-					GameCanvas.paintShukiren(x[TileMap.mapID] + dx, y[TileMap.mapID] + dy, g, false);
-				}
-				int num4 = 0;
-				int num5 = 0;
-				if (taskmapId >= 0)
-				{
-					align = ((x[taskmapId] >= 100) ? ((x[taskmapId] > 200) ? 1 : 2) : 0);
-					mFont.tahoma_7_white.drawString(g, TileMap.mapNames[taskmapId], x[taskmapId] + dx, y[taskmapId] + dy - 20, align, mFont.tahoma_7_grey);
-					g.drawImage(imgX, x[taskmapId] + dx, y[taskmapId] + dy, 3);
-					flag = true;
-					num4 = x[taskmapId];
-					num5 = y[taskmapId] - 20;
-				}
-				else if (x[TileMap.mapID] != 1 || y[TileMap.mapID] != 1)
-				{
-					num4 = x[TileMap.mapID];
-					num5 = y[TileMap.mapID] - 20;
-					mFont.tahoma_7_yellow.drawString(g, TileMap.mapNames[TileMap.mapID], x[TileMap.mapID] + dx, y[TileMap.mapID] + dy - 20, align, mFont.tahoma_7_grey);
-				}
-				for (int l = 0; l < Char.getMyChar().taskOrders.size(); l++)
-				{
-					TaskOrder taskOrder = (TaskOrder)Char.getMyChar().taskOrders.elementAt(l);
-					if (taskOrder.mapId >= 0 && taskOrder.mapId < x.Length)
-					{
-						g.drawImage(imgX, x[taskOrder.mapId] + dx, y[taskOrder.mapId] + dy, 3);
-					}
-				}
-				if (mpoint >= 0 && ((taskmapId < 0 && TileMap.mapID != mpoint) || (taskmapId >= 0 && mpoint != taskmapId)))
-				{
-					align = ((x[mpoint] >= 100) ? ((x[mpoint] > 200) ? 1 : 2) : 0);
-					int num6 = x[mpoint];
-					int num7 = y[mpoint] - 20;
-					if (num7 > num5 && num7 - num5 < 30)
-					{
-						num7 += 40;
-					}
-					if (num7 < num5 && num5 - num7 < 20)
-					{
-						num7 -= 5;
-					}
-					mFont.tahoma_7_yellow.drawString(g, TileMap.mapNames[mpoint], num6 + dx, num7 + dy, align, mFont.tahoma_7_grey);
-				}
-			}
-			g.drawImage(imgPointer, mfx - 2, mfy, 0);
-			g.translate(-g.getTranslateX(), -g.getTranslateY());
-			base.paint(g);
+			g.drawImage(imgMap, 0, 0, 0);
 		}
+		if (TileMap.mapID < TileMap.mapNames.Length && TileMap.mapID >= 0)
+		{
+			int align = 0;
+			if (x[TileMap.mapID] != 1 || y[TileMap.mapID] != 1)
+			{
+				align = ((x[TileMap.mapID] >= 100) ? ((x[TileMap.mapID] > 200) ? 1 : 2) : 0);
+				GameCanvas.paintShukiren(x[TileMap.mapID] + dx, y[TileMap.mapID] + dy, g, false);
+			}
+			int num4 = 0;
+			int num5 = 0;
+			if (taskmapId >= 0)
+			{
+				align = ((x[taskmapId] >= 100) ? ((x[taskmapId] > 200) ? 1 : 2) : 0);
+				mFont.tahoma_7_white.drawString(g, TileMap.mapNames[taskmapId], x[taskmapId] + dx, y[taskmapId] + dy - 20, align, mFont.tahoma_7_grey);
+				g.drawImage(imgX, x[taskmapId] + dx, y[taskmapId] + dy, 3);
+				flag = true;
+				num4 = x[taskmapId];
+				num5 = y[taskmapId] - 20;
+			}
+			else if (x[TileMap.mapID] != 1 || y[TileMap.mapID] != 1)
+			{
+				num4 = x[TileMap.mapID];
+				num5 = y[TileMap.mapID] - 20;
+				mFont.tahoma_7_yellow.drawString(g, TileMap.mapNames[TileMap.mapID], x[TileMap.mapID] + dx, y[TileMap.mapID] + dy - 20, align, mFont.tahoma_7_grey);
+			}
+			for (int l = 0; l < Char.getMyChar().taskOrders.size(); l++)
+			{
+				TaskOrder taskOrder = (TaskOrder)Char.getMyChar().taskOrders.elementAt(l);
+				if (taskOrder.mapId >= 0 && taskOrder.mapId < x.Length)
+				{
+					g.drawImage(imgX, x[taskOrder.mapId] + dx, y[taskOrder.mapId] + dy, 3);
+				}
+			}
+			if (mpoint >= 0 && ((taskmapId < 0 && TileMap.mapID != mpoint) || (taskmapId >= 0 && mpoint != taskmapId)))
+			{
+				align = ((x[mpoint] >= 100) ? ((x[mpoint] > 200) ? 1 : 2) : 0);
+				int num6 = x[mpoint];
+				int num7 = y[mpoint] - 20;
+				if (num7 > num5 && num7 - num5 < 30)
+				{
+					num7 += 40;
+				}
+				if (num7 < num5 && num5 - num7 < 20)
+				{
+					num7 -= 5;
+				}
+				mFont.tahoma_7_yellow.drawString(g, TileMap.mapNames[mpoint], num6 + dx, num7 + dy, align, mFont.tahoma_7_grey);
+			}
+		}
+		g.drawImage(imgPointer, mfx - 2, mfy, 0);
+		g.translate(-g.getTranslateX(), -g.getTranslateY());
+		base.paint(g);
 		if (flag)
 		{
 			g.drawImage(imgX, 10, GameCanvas.h - 12, mGraphics.VCENTER | mGraphics.HCENTER);
@@ -387,7 +275,9 @@ public class MapScr : mScreen, IActionListener
 
 	public override void updateKey()
 	{
+		LayoutCommands();
 		base.updateKey();
+		if (GameCanvas.currentScreen != this) return;
 		tick3++;
 		if (tick3 > 10000)
 		{
@@ -464,7 +354,7 @@ public class MapScr : mScreen, IActionListener
 			findMapNearestPoint();
 		}
 		taskmapId = GameScr.gI().getTaskMapId();
-		if (GameCanvas.isPointerClick && GameCanvas.py < GameCanvas.h - mScreen.cmdH)
+		if (GameCanvas.isPointerClick && GameCanvas.py < Paint.CmdY - 3)
 		{
 			GameCanvas.isPointerClick = false;
 			trans = true;
@@ -496,11 +386,11 @@ public class MapScr : mScreen, IActionListener
 			lastX = GameCanvas.px;
 			lastY = GameCanvas.py;
 		}
-		if (GameCanvas.isPointerJustRelease)
+		if (GameCanvas.isPointerJustRelease && trans)
 		{
 			int num = GameCanvas.pxLast - GameCanvas.px;
 			int num2 = GameCanvas.pyLast - GameCanvas.py;
-			if (num < 10 && num2 < 10)
+			if (Res.abs(num) < 10 && Res.abs(num2) < 10 && GameCanvas.py < Paint.CmdY - 3)
 			{
 				mfx = mcmx + GameCanvas.pxLast - 8;
 				mfy = mcmy + GameCanvas.pyLast - 8;
@@ -509,16 +399,37 @@ public class MapScr : mScreen, IActionListener
 			trans = false;
 			GameCanvas.isPointerJustRelease = false;
 		}
-		if (GameCanvas.isTouch && GameCanvas.w >= 320)
-		{
-			left.x = GameCanvas.w / 2 - 160;
-			center.x = GameCanvas.w / 2 - 35;
-			right.x = GameCanvas.w / 2 + 88;
-			left.y = (center.y = (right.y = Paint.CmdY));
-		}
+
 	}
 
-	private static void findMapNearestPoint()
+	// Offline fix to MapScr.updateKey: command images and hitboxes share one layout,
+	// before input as well as paint; map dragging never owns the bottom command row.
+	private void LayoutCommands()
+	{
+		int buttonW = Paint.CmdButtonW, buttonH = Paint.CmdButtonH;
+		right.x = GameCanvas.isTouch && GameCanvas.w >= 320 ? GameCanvas.w / 2 + 160 - buttonW : Paint.CmdRightX;
+		right.y = Paint.CmdY;
+		right.w = buttonW;
+		right.h = buttonH;
+	}
+
+	// Offline controller extension of MapScr.updateKey: retain fractional movement between
+	// render frames and reuse the existing cursor/camera/selection. Moving is never a travel action.
+	public void MoveControllerCursor(UnityEngine.Vector2 delta)
+	{
+		controllerCursorRemainder += new UnityEngine.Vector2(delta.x, -delta.y);
+		int moveX = (int)controllerCursorRemainder.x;
+		int moveY = (int)controllerCursorRemainder.y;
+		controllerCursorRemainder -= new UnityEngine.Vector2(moveX, moveY);
+		if (moveX == 0 && moveY == 0) return;
+		mfx = UnityEngine.Mathf.Clamp(mfx + moveX, dx - 10, maxPX);
+		mfy = UnityEngine.Mathf.Clamp(mfy + moveY, dy - 10, maxPY);
+		mcmtoX = mfx - GameCanvas.hw;
+		mcmtoY = mfy - GameCanvas.hh;
+		findMapNearestPoint(false);
+	}
+
+	private static void findMapNearestPoint(bool allowAdminMove = true)
 	{
 		lastpoint = mpoint;
 		mpoint = -1;
@@ -527,7 +438,7 @@ public class MapScr : mScreen, IActionListener
 			if (Res.abs(mfx - (x[i] + dx)) < 10 && Res.abs(mfy - (y[i] + dy)) < 10)
 			{
 				mpoint = i;
-				if (lastpoint != -1 && lastpoint == mpoint)
+				if (allowAdminMove && lastpoint != -1 && lastpoint == mpoint)
 				{
 					Service.gI().adminMove(mpoint);
 					lastpoint = -1;
@@ -549,10 +460,6 @@ public class MapScr : mScreen, IActionListener
 				Char.getMyChar().cHP = 0;
 			}
 			GameScr.gI().switchToMe();
-			break;
-		case 1001:
-			modeCurrentMap = !modeCurrentMap;
-			resetCMLim();
 			break;
 		case 14004:
 				Handle.GoMap(mpoint);

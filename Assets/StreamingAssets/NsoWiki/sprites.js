@@ -14,6 +14,12 @@ function wikiSpriteName(collection, id, label) {
   return `<span class="sprite-name">${wikiSprite(collection,id,label)}<span>${esc(label)}</span></span>`;
 }
 
+// All original zoom variants, independent of the highest-zoom web thumbnail.
+function wikiItemSpriteFiles(item) {
+  const files = item.spriteFiles || [];
+  return `<section class="help-box"><b>Đường dẫn sprite · đầy đủ các bản zoom</b><p>Game tải ảnh theo mức zoom đang chạy. Ảnh xem trước trên web ưu tiên bản zoom lớn nhất. Sau khi thay ảnh cần làm mới cache icon trong game.</p>${files.length ? files.map(file => `<div class="sprite-file"><div><b>Zoom ${esc(file.zoom)}</b> · ${file.exists ? file.width > 0 && file.height > 0 ? `${esc(file.width)} × ${esc(file.height)} px` : "Có file · chưa đọc được kích thước" : "Chưa có file"}</div><code>${esc(file.fullPath || file.path)}</code><button class="button" data-copy="spriteFile" data-sprite-zoom="${esc(file.zoom)}">Sao chép full path</button></div>`).join("") : '<p>Chưa có dữ liệu đường dẫn. Nhấn Làm mới để tải lại.</p>'}</section>`;
+}
+
 // Capture image errors without inline handlers (the wiki CSP allows external scripts only).
 document.addEventListener("error", event => {
   const img = event.target;

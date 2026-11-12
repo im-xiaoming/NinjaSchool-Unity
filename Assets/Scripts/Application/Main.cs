@@ -39,6 +39,9 @@ public class Main : MonoBehaviour
 
     private int updateCount;
 
+    /// <summary>Offline: counts logic ticks (FixedUpdate), so paint code can tell a new tick from a repaint.</summary>
+    public static int LogicTick;
+
     private int paintCount;
 
     private Vector2 lastMousePos = default(Vector2);
@@ -219,6 +222,7 @@ public class Main : MonoBehaviour
         Image.update();
         DataInputStream.update();
         updateCount++;
+        LogicTick++;
         Sound.update();
         Handle.Fixed();
     }

@@ -63,13 +63,19 @@ public class Skill
 
 	public void paint(int x, int y, mGraphics g)
 	{
+		paint(x, y, g, true);
+	}
+
+	/// <summary>Offline addition: showCountdown = false hides the red cooldown seconds (screen skill bar, user request).</summary>
+	public void paint(int x, int y, mGraphics g, bool showCountdown)
+	{
 		SmallImage.drawSmallImage(g, template.iconId, x, y, 0, StaticObj.VCENTER_HCENTER);
 		long num = mSystem.getCurrentTimeMillis() - lastTimeUseThisSkill;
        
         if (num < coolDown)
 		{
 			g.setColor(0, 0.5f);
-			if (paintCanNotUseSkill)
+			if (paintCanNotUseSkill && showCountdown)
 			{
                 long num2n = (coolDown - mSystem.getCurrentTimeMillis()) + lastTimeUseThisSkill;
               

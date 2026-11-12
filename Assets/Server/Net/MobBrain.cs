@@ -13,6 +13,7 @@ namespace NsoServer.Net
     public static class MobBrain
     {
         private static readonly System.Random Rng = new System.Random();
+        private static readonly List<Escort.State> Bots = new List<Escort.State>();   // reused: escorted bots of the zone
 
         // monsters that never act on their own (Mob.update excludes them from noticing players)
         private static bool NeverNotices(int id)
@@ -41,6 +42,7 @@ namespace NsoServer.Net
         public static void UpdateZone(Zone zone, long now)
         {
             if (zone.Players.Count == 0 || zone.Mobs.Count == 0) return;
+            Escort.BotsIn(zone, Bots);   // Zone.getChars also holds bots (the escorted Jaian)
             foreach (var mob in zone.Mobs) Update(zone, mob, now);
         }
 
@@ -66,6 +68,16 @@ namespace NsoServer.Net
                             AddChar(mob, p.Record.Id);
                         }
                     }
+                    // the same notice rule for bots (Jaian, Escort.cs)
+                    foreach (var b in Bots)
+                    {
+                        if (tpl.Type == 4)
+                        {
+                            int range = tpl.RangeMove + 50 + add;
+                            if (DistanceSquared(mob.X, mob.Y, b.X, b.Y) < (long)range * range) AddChar(mob, b.Id);
+                        }
+                        else if (mob.Y == b.Y && System.Math.Abs(mob.X - b.X) < tpl.RangeMove + 20 + add) AddChar(mob, b.Id);
+                    }
                 }
                 if (!mob.IsIce && !mob.IsWind && !mob.IsDisable && !NeverAttacks(tpl.Id) && mob.Chars.Count > 0)
                 {
@@ -87,6 +99,7 @@ namespace NsoServer.Net
         private static void Attack(Zone zone, Mob mob)
         {
             PlayerState candidate = null;
+            Escort.State botCandidate = null;
             int candidateCount = 0;
             long maxDistance = mob.IsBoss ? 601L : 301L; // original code compares the floored pixel distance
             long maxDistanceSquared = maxDistance * maxDistance;
@@ -95,14 +108,32 @@ namespace NsoServer.Net
                 int id = mob.Chars[i];
                 foreach (PlayerState p in zone.Players)
                 {
-                    if (p.Record.Id != id || p.IsInvisible) continue;
+                    if (p.Record.Id != id || PlayerBuff.IsHidden(p)) continue;   // isInvisible || isHide
                     if (DistanceSquared(mob.X, mob.Y, p.X, p.Y) >= maxDistanceSquared) continue;
                     candidateCount++;
                     // Reservoir sampling keeps the same uniform target choice without a per-attack list/array allocation.
-                    if (Rng.Next(candidateCount) == 0) candidate = p;
+                    if (Rng.Next(candidateCount) == 0) { candidate = p; botCandidate = null; }
+                }
+                var b = id < 0 ? Escort.FindBot(zone, id) : null;   // a bot (Jaian) is a char too
+                if (b != null && DistanceSquared(mob.X, mob.Y, b.X, b.Y) < maxDistanceSquared)
+                {
+                    candidateCount++;
+                    if (Rng.Next(candidateCount) == 0) { botCandidate = b; candidate = null; }
                 }
             }
-            if (candidate != null) Hit(zone, mob, candidate);
+            if (botCandidate != null) HitBot(zone, mob, botCandidate);
+            else if (candidate != null) Hit(zone, mob, candidate);
+        }
+
+        // Mob.attack(Char pl, Char owner) on a bot: a bot has no defence options, dodge from Bot.setDefault (miss 0)
+        private static void HitBot(Zone zone, Mob mob, Escort.State b)
+        {
+            int dameHp = GameBalanceRules.Stat(NextInt(mob.DamageOnPlayer2, mob.DamageOnPlayer));
+            var rules = b.Player.Session.Server.World.CombatRules;
+            if (Rng.NextDouble() < rules.DodgeChance(mob.Level, 0)) dameHp = -1;
+            else if (dameHp <= 0) dameHp = 1;
+            if (dameHp > 0) dameHp = rules.ActualDamage(dameHp);   // same scaling as a hit on a player (Hit)
+            Escort.Hit(zone, mob.Id, b, dameHp);
         }
 
         // Mob.attack(Char pl, Char owner) for ordinary maps
@@ -120,11 +151,29 @@ namespace NsoServer.Net
             int dameHp = GameBalanceRules.Stat(reducedDamage);
             var rules = pl.Session.Server.World.CombatRules;
             bool isMiss = Rng.NextDouble() < rules.DodgeChance(mob.Level, pl.Miss);
+            if (PlayerBuff.Find(pl, PlayerBuff.TypeDodge) != null) isMiss = true;   // pl.isMiss
             if (isMiss) dameHp = -1;
             else if (dameHp <= 0) dameHp = 1;
             int dameMp = 0;
+            var shield = dameHp > 0 ? PlayerBuff.Find(pl, PlayerBuff.TypeManaShield) : null;   // pl.isShieldMana
+            if (shield != null && pl.MaxMp > 0 && (long)pl.Mp * 100 / pl.MaxMp >= 10)
+            {
+                dameMp = System.Math.Min(pl.Mp, dameHp * shield.Param / 100);
+                dameHp -= dameMp;
+                pl.Mp -= dameMp;
+            }
 
-            // what the client shows: the hit on the player, then the hit seen by everyone in the zone
+            // Offline correction to Mob.attack(Char, Char): scale once BEFORE sending the hit.
+            // Sending raw damage but deducting only a fraction on the server made later HP syncs
+            // look like free healing. Preserve MISS and a fully absorbed hit (zero damage).
+            if (dameHp > 0) dameHp = rules.ActualDamage(dameHp);
+            if (dameHp > 0)
+            {
+                TaskMechanics.OnHit(pl);
+                pl.Hp = System.Math.Max(0, pl.Hp - dameHp);
+            }
+
+            // The victim receives the damage packet; observers receive post-hit HP/MP.
             var me = new Message(Cmd.NPC_ATTACK_ME);
             me.Writer.WriteByte(mob.Id);
             me.Writer.WriteInt(dameHp);
@@ -135,6 +184,7 @@ namespace NsoServer.Net
             pl.Session.Send(me);
             foreach (PlayerState p in zone.Players)
             {
+                if (p == pl) continue; // do not replay the same attack through the observer path
                 var all = new Message(Cmd.NPC_ATTACK_PLAYER);
                 all.Writer.WriteByte(mob.Id);
                 all.Writer.WriteInt(pl.Record.Id);
@@ -145,13 +195,7 @@ namespace NsoServer.Net
                 all.Writer.WriteByte(0);
                 p.Session.Send(all);
             }
-            // Preserve display protocol; scale the HP damage after resistances.
-            dameHp = rules.ActualDamage(dameHp);
-            if (dameHp > 0)
-            {
-                pl.Hp -= dameHp;
-                if (pl.Hp <= 0) pl.Actions.StartDie();
-            }
+            if (pl.Hp <= 0) pl.Actions.StartDie();
         }
     }
 }

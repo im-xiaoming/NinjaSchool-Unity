@@ -6,7 +6,7 @@ namespace NsoServer.Net
     // Offline deviation: CHAT_MAP (-23) is not public chat here. The client's chat box is a dev terminal and
     // every line is a command run against the local player. Replies use SERVER_MESSAGE (-24) prefixed with
     // ReplyMarker, so the client puts them in the terminal window instead of the yellow InfoMe lines.
-    // Commands: /help, /skip, /lv, /tolv n (/clear is client-side). Add cases to Run.
+    // Commands: /help, /goto, /next, /skip, /lv, /tolv n (/clear is client-side). Add cases to Run.
     using Math = System.Math;
 
     public static class DevTerminal
@@ -31,7 +31,9 @@ namespace NsoServer.Net
             if (cmd.StartsWith("tolv") && cmd.Length > 4) { cmdFull = cmd; cmd = "tolv"; }
             switch (cmd)
             {
-                case "help": Say(me, "/help - danh sách lệnh"); Say(me, "/clear - xoá màn hình terminal"); Say(me, "/skip - hoàn thành nhiệm vụ hiện tại"); Say(me, "/lv - lên 1 cấp"); Say(me, "/tolv n - lên tới cấp n (0.." + MaxTargetLevel + ")"); Say(me, "Gõ không có / là chat công cộng."); break;
+                case "help": Say(me, "/help - danh sách lệnh"); Say(me, "/clear - xoá màn hình terminal"); Say(me, "/goto - tới đầu map làm nhiệm vụ chính hiện tại"); Say(me, "/next - sang bước tiếp theo của nhiệm vụ đang nhận"); Say(me, "/skip - hoàn thành nhiệm vụ hiện tại"); Say(me, "/lv - lên 1 cấp"); Say(me, "/tolv n - lên tới cấp n (0.." + MaxTargetLevel + ")"); Say(me, "Gõ không có / là chat công cộng."); break;
+                case "next": Say(me, PlayerTasks.NextTaskStep(me, world)); break;
+                case "goto": Say(me, QuestTravel.GoToObjective(me, world)); break;
                 case "skip": Say(me, PlayerTasks.SkipTask(me, world)); break;
                 case "lv": Say(me, LevelTo(me, world, me.Level + 1)); break;
                 case "tolv":

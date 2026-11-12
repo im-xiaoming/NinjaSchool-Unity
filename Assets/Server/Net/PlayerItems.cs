@@ -107,16 +107,16 @@ namespace NsoServer.Net
         }
 
         // Char.addYen / addCoin
-        public static void AddYen(PlayerState me, long add)
+        public static void AddYen(PlayerState me, long add, bool notify = true)
         {
             me.Progress.Yen = Math.Max(0, Math.Min(MaxYen, me.Progress.Yen + add));
-            PlayerService.AddYen(me, (int)add);
+            if (notify) PlayerService.AddYen(me, (int)add);
             Save(me);
         }
 
         public static void AddXu(PlayerState me, long add)
         {
-            me.Progress.Xu = Math.Max(0, Math.Min(MaxYen, me.Progress.Xu + add));
+            me.Progress.Xu = Math.Max(0, Math.Min(me.Progress.XuMax, me.Progress.Xu + add));   // Char.addCoin: up to coinMax
             PlayerService.AddXu(me, (int)add);
             Save(me);
         }
@@ -156,6 +156,10 @@ namespace NsoServer.Net
             if ((t.Gender == 0 || t.Gender == 1) && t.Gender != me.Record.Gender) return;
             if (PlayerService.IsWearable(t)) { UseEquipment(me, world, item, t); return; }
             if (IsMartialArtBook(item.Id)) { PlayerSkills.LearnSkill(me, world, item); return; }
+            if (TaskMechanics.UseTaskItem(me, world, indexUI, item)) return;
+            if (TaskOrders.UseItem(me, indexUI, item)) return;
+            if (PlayerItemUse.Use(me, world, indexUI, item)) return;
+            if (PlayerLuong.UseItem(me, world, indexUI, item)) return;
             if (t.Type == TypeHp)
             {
                 if (me.Hp >= me.MaxHp) { PlayerService.ServerMessage(me, "HP đã đầy."); return; }
@@ -192,7 +196,7 @@ namespace NsoServer.Net
                     case 567: time = 86400000; param = 300; template = 35; break;
                 }
                 PlayerEffects.SetEffect(me, world, template, time, param);   // food: HP and MP every half second
-                RemoveItem(me, indexUI, t.IsUpToUp ? 1 : item.Quantity, true);
+                RemoveItem(me, indexUI, 1, true); // one serving, including manually grouped food
                 PlayerTasks.OnEat(me, world);
             }
         }
@@ -282,13 +286,29 @@ namespace NsoServer.Net
         public const sbyte BagSortSub = -107; // CMD.BAG_SORT
         public static void BagSort(PlayerState me, GameWorld world)
         {
-            var bag = me.Inventory.Bag;
+            SortContainer(me.Inventory.Bag, world);
+            Save(me);
+            me.Session.Send(PlayerService.Sub(BagSortSub));
+        }
+
+        // Char.boxSort: the original client sends -106, previously unhandled offline.
+        public static void BoxSort(PlayerState me, GameWorld world)
+        {
+            if (!me.BoxOpen) return;
+            SortContainer(me.Inventory.Box, world);
+            Save(me);
+            me.Session.Send(PlayerService.Sub(-106));
+        }
+
+        // Char.bagSort/boxSort merging retained; only explicit sorting groups by type and template.
+        private static void SortContainer(PlayerItem[] bag, GameWorld world)
+        {
             var items = new List<PlayerItem>();
             foreach (var it in bag)
             {
                 if (it == null) continue;
                 var t = world.FindItem(it.Id);
-                if (t != null && t.IsUpToUp && !(it.Expire > 0)) items.Add(it);
+                if (t != null && InventoryGrouping.CanStack(t.Type, t.IsUpToUp) && !(it.Expire > 0)) items.Add(it);
             }
             for (int i = 0; i < items.Count; i++)
             {
@@ -297,7 +317,7 @@ namespace NsoServer.Net
                 for (int j = i + 1; j < items.Count; j++)
                 {
                     var b = items[j];
-                    if (b != null && b.Id == a.Id && b.IsLock == a.IsLock)
+                    if (b != null && b.Id == a.Id && b.IsLock == a.IsLock && (long)a.Quantity + b.Quantity <= InventoryGrouping.MaxStackQuantity)
                     {
                         a.Quantity += b.Quantity;
                         bag[b.Index] = null;
@@ -319,14 +339,38 @@ namespace NsoServer.Net
                     }
                 }
             }
-            Save(me);
-            me.Session.Send(PlayerService.Sub(BagSortSub));
+            InventoryGrouping.Group(bag, item => world.FindItem(item.Id).Type, item => item.Id, item => item.IsLock);
+            for (int i = 0; i < bag.Length; i++) if (bag[i] != null) bag[i].Index = i;
+        }
+
+        public static bool RestrictSchoolStores = true;
+
+        // Offline school-shop rule requested by the user, shared by Char.requestItem,
+        // requestItemInfo and Store.buy so visible indices always refer to the same filtered list.
+        // Filter by the school's element, not by the visiting character's class. Neutral supplies remain common.
+        private static List<StoreItem> SchoolStore(PlayerState me, GameWorld world, int type)
+        {
+            var store = world.Store(type);
+            int element = me.MapId == 1 ? 1 : me.MapId == 72 ? 2 : me.MapId == 27 ? 3 : 0;
+            if (!RestrictSchoolStores || element == 0 || store == null) return store;
+            var visible = new List<StoreItem>();
+            foreach (var item in store)
+            {
+                int itemElement = item.Sys;
+                if (itemElement == 0)
+                {
+                    int cls = PlayerSkills.BookClass(world, item.ItemId);
+                    if (cls >= 1 && cls <= 6) itemElement = (cls + 1) / 2;
+                }
+                if (itemElement == 0 || itemElement == element) visible.Add(item);
+            }
+            return visible;
         }
 
         public static void RequestShop(Message m, PlayerState me, GameWorld world)
         {
             int type = m.Reader.ReadSByte();
-            var store = world.Store(type);
+            var store = SchoolStore(me, world, type);
             if (store != null) PlayerService.OpenUiShop(me, type, store);
         }
 
@@ -343,7 +387,7 @@ namespace NsoServer.Net
             int quantity = m.Reader.Remaining >= 2 ? (ushort)m.Reader.ReadShort() : 1;
             quantity = Math.Min(quantity, 30000);
             if (quantity < 1) { PlayerService.ServerDialog(me, "Số lượng không hợp lệ!"); return; }
-            var store = world.Store(typeUI);
+            var store = SchoolStore(me, world, typeUI);
             if (store == null || indexUI < 0 || indexUI >= store.Count) return;
             var s = store[indexUI];
             var t = world.FindItem(s.ItemId);
@@ -351,17 +395,17 @@ namespace NsoServer.Net
             int slotNull = SlotNull(me);
             if ((t.IsUpToUp && slotNull == 0) || (!t.IsUpToUp && slotNull < quantity)) { PlayerService.ServerDialog(me, "Hành trang không đủ chỗ trống"); return; }
             long xu = (long)s.Coin * quantity, yen = (long)s.Yen * quantity, gold = (long)s.Gold * quantity;
-            if (gold > 0) { PlayerService.ServerDialog(me, "Vật phẩm cần lượng, bản offline không có lượng."); return; }
-            if (xu > me.Progress.Xu || yen > me.Progress.Yen) { PlayerService.ServerDialog(me, "Không đủ tiền."); return; }
+            if (xu > me.Progress.Xu || yen > me.Progress.Yen || gold > PlayerLuong.Get(me)) { PlayerService.ServerDialog(me, "Không đủ tiền."); return; }
             me.Progress.Xu -= xu;
             me.Progress.Yen -= yen;
+            me.Progress.Luong -= (int)gold;   // Store.buy: p.user.gold -= giaLuong (Service.buy shows the new balance)
             PlayerService.Buy(me);
             int n = t.IsUpToUp ? 1 : quantity;
             for (int i = 0; i < n; i++)
             {
                 var item = FromStore(s, t, true);
                 item.Quantity = t.IsUpToUp ? quantity : 1;
-                if (yen > 0) item.IsLock = true;
+                if (yen > 0 || gold > 0) item.IsLock = true;
                 AddItemToBag(me, world, item);
             }
             if (s.ItemId == ItemComNam) PlayerTasks.OnBuyComNam(me, world, quantity);
@@ -401,7 +445,7 @@ namespace NsoServer.Net
             }
             else
             {
-                var store = world.Store(typeUI);
+                var store = SchoolStore(me, world, typeUI);
                 if (store != null && indexUI < store.Count) PlayerService.ItemStoreInfo(me, store[indexUI], world.FindItem(store[indexUI].ItemId), typeUI, indexUI);
             }
         }
@@ -429,11 +473,16 @@ namespace NsoServer.Net
             int r = Rng.Next(100);
             if (r < 10)
             {
-                // Mob.dropItem(YEN): ordinary monsters give yen straight to the killer
+                // Mob.dropItem(YEN): currency is a ground item, credited only on pickup.
                 int yen = NextInt(mob.Level * 15, (mob.Level + 10) * 15);
                 if (mob.LevelBoss == 1) yen *= 20; else if (mob.LevelBoss == 2) yen *= 30;
-                AddYen(killer, yen);
-                PlayerService.ServerMessage(killer, "Bạn nhận được " + yen + " yên.");
+                // Pickup quantity is an unsigned short in the original protocol.
+                while (yen > 0)
+                {
+                    int bundle = Math.Min(ushort.MaxValue, yen);
+                    Drop(killer, world, zone, mob, NewItem(ItemYen, bundle));
+                    yen -= bundle;
+                }
             }
             else if (r < 20)
             {
@@ -491,13 +540,14 @@ namespace NsoServer.Net
             ItemMapEntry it = null;
             foreach (var x in zone.ItemMaps) if (x.Id == id) { it = x; break; }
             if (it == null || it.PickedUp) return;
+            if (!TaskMechanics.CanPick(me, it)) return;
             long dx = it.X - me.X, dy = it.Y - me.Y;
             if (dx * dx + dy * dy >= 150 * 150) return;
             var item = it.Item;
             var t = world.FindItem(item.Id);
             if (t == null) return;
             bool canStack = t.IsUpToUp && IndexInBag(me, item.Id, item.IsLock) != -1;
-            if (SlotNull(me) == 0 && !canStack) { PlayerService.ServerDialog(me, "Hành trang không đủ chỗ trống"); return; }
+            if (t.Type != TypeMoney && item.Id != ItemSushi && SlotNull(me) == 0 && !canStack) { PlayerService.ServerDialog(me, "Hành trang không đủ chỗ trống"); return; }
             if (it.OwnerId != -1 && it.OwnerId != me.Record.Id && Now() - it.CreatedAt < 20000) { PlayerService.ServerMessage(me, "Vật phẩm của người khác"); return; }
             it.PickedUp = true;
             if (item.Id == ItemSushi)
@@ -506,7 +556,13 @@ namespace NsoServer.Net
                 PlayerService.LoadHp(me);
                 PlayerService.UpdateHp(me);
             }
-            else if (t.Type == TypeMoney) AddYen(me, item.Quantity);
+            else if (t.Type == TypeMoney)
+            {
+                long before = me.Progress.Yen;
+                // ITEMMAP_MYPICK already credits the client. Do not also send an ADD_YEN delta.
+                AddYen(me, item.Quantity, false);
+                item.Quantity = (int)(me.Progress.Yen - before);
+            }
             else
             {
                 if (t.Type == TypeTask || t.Type == TypeTaskWait || t.Type == TypeTaskSave) item.IsLock = true;
@@ -515,6 +571,7 @@ namespace NsoServer.Net
             PlayerService.PickItem(me, it, t);
             zone.ItemMaps.Remove(it);
             PlayerTasks.OnPickItem(me, world, item, t);
+            TaskMechanics.OnPicked(me, it);   // map piece in the tunnel: leave after 3 s
         }
 
         // Zone.updateItemMap: items vanish 30 s after they were dropped
@@ -525,6 +582,7 @@ namespace NsoServer.Net
             for (int i = zone.ItemMaps.Count - 1; i >= 0; i--)
             {
                 var it = zone.ItemMaps[i];
+                if (it.Fixed) continue;   // quest nodes stay until picked
                 if (now - it.CreatedAt < 30000) continue;
                 zone.ItemMaps.RemoveAt(i);
                 PlayerService.RemoveItemMap(zone, it.Id);

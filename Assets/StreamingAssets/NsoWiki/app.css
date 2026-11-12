@@ -35,3 +35,7 @@
 .effect-card figcaption { display: grid; gap: 4px; }
 .effect-card small { color: #a7adb8; }
 .effect-detail{display:grid;gap:4px;margin-top:6px;font-size:13px;color:#a7adb8}.effect-use{font-size:13px;color:#8addbd;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}.effect-use-item{display:grid;gap:2px;padding:6px 8px;background:#191a1e;border-radius:6px}.effect-use-item b{color:var(--ink,#eee);font-weight:650}
+
+.sprite-file { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid #34363e; }
+.sprite-file code { overflow-wrap: anywhere; white-space: normal; user-select: all; }
+.sprite-file .button { justify-self: start; }

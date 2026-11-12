@@ -2216,17 +2216,17 @@ public class GameCanvas : IActionListener
                 }
             case 88835:
                 {
-                    int num3 = int.Parse((string)p);
-                    int num4 = int.Parse(inputDlg.tfInput.getText());
+                    string target = (string)p;
+                    bool box = target.StartsWith("box:");
+                    int slot, quantity;
+                    Item[] slots = box ? Char.getMyChar().arrItemBox : Char.getMyChar().arrItemBag;
                     currentDialog = null;
-                    if (num4 < 1 || num4 >= Char.getMyChar().arrItemBag[num3].quantity)
-                    {
+                    if (!int.TryParse(box ? target.Substring(4) : target, out slot)
+                        || !int.TryParse(inputDlg.tfInput.getText(), out quantity)
+                        || slots == null || slot < 0 || slot >= slots.Length || slots[slot] == null
+                        || quantity < 1 || quantity >= slots[slot].quantity || quantity > short.MaxValue)
                         startOKDlg(mResources.INVALID_NUMSPLIT);
-                    }
-                    else
-                    {
-                        Service.gI().inputNumSplit(num3, num4);
-                    }
+                    else Service.gI().inputNumSplit(slot, quantity, box);
                     break;
                 }
             case 88836:

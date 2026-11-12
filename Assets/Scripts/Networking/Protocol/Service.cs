@@ -2332,7 +2332,7 @@ public class Service
         }
     }
 
-    public void inputNumSplit(int indexItem, int numSplit)
+    public void inputNumSplit(int indexItem, int numSplit, bool box = false)
     {
         Message message = null;
         try
@@ -2340,6 +2340,7 @@ public class Service
             message = messageNotMap(-85);
             message.writer().writeByte(indexItem);
             message.writer().writeInt(numSplit);
+            message.writer().writeBoolean(box);
             session.sendMessage(message);
         }
         catch (Exception ex)

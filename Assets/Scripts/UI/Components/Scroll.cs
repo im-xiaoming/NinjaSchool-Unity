@@ -478,6 +478,19 @@ public class Scroll
 		}
 	}
 
+	/// <summary>Offline addition: scrolls by a pixel amount from the current target, clamped to the content.</summary>
+	public void ScrollBy(int px)
+	{
+		if (styleUPDOWN)
+		{
+			cmtoY = System.Math.Max(0, System.Math.Min(cmyLim, cmtoY + px));
+		}
+		else
+		{
+			cmtoX = System.Math.Max(0, System.Math.Min(cmxLim, cmtoX + px));
+		}
+	}
+
 	public void moveTo(int to)
 	{
 		if (styleUPDOWN)

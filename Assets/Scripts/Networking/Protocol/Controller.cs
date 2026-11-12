@@ -224,6 +224,10 @@ public class Controller : IMessageHandler
                         if (b5 == -1)
                         {
                             GameScr.isUseitemAuto = true;
+                            // Offline wiring: the item must start the existing persistent auto-fire loop.
+                            GameScr.auto = 1;
+                            GameScr.gI().lockAutoMove = false;
+                            Char.getMyChar().isLockMove = false;
                             GameScr.rangeSearch = msg.reader().readInt();
                             if (GameScr.rangeSearch > 360)
                             {
@@ -252,6 +256,8 @@ public class Controller : IMessageHandler
                         {
                             GameScr.isUseitemAuto = false;
                             GameScr.auto = 0;
+                            GameScr.gI().lockAutoMove = false;
+                            Char.getMyChar().isLockMove = false;
                         }
                         break;
                     }
@@ -4258,6 +4264,23 @@ public class Controller : IMessageHandler
                         }
                         break;
                     }
+                case -85: // Offline inputNumSplit acknowledgement, bag or box; no potion counter changes.
+                    {
+                        bool box = msg.reader().readBoolean();
+                        int from = msg.reader().readUnsignedByte(), to = msg.reader().readUnsignedByte();
+                        int template = msg.reader().readShort();
+                        int left = msg.reader().readUnsignedShort(), taken = msg.reader().readUnsignedShort();
+                        Item[] slots = box ? Char.getMyChar().arrItemBox : Char.getMyChar().arrItemBag;
+                        if (slots == null || from >= slots.Length || to >= slots.Length || slots[from] == null
+                            || slots[from].template.id != template || slots[to] != null) break;
+                        Item split = slots[from].clone();
+                        split.quantity = taken; split.indexUI = to;
+                        slots[from].quantity = left;
+                        slots[to] = split;
+                        GameScr.isPaintItemInfo = false;
+                        GameScr.gI().setLCR();
+                        break;
+                    }
                 case -125:
                 case -124:
                 case -118:
@@ -4272,7 +4295,6 @@ public class Controller : IMessageHandler
                 case -91:
                 case -89:
                 case -87:
-                case -85:
                 case -82:
                 case -79:
                 case -78:
@@ -4351,8 +4373,10 @@ public class Controller : IMessageHandler
                         Char.getMyChar().readParam(msg, "Cmd.ME_LOAD_SKILL");
                         if (Char.getMyChar().statusMe != 14 && Char.getMyChar().statusMe != 5)
                         {
-                            Char.getMyChar().cHP = Char.getMyChar().cMaxHP;
-                            Char.getMyChar().cMP = Char.getMyChar().cMaxMP;
+                            // Offline correction: a skill/stat refresh is not a heal. Current HP/MP
+                            // remain server-owned; legitimate recovery arrives in HP/MP packets.
+                            Char.getMyChar().cHP = System.Math.Min(Char.getMyChar().cHP, Char.getMyChar().cMaxHP);
+                            Char.getMyChar().cMP = System.Math.Min(Char.getMyChar().cMP, Char.getMyChar().cMaxMP);
                         }
                         Char.getMyChar().sPoint = msg.reader().readShort();
                         Char.getMyChar().vSkill.removeAllElements();
@@ -4392,8 +4416,9 @@ public class Controller : IMessageHandler
                     Char.getMyChar().readParam(msg, "Cmd.ME_LOAD_SKILL");
                     if (Char.getMyChar().statusMe != 14 && Char.getMyChar().statusMe != 5)
                     {
-                        Char.getMyChar().cHP = Char.getMyChar().cMaxHP;
-                        Char.getMyChar().cMP = Char.getMyChar().cMaxMP;
+                        // Offline correction: updating potential points must not restore HP/MP.
+                        Char.getMyChar().cHP = System.Math.Min(Char.getMyChar().cHP, Char.getMyChar().cMaxHP);
+                        Char.getMyChar().cMP = System.Math.Min(Char.getMyChar().cMP, Char.getMyChar().cMaxMP);
                     }
                     Char.getMyChar().pPoint = msg.reader().readShort();
                     Char.getMyChar().potential[0] = msg.reader().readShort();

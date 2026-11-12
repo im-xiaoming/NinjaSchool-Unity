@@ -23,8 +23,9 @@ namespace NsoServer.Store
 
     public sealed class PlayerInventory
     {
-        public const int DefaultBagCells = 30, SlotCount = 16;
+        public const int DefaultBagCells = 30, SlotCount = 16, BoxCells = 30;
         public PlayerItem[] Bag;
+        public PlayerItem[] Box = new PlayerItem[BoxCells];   // storage box at Kamakura (PlayerStorage)
         public PlayerItem[] Equipment;
         public PlayerItem[] Fashion;
 
@@ -46,6 +47,7 @@ namespace NsoServer.Store
             LoadSlots(root, "equipment", inventory.Equipment, world, false);
             if (!root.ContainsKey("equipment")) LoadSlots(root, "equiped", inventory.Equipment, world, false);
             LoadSlots(root, "fashion", inventory.Fashion, world, false);
+            LoadSlots(root, "box", inventory.Box, world, true);
             return inventory;
         }
 
@@ -106,6 +108,7 @@ namespace NsoServer.Store
             WriteSlots(b, Bag, true);
             b.Append(",\"equipment\":"); WriteSlots(b, Equipment, false);
             b.Append(",\"fashion\":"); WriteSlots(b, Fashion, false);
+            b.Append(",\"box\":"); WriteSlots(b, Box, true);
             return b.Append('}').ToString();
         }
 

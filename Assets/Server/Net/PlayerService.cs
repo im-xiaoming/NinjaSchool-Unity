@@ -21,6 +21,7 @@ namespace NsoServer.Net
         public const sbyte NPC_IS_DISABLE = 85, NPC_IS_MOVE = 86, NPC_IS_FIRE = 89, NPC_IS_ICE = 90, NPC_IS_WIND = 91;
         // sub commands (under SUB_COMMAND -30)
         public const sbyte ME_LOAD_CLASS = -126, ME_LOAD_SKILL = -125, ME_LOAD_HP = -122, ME_LOAD_MP = -121, PLAYER_LOAD_HP = -111;
+        public const sbyte SHOW_WAIT = -74, END_WAIT = -89;
         public const sbyte POTENTIAL_UP = -109, USE_BOOK_SKILL = -102, ME_ADD_EFFECT = -101, ME_REMOVE_EFFECT = -99;
 
         public static Message Sub(sbyte sub)
@@ -151,7 +152,7 @@ namespace NsoServer.Net
 
         public static int QuantityDisplay(PlayerItem item, ItemTemplateData t)
         {
-            int q = t != null && t.IsUpToUp ? item.Quantity : 1;
+            int q = t != null && (t.IsUpToUp || NsoServer.Store.InventoryGrouping.CanStack(t.Type, t.IsUpToUp)) ? item.Quantity : 1;
             return q < 1 ? 1 : q > 32767 ? 32767 : q;
         }
 
@@ -198,7 +199,7 @@ namespace NsoServer.Net
             var m = new Message(ITEM_BUY);
             m.Writer.WriteInt((int)System.Math.Min(int.MaxValue, me.Progress.Xu));
             m.Writer.WriteInt((int)System.Math.Min(int.MaxValue, me.Progress.Yen));
-            m.Writer.WriteInt(0);   // luong (gold) does not exist offline
+            m.Writer.WriteInt(PlayerLuong.Get(me));   // luong
             me.Session.Send(m);
         }
 
@@ -229,6 +230,12 @@ namespace NsoServer.Net
             {
                 m.Writer.WriteByte(item.System);
                 foreach (var o in me.Session.Server.World.BalanceRules.EffectiveOptions(item)) { m.Writer.WriteByte(o.Id); m.Writer.WriteInt(o.Param); }
+            }
+            else if (item.Id >= TaskMechanics.ItemDiaDo2 && item.Id <= TaskMechanics.ItemDiaDo4)
+            {
+                byte[] img = TaskMechanics.TreasureImage(me.Session.Server.World, item.Id, me.Session.ZoomLevel);
+                m.Writer.WriteInt(img.Length);
+                foreach (byte b in img) m.Writer.WriteByte(b);
             }
             me.Session.Send(m);
         }
@@ -338,6 +345,27 @@ namespace NsoServer.Net
             me.Session.Send(m);
         }
 
+        // Service.sendSkillShortcut: the saved bar (Char.onOSkill / onKSkill / onCSkill)
+        public static Message SkillShortcut(string key, sbyte[] data)
+        {
+            var m = Sub(Cmd.LOAD_RMS);
+            m.Writer.WriteUTF(key);
+            m.Writer.WriteInt(data.Length);
+            foreach (var b in data) m.Writer.WriteSByte(b);
+            m.Writer.WriteByte(0);
+            return m;
+        }
+
+        /// <summary>Char.upSkill / useBookSkill / tayKyNang: after loadSkill the server resends the saved bars, so the
+        /// client maps its 5 screen slots and hot keys to the new Skill objects (otherwise the slots keep the old level's
+        /// object and show no cooldown).</summary>
+        public static void SkillBars(PlayerState me)
+        {
+            me.Session.Send(SkillShortcut("OSkill", me.Progress.OSkill));
+            me.Session.Send(SkillShortcut("KSkill", me.Progress.KSkill));
+            if (me.Progress.CSkill.Length > 0) me.Session.Send(SkillShortcut("CSkill", me.Progress.CSkill));
+        }
+
         // Service.sendSkillShortcut: shortcut bars, all empty
         public static void SkillShortcut(PlayerState me, string key, int slots)
         {
@@ -392,6 +420,41 @@ namespace NsoServer.Net
             SendZone(zone, m);
         }
 
+        // MapService.addItemMap to one player (quest-gated items, TaskMechanics)
+        public static void AddItemMapTo(PlayerState me, ItemMapEntry it)
+        {
+            var m = new Message(ITEMMAP_ADD);
+            m.Writer.WriteShort(it.Id);
+            m.Writer.WriteShort(it.Item.Id);
+            m.Writer.WriteShort(it.X);
+            m.Writer.WriteShort(it.Y);
+            me.Session.Send(m);
+        }
+
+        // MapService.removeItem to one player
+        public static void RemoveItemMapTo(PlayerState me, short id)
+        {
+            var m = new Message(ITEMMAP_REMOVE);
+            m.Writer.WriteShort(id);
+            me.Session.Send(m);
+        }
+
+        // Service.showWait (sub command SHOW_WAIT -74): the "please wait" box of a timed action
+        public static void ShowWait(PlayerState me, string title)
+        {
+            var m = Sub(SHOW_WAIT);
+            m.Writer.WriteUTF(title);
+            me.Session.Send(m);
+        }
+
+        // Service.endWait (sub command END_WAIT -89): closes it, with a message
+        public static void EndWait(PlayerState me, string text)
+        {
+            var m = Sub(END_WAIT);
+            m.Writer.WriteUTF(text);
+            me.Session.Send(m);
+        }
+
         // MapService.removeItem
         public static void RemoveItemMap(Zone zone, short id)
         {
@@ -405,7 +468,8 @@ namespace NsoServer.Net
         {
             var m = new Message(ITEMMAP_MYPICK);
             m.Writer.WriteShort(it.Id);
-            m.Writer.WriteShort(QuantityDisplay(it.Item, t));
+            m.Writer.WriteShort(t != null && t.Type == PlayerItems.TypeMoney
+                ? System.Math.Max(0, System.Math.Min(ushort.MaxValue, it.Item.Quantity)) : QuantityDisplay(it.Item, t));
             me.Session.Send(m);
         }
 

@@ -17,9 +17,13 @@ namespace NsoServer.Net
             Writer = new JavaWriter();
         }
 
+        /// <summary>The received payload (null for messages built to send); read by PlayerLog.</summary>
+        public readonly byte[] Data;
+
         public Message(sbyte command, byte[] data)
         {
             Command = command;
+            Data = data;
             Reader = new JavaReader(data);
         }
 

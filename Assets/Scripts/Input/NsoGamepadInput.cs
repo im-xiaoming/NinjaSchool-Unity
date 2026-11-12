@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 ///   Circle = interact / attack in the world and select in menus (user request), Triangle = interact,
 ///   R1 = change target (user request),
 ///   R2 / L2 / L1 = skill shortcuts 1 / 2 / 3, Options = menu.
+///   Share / Create = toggle the world map; left stick moves its cursor.
 /// Each button is translated into the same client key code the keyboard sends through Main.OnGUI
 /// (see MyKeyMap), so the game reacts exactly as if that key were pressed: keyPressed on the
 /// press edge, keyReleased on the release edge. No gameplay code is changed.
@@ -38,6 +39,8 @@ public class NsoGamepadInput : MonoBehaviour
     [SerializeField] private int _triangle = Enter;
     [Tooltip("Square (Elden Ring: use item). No quick-item key in the client yet.")]
     [SerializeField] private int _square = 0;
+    [Tooltip("Square in the Kỹ năng tab runs the \"+\" (add skill point) command of the focused skill. User request.")]
+    [SerializeField] private bool _squareUpSkill = true;
     [Tooltip("R1 in the world: change target (TargetCycler, nearest first). User request.")]
     [SerializeField] private bool _r1ChangesTarget = true;
 
@@ -64,7 +67,11 @@ public class NsoGamepadInput : MonoBehaviour
     [SerializeField] private int _l1 = 57;
     [Tooltip("Options: F1 = left soft key (menu).")]
     [SerializeField] private int _options = SoftLeft;
-    [Tooltip("Create: unused by default.")]
+    [Tooltip("Share / Create / Select toggles the world map. Press once; holding does not repeat.")]
+    [SerializeField] private bool _shareOpensMap = true;
+    [Tooltip("World map cursor speed in logical map pixels per second. Independent of render frame rate.")]
+    [SerializeField, Range(20f, 600f)] private float _mapCursorSpeed = 120f;
+    [Tooltip("Share / Create key code when Share Opens Map is off. Unused by default.")]
     [SerializeField] private int _create = 0;
     [Tooltip("R3 (Elden Ring: lock on). Unused by default.")]
     [SerializeField] private int _r3 = 0;
@@ -110,7 +117,32 @@ public class NsoGamepadInput : MonoBehaviour
             return;
         }
         bool world = InWorld();
+        MapScr map = GameCanvas.currentScreen as MapScr;
+        bool mapInput = map != null && GameCanvas.currentDialog == null && !GameCanvas.menu.showMenu;
+        // Offline mapping: Share/Create reuses GameScr's map command (110002 -> doShowMap),
+        // including its arena restriction. Release gameplay keys before switching screens.
+        if (_shareOpensMap && (world || mapInput) && pad.selectButton.wasPressedThisFrame)
+        {
+            ReleaseAll();
+            _down[13] = true;
+            _sentCode[13] = 0;
+            // Map/menu commands are handled by actionPerform; IActionListener.perform only
+            // handles the reconnect action and silently ignores the map command.
+            if (mapInput) map.perform(1000, null);
+            else GameScr.instance.actionPerform(110002, null);
+            return;
+        }
         Vector2 stick = pad.leftStick.ReadValue();
+        if (mapInput)
+        {
+            // Offline deviation: move the existing MapScr cursor directly at render cadence.
+            // Keep analog input out of the legacy digital key path to avoid double movement.
+            float mapTilt = stick.magnitude;
+            if (mapTilt > _stickDeadzone)
+                map.MoveControllerCursor(stick.normalized * Mathf.Clamp01((mapTilt - _stickDeadzone) / (1f - _stickDeadzone))
+                    * (_mapCursorSpeed * Mathf.Min(Time.unscaledDeltaTime, 0.05f)));
+            stick = Vector2.zero;
+        }
         // Run-only stick in the world: drop its vertical axis so tilting it never jumps (user request).
         bool stickVertical = !(world && _stickRunOnlyInWorld);
         Set(0, Up, pad.dpad.up.isPressed || (stickVertical && stick.y > _stickDeadzone));
@@ -122,7 +154,13 @@ public class NsoGamepadInput : MonoBehaviour
         Set(4, world ? _crossWorld : _crossMenu, pad.buttonSouth.isPressed);
         Set(5, world ? _circleWorld : _circleMenu, pad.buttonEast.isPressed);
         Set(6, _triangle, pad.buttonNorth.isPressed);
-        Set(7, _square, pad.buttonWest.isPressed);
+        // Square in the Kỹ năng tab (user request): the "+" (UPPOINT, action 14001) command of the focused skill.
+        if (_squareUpSkill && pad.buttonWest.wasPressedThisFrame && SkillPlusCommand() is Command plus)
+        {
+            plus.performAction();
+            _down[7] = true; _sentCode[7] = 0; // consumed; the release sends nothing
+        }
+        else Set(7, _square, pad.buttonWest.isPressed);
         // Target switching: right stick flick (any direction) and R1. No keyboard key exists for it,
         // so TargetCycler sets the focus directly. The list is refreshed continuously while in the world.
         bool switchTarget = false;
@@ -149,7 +187,7 @@ public class NsoGamepadInput : MonoBehaviour
         if (!world && pad.startButton.wasPressedThisFrame && CloseGameMenus())
             _down[12] = true; // consumed; the release is swallowed (_sentCode = 0)
         else Set(12, _options, pad.startButton.isPressed);
-        Set(13, _create, pad.selectButton.isPressed);
+        Set(13, _shareOpensMap ? 0 : _create, pad.selectButton.isPressed);
         Set(14, _r3, pad.rightStickButton.isPressed);
     }
 
@@ -173,6 +211,15 @@ public class NsoGamepadInput : MonoBehaviour
         }
         _sentCode[12] = 0;
         return true;
+    }
+
+    /// <summary>The Kỹ năng tab's "+" command (left soft command UPPOINT, action 14001), or null when it is not shown.</summary>
+    private static Command SkillPlusCommand()
+    {
+        GameScr gs = GameScr.instance;
+        if (gs == null || GameCanvas.currentScreen != gs || GameCanvas.currentDialog != null || GameCanvas.menu.showMenu) return null;
+        if (!GameScr.isPaintInfoMe || GameScr.indexMenu != 1) return null;
+        return gs.left != null && gs.left.idAction == 14001 ? gs.left : null;
     }
 
     /// <summary>Sends keyPressed/keyReleased on state edges of one slot.</summary>
