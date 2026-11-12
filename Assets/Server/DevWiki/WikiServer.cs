@@ -203,11 +203,11 @@ namespace NsoServer.DevWiki
                         else Send(stream, 200, asset.ContentType, asset.Data, "public, max-age=3600");
                         return;
                     }
-                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js" || path == "/dashboard.js" || path == "/progression.js" || path == "/sprites.js" || path == "/effects.js")
+                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js" || path == "/dashboard.js" || path == "/progression.js" || path == "/sprites.js" || path == "/effects.js" || path == "/effect-usage.json")
                     {
                         string name = path == "/" ? "index.html" : path.Substring(1);
                         string file = Path.Combine(folder, name);
-                        string type = name.EndsWith(".css") ? "text/css" : name.EndsWith(".js") ? "text/javascript" : "text/html";
+                        string type = name.EndsWith(".json") ? "application/json" : name.EndsWith(".css") ? "text/css" : name.EndsWith(".js") ? "text/javascript" : "text/html";
                         if (File.Exists(file)) Send(stream, 200, type + "; charset=utf-8", File.ReadAllText(file, Encoding.UTF8));
                         else Send(stream, 404, "text/plain", "Asset not found");
                     }

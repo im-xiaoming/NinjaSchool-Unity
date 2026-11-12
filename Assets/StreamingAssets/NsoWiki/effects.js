@@ -2,7 +2,7 @@
 
 // Presentation only: a single slow clock, up to maxPlaying visible canvases, bounded decoded-image cache.
 const effectPreview = (() => {
-  let cleanup = () => {}, page = 0, paused = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cleanup = () => {}, page = 0, frameFilter = "", imageFilter = "", useFilter = "", detailed = false, usage = null, paused = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const images = new Map(), pageSize = 12, maxPlaying = pageSize; // every card of a page animates
   function imageFor(id) {
     if (images.has(id)) return images.get(id);
@@ -11,10 +11,49 @@ const effectPreview = (() => {
     if (images.size > 128) images.delete(images.keys().next().value);
     return img;
   }
+  // Where each animation is played in the game (client call sites), from Tools/gen_effect_usage.py.
+  function loadUsage() {
+    if (usage) return;
+    usage = { byId: {}, dynamic: [] };
+    fetch("/effect-usage.json").then(r => r.ok ? r.json() : null).then(d => { if (d) { usage = d; if (routeName === "effects") render(); } }).catch(() => {});
+  }
+  const usesOf = id => usage?.byId?.[String(id)] || [];
   function view() {
-    const rows = (DB.collections.effectAnimations || []).filter(x => !q || String(x.id).includes(q.replace(/^id:/, "")));
+    loadUsage();
+    // Filters: search box (animation id), frame count, and an image id used by any frame.
+    const all = DB.collections.effectAnimations || [];
+    const counts = [...new Set(all.map(x => x.frames.length))].sort((a, b) => a - b);
+    const rows = all.filter(x => (!q || String(x.id).includes(q.replace(/^id:/, "")))
+      && (!frameFilter || x.frames.length === Number(frameFilter))
+      && (!imageFilter || x.frames.some(f => String(f.imgId) === imageFilter))
+      && (!useFilter || (useFilter === "used") === (usesOf(x.id).length > 0)));
+    const toolbar = `<div class="toolbar"><label>Số khung <select id="effectFrames"><option value="">Tất cả</option>${counts.map(n => `<option value="${n}" ${String(n) === frameFilter ? "selected" : ""}>${n}</option>`).join("")}</select></label><label>Dùng hình <input type="text" id="effectImage" placeholder="ID hình" value="${esc(imageFilter)}" style="width:110px"></label><label>Sử dụng <select id="effectUse"><option value="">Tất cả</option><option value="used" ${useFilter === "used" ? "selected" : ""}>Có dùng trong game</option><option value="unused" ${useFilter === "unused" ? "selected" : ""}>Không thấy gọi cố định</option></select></label>${frameFilter || imageFilter || useFilter ? `<button class="button" id="effectClear">✕ Xóa lọc</button>` : ""}<label>Hiển thị <select id="effectMode"><option value="basic" ${detailed ? "" : "selected"}>Thông tin cơ bản</option><option value="detail" ${detailed ? "selected" : ""}>Thông tin chi tiết</option></select></label><span class="result-count">${rows.length} / ${all.length} hoạt ảnh</span></div>`;
     const pages = Math.max(1, Math.ceil(rows.length / pageSize)); page = Math.min(page, pages - 1);
-    return `<section class="panel effect-library"><div class="panel-head"><div><div class="eyebrow">MINH HỌA TRỰC TIẾP</div><h2>Thư viện hoạt ảnh</h2></div><button class="button" id="effectToggle" aria-pressed="${!paused}">${paused ? "Phát minh họa" : "Tạm dừng"}</button></div><p>Vòng lặp chậm 4 khung/giây · tối đa ${maxPlaying} ô đang nhìn thấy. Tự dừng khi ẩn trang. ID hoạt ảnh riêng, không trùng với ID trạng thái bên dưới.</p><div class="effect-grid">${rows.slice(page * pageSize, (page + 1) * pageSize).map(x => `<figure class="effect-card"><canvas width="192" height="144" data-effect-preview="${x.id}" role="img" aria-label="Hoạt ảnh ${x.id}"></canvas><figcaption><b>Hoạt ảnh #${x.id}</b><span>${x.frames.length} khung · ${(x.frames.length / 4).toFixed(1)} giây/vòng</span><small data-effect-note>Đang chờ hiển thị</small></figcaption></figure>`).join("") || '<p>Không có hoạt ảnh phù hợp.</p>'}</div><div class="paging"><button class="button" id="effectPrev" ${page === 0 ? "disabled" : ""}>← Trước</button><span>${page + 1} / ${pages}</span><button class="button" id="effectNext" ${page + 1 >= pages ? "disabled" : ""}>Sau →</button></div></section><h2>Hiệu ứng trạng thái</h2>`;
+    return `<section class="panel effect-library"><div class="panel-head"><div><div class="eyebrow">MINH HỌA TRỰC TIẾP</div><h2>Thư viện hoạt ảnh</h2></div><button class="button" id="effectToggle" aria-pressed="${!paused}">${paused ? "Phát minh họa" : "Tạm dừng"}</button></div><p>Vòng lặp chậm 4 khung/giây · tối đa ${maxPlaying} ô đang nhìn thấy. Tự dừng khi ẩn trang. ID hoạt ảnh riêng, không trùng với ID trạng thái bên dưới.</p>${toolbar}<div class="effect-grid">${rows.slice(page * pageSize, (page + 1) * pageSize).map(x => `<figure class="effect-card"><canvas width="192" height="144" data-effect-preview="${x.id}" role="img" aria-label="Hoạt ảnh ${x.id}"></canvas><figcaption><b>Hoạt ảnh #${x.id}</b><span>${x.frames.length} khung · ${(x.frames.length / 4).toFixed(1)} giây/vòng</span><small data-effect-note>Đang chờ hiển thị</small><span class="effect-use">${summary(x.id)}</span>${detailed ? details(x) : ""}</figcaption></figure>`).join("") || '<p>Không có hoạt ảnh phù hợp.</p>'}</div><div class="paging"><button class="button" id="effectPrev" ${page === 0 ? "disabled" : ""}>← Trước</button><span>${page + 1} / ${pages}</span><button class="button" id="effectNext" ${page + 1 >= pages ? "disabled" : ""}>Sau →</button></div></section><h2>Hiệu ứng trạng thái</h2>`;
+  }
+  // "Who" of one use, resolved by Tools/gen_effect_usage.py: mob (name, level), status effect, element, mount, packet.
+  function whoText(w) {
+    if (w.kind === "mob") return `${w.name} (Lv ${w.level ?? "?"}${w.boss ? ", boss" : ""})`;
+    if (w.kind === "status") return `Trạng thái: ${(w.names || []).join(", ") || "loại " + w.type}`;
+    if (w.kind === "element") return `Hệ ${w.name}`;
+    if (w.kind === "allMobs") { const m = usage?.allMobs || []; return `Mọi quái thường (${m.length} loại, Lv ${m[0]?.level ?? 0}–${m[m.length - 1]?.level ?? 0})`; }
+    return w.name || w.kind;
+  }
+  // Basic view: who uses this animation, in one line.
+  function summary(id) {
+    const uses = usesOf(id);
+    if (!uses.length) return "Chưa thấy dùng trong game (không có lệnh gọi với ID này)";
+    const who = [...new Set(uses.flatMap(u => (u.who || []).map(whoText)))];
+    return `Dùng bởi: ${esc(who.join(" · ") || "nhân vật (không điều kiện riêng)")}`;
+  }
+  // Detailed view: every use — who, situation, how it plays, source line; the full mob list for the default hit effect.
+  function details(x) {
+    const uses = usesOf(x.id);
+    if (!uses.length) return "";
+    return `<div class="effect-detail">${uses.map(u => {
+      const all = (u.who || []).some(w => w.kind === "allMobs");
+      return `<div class="effect-use-item"><b>${esc((u.who || []).map(whoText).join(" · ") || "Nhân vật")}</b><span>Khi: ${esc(u.when || "luôn chạy trong hàm")}</span><span>Cách chạy: ${esc(u.how)}</span>${all ? `<details><summary>Danh sách quái</summary>${(usage.allMobs || []).map(m => `${esc(m.name)} (Lv ${m.level})`).join(", ")}</details>` : ""}<small>${esc(u.file.split("/").pop())} › ${esc(u.method)}()${u.line ? ":" + u.line : ""}</small></div>`;
+    }).join("")}</div>`;
   }
   function mount() {
     cleanup();
@@ -71,6 +110,11 @@ const effectPreview = (() => {
       pending.set(canvas, { img, done }); img.addEventListener("load", done, { once: true }); img.addEventListener("error", done, { once: true });
     }
     button.onclick = () => { paused = !paused; button.textContent = paused ? "Phát minh họa" : "Tạm dừng"; button.setAttribute("aria-pressed", String(!paused)); schedule(); };
+    document.getElementById("effectFrames").onchange = e => { frameFilter = e.target.value; page = 0; render(); };
+    document.getElementById("effectImage").onchange = e => { imageFilter = e.target.value.trim(); page = 0; render(); };
+    document.getElementById("effectUse").onchange = e => { useFilter = e.target.value; page = 0; render(); };
+    document.getElementById("effectMode").onchange = e => { detailed = e.target.value === "detail"; render(); };
+    const clear = document.getElementById("effectClear"); if (clear) clear.onclick = () => { frameFilter = imageFilter = useFilter = ""; page = 0; render(); };
     document.getElementById("effectPrev").onclick = () => { page--; render(); };
     document.getElementById("effectNext").onclick = () => { page++; render(); };
     document.addEventListener("visibilitychange", schedule);

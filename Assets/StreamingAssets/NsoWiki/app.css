@@ -30,7 +30,8 @@
 /* Low-rate effect previews use fixed canvases and the existing Workbench typography. */
 .effect-library { margin-bottom: 28px; }
 .effect-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
-.effect-card { margin: 0; padding: 12px; border: 1px solid var(--line, #34363e); border-radius: 10px; background: #101114; }
+.effect-card { min-width: 0; overflow-wrap: anywhere; margin: 0; padding: 12px; border: 1px solid var(--line, #34363e); border-radius: 10px; background: #101114; }
 .effect-card canvas { display: block; width: 192px; max-width: 100%; height: 144px; margin: 0 auto 10px; image-rendering: pixelated; }
 .effect-card figcaption { display: grid; gap: 4px; }
 .effect-card small { color: #a7adb8; }
+.effect-detail{display:grid;gap:4px;margin-top:6px;font-size:13px;color:#a7adb8}.effect-use{font-size:13px;color:#8addbd;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}.effect-use-item{display:grid;gap:2px;padding:6px 8px;background:#191a1e;border-radius:6px}.effect-use-item b{color:var(--ink,#eee);font-weight:650}

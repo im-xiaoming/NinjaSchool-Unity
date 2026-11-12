@@ -1,0 +1,3764 @@
+{
+ "byId": {
+  "20": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 12727,
+    "method": "liveFromDead",
+    "how": "bám theo nhân vật (this), lặp 2 lần",
+    "when": "",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5128,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật (@char), lặp 2 lần",
+    "when": "b == -110 › if (@char != null)",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói -110: server gửi hiệu ứng lên một nhân vật"
+     }
+    ]
+   }
+  ],
+  "32": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 12661,
+    "method": "doInjure",
+    "how": "tại điểm (cx, cy - chh), lặp 1 lần",
+    "when": "if (isBoss) › idBoss == 114",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 114,
+      "name": "Thần thố",
+      "level": 55,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "43": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5178,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật, kéo dài effect3.timeLenght giây",
+    "when": "b == -101 › else if (effect3.template.type == 3)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 3,
+      "names": [
+       "Hiệu ứng choáng"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5219,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật, kéo dài effect3.timeLenght giây",
+    "when": "b == -98 › if (@char != null) › else if (effect3.template.type == 3)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 3,
+      "names": [
+       "Hiệu ứng choáng"
+      ]
+     }
+    ]
+   }
+  ],
+  "48": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5158,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật, kéo dài effect3.timeLenght giây",
+    "when": "b == -101 › else if (effect3.template.type == 1)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 1,
+      "names": [
+       "Hiệu ứng bỏng"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5205,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật, kéo dài effect3.timeLenght giây",
+    "when": "b == -98 › if (@char != null) › else if (effect3.template.type == 1)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 1,
+      "names": [
+       "Hiệu ứng bỏng"
+      ]
+     }
+    ]
+   }
+  ],
+  "58": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2778,
+    "method": "onMessage",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "msg.command == 5 › if (clevel != Char.getMyChar().clevel)",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói 5: nhân vật lên cấp"
+     }
+    ]
+   }
+  ],
+  "59": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "method": "updateMobAttack",
+    "line": 0,
+    "how": "tại người/quái bị đánh, lặp 1 lần",
+    "when": "server gửi idSkill_atk = -1 (mọi đòn đánh thường của quái)",
+    "who": [
+     {
+      "kind": "allMobs"
+     }
+    ]
+   }
+  ],
+  "60": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 2092,
+    "method": "update",
+    "how": "bám theo nhân vật (this), lặp 1 lần",
+    "when": "if (statusMe == 1 || statusMe == 6) › if (mSystem.currentTimeMillis() - timeSummon > 7000) › if (!isWolf && isHaveWolf() && vitaWolf >= 500)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 2278,
+    "method": "update",
+    "how": "bám theo nhân vật (this), lặp 1 lần",
+    "when": "if (moveFast != null) › if (moveFast[0] == 0)",
+    "who": [
+     {
+      "kind": "other",
+      "name": "Nhân vật dịch chuyển nhanh (kỹ năng lướt)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 2289,
+    "method": "update",
+    "how": "bám theo nhân vật (this), lặp 1 lần",
+    "when": "if (moveFast != null) › else",
+    "who": [
+     {
+      "kind": "other",
+      "name": "Nhân vật dịch chuyển nhanh (kỹ năng lướt)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 3105,
+    "method": "updateCharStand",
+    "how": "bám theo nhân vật (this), lặp 1 lần",
+    "when": "if (mSystem.currentTimeMillis() - timeSummon > 7000) › if (!isWolf && isHaveWolf() && vitaWolf >= 500)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 3232,
+    "method": "updateCharRun",
+    "how": "bám theo nhân vật (this), lặp 1 lần",
+    "when": "if (!isWolf && isHaveWolf() && vitaWolf >= 500) › if ((me && dx0 > 150) || (!me && dx0 > 40))",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 1900,
+    "method": "onMessage",
+    "how": "tại điểm (buNhin.x, buNhin.y), lặp 1 lần",
+    "when": "msg.command == 75",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói 75: nhận hiệu ứng"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 1930,
+    "method": "onMessage",
+    "how": "tại điểm (buNhin.x, buNhin.y), lặp 1 lần",
+    "when": "msg.command == 77 › if (buNhin != null)",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói 77: đánh bù nhìn"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2488,
+    "method": "onMessage",
+    "how": "bám theo nhân vật (char4), lặp 1 lần",
+    "when": "msg.command == 4 › if (char4.isWolf) › if (char4.vitaWolf >= 500)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2582,
+    "method": "onMessage",
+    "how": "bám theo nhân vật (char4), lặp 1 lần",
+    "when": "msg.command == 60 › if (char4.isWolf) › if (char4.vitaWolf >= 500)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2589,
+    "method": "onMessage",
+    "how": "bám theo nhân vật (char4), lặp 1 lần",
+    "when": "msg.command == 60 › if (char4.isMoto)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Xe máy / thú cưỡi mới"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2656,
+    "method": "onMessage",
+    "how": "bám theo nhân vật (char4), lặp 1 lần",
+    "when": "msg.command == 61 › if (char4.isWolf) › if (char4.vitaWolf >= 500)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2663,
+    "method": "onMessage",
+    "how": "bám theo nhân vật (char4), lặp 1 lần",
+    "when": "msg.command == 61 › if (char4.isMoto)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Xe máy / thú cưỡi mới"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2857,
+    "method": "onMessage",
+    "how": "tại điểm (char6.cx, char6.cy), lặp 1 lần",
+    "when": "msg.command == 2 › if (char6 != null && char6.charID == num63) › if (!char6.isInvisible)",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2886,
+    "method": "onMessage",
+    "how": "tại điểm (mob.x, mob.y), lặp 1 lần",
+    "when": "msg.command == -5 › else",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói -5: quái bị đánh"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 3009,
+    "method": "onMessage",
+    "how": "tại điểm (mob.x, mob.y), lặp 1 lần",
+    "when": "msg.command == 78 › if (mob != null && mob.status != 0 && mob.status != 0)",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói 78: đánh quái"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5144,
+    "method": "messageSubCommand",
+    "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy), lặp 1 lần",
+    "when": "b == -101 › else if (effect3.template.type == 12 || effect3.template.type == 11)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 12,
+      "names": [
+       "Trạng thái ẩn thân"
+      ]
+     },
+     {
+      "kind": "status",
+      "type": 11,
+      "names": [
+       "Trạng thái tàng hình"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5194,
+    "method": "messageSubCommand",
+    "how": "tại điểm (@char.cx, @char.cy), lặp 1 lần",
+    "when": "b == -98 › if (@char != null) › if (effect3.template.type == 12 || effect3.template.type == 11)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 12,
+      "names": [
+       "Trạng thái ẩn thân"
+      ]
+     },
+     {
+      "kind": "status",
+      "type": 11,
+      "names": [
+       "Trạng thái tàng hình"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5315,
+    "method": "messageSubCommand",
+    "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy), lặp 1 lần",
+    "when": "b == -99 › if (effect.template.type == 0 || effect.template.type == 12) › else if (effect.template.type == 12)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 0,
+      "names": [
+       "Hiệu quả thức ăn Cơm nắm",
+       "Hiệu quả thức ăn Tempura",
+       "Hiệu quả thức ăn Katsudon",
+       "Hiệu quả thức ăn Sashimi",
+       "Hiệu quả thức ăn Gà Quay",
+       "Hiệu ứng thức ăn 5x",
+       "Hiệu ứng thức ăn 6x",
+       "Hiệu ứng thức ăn 7x",
+       "Hiệu ứng thức ăn 9x",
+       "Hiệu ứng lồng đèn cá chép, nửa giây hồi phục 500 hp mp",
+       "Hiệu ứng pet Bí rễ hành, nửa giây hồi phục 400 hp mp"
+      ]
+     },
+     {
+      "kind": "status",
+      "type": 12,
+      "names": [
+       "Trạng thái ẩn thân"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5330,
+    "method": "messageSubCommand",
+    "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy), lặp 1 lần",
+    "when": "b == -99 › else if (effect.template.type == 11)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 11,
+      "names": [
+       "Trạng thái tàng hình"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5388,
+    "method": "messageSubCommand",
+    "how": "tại điểm (@char.cx, @char.cy), lặp 1 lần",
+    "when": "b == -96 › if (effect2 != null) › else if (effect2.template.type == 11)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 11,
+      "names": [
+       "Trạng thái tàng hình"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5395,
+    "method": "messageSubCommand",
+    "how": "tại điểm (@char.cx, @char.cy), lặp 1 lần",
+    "when": "b == -96 › if (effect2 != null) › else if (effect2.template.type == 12)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 12,
+      "names": [
+       "Trạng thái ẩn thân"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5884,
+    "method": "readCharInfo",
+    "how": "bám theo nhân vật (c), lặp 1 lần",
+    "when": "if (!c.isInvisible)",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Screens/GameScr.cs",
+    "line": 4079,
+    "method": "doFire",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "if (Char.getMyChar().isWolf)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Screens/GameScr.cs",
+    "line": 4085,
+    "method": "doFire",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "if (Char.getMyChar().isHaveMoto() && !Char.getMyChar().isMotoBehind)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Xe máy / thú cưỡi mới"
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Screens/GameScr.cs",
+    "line": 4091,
+    "method": "doFire",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "if (Char.getMyChar().isHaveNewMount() && !Char.getMyChar().isMotoBehind)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Xe máy / thú cưỡi mới"
+     }
+    ]
+   }
+  ],
+  "67": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5544,
+    "method": "messageSubCommand",
+    "how": "tại điểm (mob.x, mob.y), lặp 1 lần",
+    "when": "b == -73",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói -73: gói -73"
+     }
+    ]
+   }
+  ],
+  "76": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5154,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật, kéo dài effect3.timeLenght giây",
+    "when": "b == -101 › else if (effect3.template.type == 14)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 14,
+      "names": [
+       "Trạng thái bị trói"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5201,
+    "method": "messageSubCommand",
+    "how": "bám theo nhân vật, kéo dài effect3.timeLenght giây",
+    "when": "b == -98 › if (@char != null) › else if (effect3.template.type == 14)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 14,
+      "names": [
+       "Trạng thái bị trói"
+      ]
+     }
+    ]
+   }
+  ],
+  "77": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 627,
+    "method": "onMessage",
+    "how": "tại điểm (mob3.x, mob3.y - 9), lặp 1 lần",
+    "when": "msg.command == 90 › if (mob3 != null) › if (!mob3.isIce)",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5340,
+    "method": "messageSubCommand",
+    "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy - 9), lặp 1 lần",
+    "when": "b == -99 › else if (effect.template.type == 2)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 2,
+      "names": [
+       "Hiệu ứng đóng băng"
+      ]
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5409,
+    "method": "messageSubCommand",
+    "how": "tại điểm (@char.cx, @char.cy - 9), lặp 1 lần",
+    "when": "b == -96 › if (effect2 != null) › else if (effect2.template.type == 2)",
+    "who": [
+     {
+      "kind": "status",
+      "type": 2,
+      "names": [
+       "Hiệu ứng đóng băng"
+      ]
+     }
+    ]
+   }
+  ],
+  "79": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1101,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 3 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 114)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 114,
+      "name": "Thần thố",
+      "level": 55,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "81": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1110,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, yFirst + TileMap.size), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 115)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 115,
+      "name": "Xích phiến thiên long",
+      "level": 45,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1111,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 40, yFirst + TileMap.size), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 115)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 115,
+      "name": "Xích phiến thiên long",
+      "level": 45,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1112,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 40, yFirst + TileMap.size), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 115)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 115,
+      "name": "Xích phiến thiên long",
+      "level": 45,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2470,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "else if (templateId == 115)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 115,
+      "name": "Xích phiến thiên long",
+      "level": 45,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "83": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1358,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 138)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 138,
+      "name": "Sơn vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "84": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1347,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 116)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2466,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "if (templateId == 116)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "85": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 12664,
+    "method": "doInjure",
+    "how": "tại điểm (cx, cy), lặp 1 lần",
+    "when": "if (isBoss) › idBoss == 115",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 115,
+      "name": "Xích phiến thiên long",
+      "level": 45,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "86": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1123,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y - h / 2 + 5), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 116) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "87": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1129,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy - cFocus.ch / 2), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 116)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1130,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 40, cFocus.cy - cFocus.ch / 2), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 116)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1131,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 40, cFocus.cy - cFocus.ch / 2), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 116)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "88": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1127,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y - h / 2 + 5), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 116) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 116,
+      "name": "Samurai chiến tướng",
+      "level": 65,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "89": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1137,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y - h / 2 - 5), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 138) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 138,
+      "name": "Sơn vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1141,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y - h / 2 - 5), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 138) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 138,
+      "name": "Sơn vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "90": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1143,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 138)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 138,
+      "name": "Sơn vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1215,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 164 || getTemplate().mobTemplateId == 165)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 164,
+      "name": "Băng Đế",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 165,
+      "name": "Băng Vương",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2474,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "else if (templateId == 138)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 138,
+      "name": "Sơn vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "91": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 12669,
+    "method": "doInjure",
+    "how": "bám theo nhân vật (this), lặp 2 lần",
+    "when": "if (isBoss) › idBoss == 139",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 139,
+      "name": "Hỏa ngưu vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 12672,
+    "method": "doInjure",
+    "how": "bám theo nhân vật (this), lặp 1 lần",
+    "when": "if (isBoss) › idBoss == 144",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1152,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 139)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 139,
+      "name": "Hỏa ngưu vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1178,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 141 || getTemplate().mobTemplateId == 162)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 141,
+      "name": "Hỏa Kỳ Lân",
+      "level": 55,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 162,
+      "name": "Hỏa Kỳ Lân",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1203,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 160)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 160,
+      "name": "Bí ngô đại đầu quỷ",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2478,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "else if (templateId == 139)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 139,
+      "name": "Hỏa ngưu vương",
+      "level": 75,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "92": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1416,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 166)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1417,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 166)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1418,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 166)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "103": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2502,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else if (templateId == 166)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "104": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1374,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 20, cFocus.cy), lặp 2 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1375,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 20, cFocus.cy), lặp 2 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "105": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2506,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else if (templateId == 166)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "108": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1092,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 209) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 209,
+      "name": "Mỹ Hầu Tướng",
+      "level": 80,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1096,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 209) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 209,
+      "name": "Mỹ Hầu Tướng",
+      "level": 80,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1171,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 141 || getTemplate().mobTemplateId == 162) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 141,
+      "name": "Hỏa Kỳ Lân",
+      "level": 55,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 162,
+      "name": "Hỏa Kỳ Lân",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1175,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 141 || getTemplate().mobTemplateId == 162) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 141,
+      "name": "Hỏa Kỳ Lân",
+      "level": 55,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 162,
+      "name": "Hỏa Kỳ Lân",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1232,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 166) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1236,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 166) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 166,
+      "name": "Sơn Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1448,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 201)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 201,
+      "name": "Kền Kền Vương",
+      "level": 90,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1449,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 201)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 201,
+      "name": "Kền Kền Vương",
+      "level": 90,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1450,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 201)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 201,
+      "name": "Kền Kền Vương",
+      "level": 90,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "109": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1162,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 40, cFocus.cy - 40), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1163,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 40, cFocus.cy - 40), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1164,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 20, cFocus.cy), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1165,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 20, cFocus.cy), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1188,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 40, cFocus.cy - 40), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 144 || getTemplate().mobTemplateId == 163)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 163,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1189,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 40, cFocus.cy - 40), lặp 1 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 144 || getTemplate().mobTemplateId == 163)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 163,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1190,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 20, cFocus.cy), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 144 || getTemplate().mobTemplateId == 163)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 163,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1191,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 20, cFocus.cy), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 144 || getTemplate().mobTemplateId == 163)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 163,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "110": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1373,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2482,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 2 lần",
+    "when": "else if (templateId == 140 || templateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "112": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1161,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 140 || getTemplate().mobTemplateId == 161)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 140,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 50,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 161,
+      "name": "Tử Lôi Diệu Thiên Long",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1187,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 144 || getTemplate().mobTemplateId == 163)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 163,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1408,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 167)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 167,
+      "name": "Thủy Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1409,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 167)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 167,
+      "name": "Thủy Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1410,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 167)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 167,
+      "name": "Thủy Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "116": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 4379,
+    "method": "startCoatEffect",
+    "how": "tại điểm (x, y), lặp 2 lần",
+    "when": "if (isWolf && arrItemMounts[4].sys >= 4 && getSys() > 0 && GameCanvas.gameTick % 8 == 0) › if (getSys() == 1)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     },
+     {
+      "kind": "element",
+      "name": "Hỏa"
+     }
+    ]
+   }
+  ],
+  "117": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 4383,
+    "method": "startCoatEffect",
+    "how": "tại điểm (x, y), lặp 2 lần",
+    "when": "if (isWolf && arrItemMounts[4].sys >= 4 && getSys() > 0 && GameCanvas.gameTick % 8 == 0) › else if (getSys() == 2)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     },
+     {
+      "kind": "element",
+      "name": "Thủy"
+     }
+    ]
+   }
+  ],
+  "118": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 4387,
+    "method": "startCoatEffect",
+    "how": "tại điểm (x, y), lặp 2 lần",
+    "when": "if (isWolf && arrItemMounts[4].sys >= 4 && getSys() > 0 && GameCanvas.gameTick % 8 == 0) › else if (getSys() == 3)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Sói (thú cưỡi)"
+     },
+     {
+      "kind": "element",
+      "name": "Phong"
+     }
+    ]
+   }
+  ],
+  "119": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5455,
+    "method": "messageSubCommand",
+    "how": "tại điểm (GameScr.gW2 + GameScr.cmx, GameScr.gH2 + GameScr.cmy), lặp 1 lần",
+    "when": "b == -58",
+    "who": [
+     {
+      "kind": "packet",
+      "name": "Gói -58: hiệu ứng tại chỗ"
+     }
+    ]
+   }
+  ],
+  "120": [
+   {
+    "file": "Assets/Scripts/Gameplay/Entities/Char.cs",
+    "line": 3281,
+    "method": "updateCharRun",
+    "how": "tại điểm (cx - (cdir << 5), cy), lặp 0 lần, lật theo hướng",
+    "when": "if (isMoto || isNewMount) › if (GameCanvas.gameTick % 5 == 0)",
+    "who": [
+     {
+      "kind": "mount",
+      "name": "Xe máy / thú cưỡi mới"
+     }
+    ]
+   }
+  ],
+  "121": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1386,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 141 || getTemplate().mobTemplateId == 162)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 141,
+      "name": "Hỏa Kỳ Lân",
+      "level": 55,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 162,
+      "name": "Hỏa Kỳ Lân",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2486,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "else if (templateId == 141 || templateId == 162)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 141,
+      "name": "Hỏa Kỳ Lân",
+      "level": 55,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 162,
+      "name": "Hỏa Kỳ Lân",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2490,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "else if (templateId == 144 || templateId == 163)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 144,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 163,
+      "name": "Phù thủy Bí Ngô",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "122": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1177,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y), lặp 1 lần, lật theo hướng",
+    "when": "if (typeAtt == 0) › if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 141 || getTemplate().mobTemplateId == 162)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 141,
+      "name": "Hỏa Kỳ Lân",
+      "level": 55,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 162,
+      "name": "Hỏa Kỳ Lân",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "123": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1197,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y - 5), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 160) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 160,
+      "name": "Bí ngô đại đầu quỷ",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1201,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y - 5), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 160) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 160,
+      "name": "Bí ngô đại đầu quỷ",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "124": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1396,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 2 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 160)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 160,
+      "name": "Bí ngô đại đầu quỷ",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2494,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (Char.getMyChar()), lặp 1 lần",
+    "when": "else if (templateId == 160)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 160,
+      "name": "Bí ngô đại đầu quỷ",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "125": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1209,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 164 || getTemplate().mobTemplateId == 165) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 164,
+      "name": "Băng Đế",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 165,
+      "name": "Băng Vương",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1213,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 164 || getTemplate().mobTemplateId == 165) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 164,
+      "name": "Băng Đế",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 165,
+      "name": "Băng Vương",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1221,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 167) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 167,
+      "name": "Thủy Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1225,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 167) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 167,
+      "name": "Thủy Tinh",
+      "level": 0,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "126": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1402,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 164 || getTemplate().mobTemplateId == 165)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 164,
+      "name": "Băng Đế",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 165,
+      "name": "Băng Vương",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 2498,
+    "method": "attackOtherInRange",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else if (templateId == 164 || templateId == 165)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 164,
+      "name": "Băng Đế",
+      "level": 100,
+      "boss": true
+     },
+     {
+      "kind": "mob",
+      "id": 165,
+      "name": "Băng Vương",
+      "level": 60,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "141": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 243,
+    "method": "onMessage",
+    "how": "tại điểm (char5.cx, char5.cy), lặp 2 lần",
+    "when": "msg.command == 119 › else if (b5 == 0) › if (char5 != null)",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 248,
+    "method": "onMessage",
+    "how": "tại điểm (char5.cx, char5.cy), lặp 2 lần",
+    "when": "msg.command == 119 › else if (b5 == 0) › if (char5 != null)",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 5910,
+    "method": "readCharInfo",
+    "how": "tại điểm (c.cx, c.cy), lặp 0 lần",
+    "when": "if (c.isNhanbanz())",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Screens/GameScr.cs",
+    "line": 21265,
+    "method": "moveFast",
+    "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy), lặp 2 lần",
+    "when": "if (i != index && fardistandsX[i] < rangeSearch && fardistandsY[i] < rangeSearch && Char.getMyChar().mobFocus == null) › if (mob.status != 0 && mob.status != 1 && mob.levelBoss != 3)",
+    "who": []
+   },
+   {
+    "file": "Assets/Scripts/Screens/GameScr.cs",
+    "line": 21270,
+    "method": "moveFast",
+    "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy), lặp 2 lần",
+    "when": "if (i != index && fardistandsX[i] < rangeSearch && fardistandsY[i] < rangeSearch && Char.getMyChar().mobFocus == null) › if (mob.status != 0 && mob.status != 1 && mob.levelBoss != 3)",
+    "who": []
+   }
+  ],
+  "142": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1081,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › if (getTemplate().mobTemplateId == 210) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 210,
+      "name": "Mỹ Hầu Vương",
+      "level": 130,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1085,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › if (getTemplate().mobTemplateId == 210) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 210,
+      "name": "Mỹ Hầu Vương",
+      "level": 130,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1265,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 200) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 200,
+      "name": "Lão Nhị",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1269,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 200) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 200,
+      "name": "Lão Nhị",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1424,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 198)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 198,
+      "name": "Lão Đại",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1425,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 198)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 198,
+      "name": "Lão Đại",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1426,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 198)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 198,
+      "name": "Lão Đại",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "143": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1243,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 198) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 198,
+      "name": "Lão Đại",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1247,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 198) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 198,
+      "name": "Lão Đại",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1432,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 199)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 199,
+      "name": "Lão Tam",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1433,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 199)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 199,
+      "name": "Lão Tam",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1434,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 199)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 199,
+      "name": "Lão Tam",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "144": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1254,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 199) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 199,
+      "name": "Lão Tam",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1258,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 199) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 199,
+      "name": "Lão Tam",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1276,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 201) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 201,
+      "name": "Kền Kền Vương",
+      "level": 90,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1280,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 201) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 201,
+      "name": "Kền Kền Vương",
+      "level": 90,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1440,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 200)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 200,
+      "name": "Lão Nhị",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1441,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 200)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 200,
+      "name": "Lão Nhị",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1442,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 200)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 200,
+      "name": "Lão Nhị",
+      "level": 99,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "148": [
+   {
+    "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+    "line": 2882,
+    "method": "onMessage",
+    "how": "tại điểm (mob.x, mob.y), lặp 0 lần",
+    "when": "msg.command == -5 › if (mob.getTemplate().mobTemplateId == 202)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 202,
+      "name": "Kền kền nhất tộc",
+      "level": 0,
+      "boss": false
+     },
+     {
+      "kind": "packet",
+      "name": "Gói -5: quái bị đánh"
+     }
+    ]
+   }
+  ],
+  "149": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1456,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 203)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1457,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 203)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1458,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 203)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "153": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1465,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx + 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 204)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1466,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx - 5, cFocus.cy), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 204)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1467,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 204)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "156": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1288,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 203) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1293,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp -1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 203) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1459,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 203)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "159": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1287,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 203) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1292,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 203) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 203,
+      "name": "Đại Lực Sĩ",
+      "level": 110,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1300,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x + w / 2, y), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 204) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1305,
+    "method": "updateMobAttack",
+    "how": "tại điểm (x - w / 2, y), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 204) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "173": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1301,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp 1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 204) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1306,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp -1 lần",
+    "when": "if (isBoss && Res.abs(num - x) < 48 && Res.abs(num2 - y) < 15) › else if (getTemplate().mobTemplateId == 204) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1468,
+    "method": "updateMobAttack",
+    "how": "bám theo nhân vật (cFocus), lặp 1 lần",
+    "when": "else › if (isBoss) › else if (getTemplate().mobTemplateId == 204)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 204,
+      "name": "U Minh Khuyển",
+      "level": 100,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "178": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1323,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp 1 lần",
+    "when": "if (isBoss) › if (getTemplate().mobTemplateId == 210) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 210,
+      "name": "Mỹ Hầu Vương",
+      "level": 130,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1327,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss) › if (getTemplate().mobTemplateId == 210) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 210,
+      "name": "Mỹ Hầu Vương",
+      "level": 130,
+      "boss": true
+     }
+    ]
+   }
+  ],
+  "179": [
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1334,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp 1 lần",
+    "when": "if (isBoss) › else if (getTemplate().mobTemplateId == 209) › if (cFocus.cx > x)",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 209,
+      "name": "Mỹ Hầu Tướng",
+      "level": 80,
+      "boss": true
+     }
+    ]
+   },
+   {
+    "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+    "line": 1338,
+    "method": "updateMobAttack",
+    "how": "tại điểm (cFocus.cx, cFocus.cy), lặp 1 lần, lật theo hướng",
+    "when": "if (isBoss) › else if (getTemplate().mobTemplateId == 209) › else",
+    "who": [
+     {
+      "kind": "mob",
+      "id": 209,
+      "name": "Mỹ Hầu Tướng",
+      "level": 80,
+      "boss": true
+     }
+    ]
+   }
+  ]
+ },
+ "dynamic": [
+  {
+   "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+   "line": 913,
+   "method": "updateTypeMobAttk",
+   "how": "tại điểm (num, num2), lặp 1 lần, lật theo hướng",
+   "when": "if (isBoss) › if (frameIndex == arrMobTemplate[templateId].frameBossAttack[typeAtt].Length - 1) › if (typeTool == 0)",
+   "who": [],
+   "idExpr": "idSkill_atk"
+  },
+  {
+   "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+   "line": 924,
+   "method": "updateTypeMobAttk",
+   "how": "tại điểm (num, num2), lặp 1 lần, lật theo hướng",
+   "when": "if (p1 == 0) › else",
+   "who": [],
+   "idExpr": "idSkill_atk"
+  },
+  {
+   "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+   "line": 2417,
+   "method": "setatk_mob",
+   "how": "tại điểm (mobToAttack.x, mobToAttack.y), lặp (dir != 0) ? 1 : (-1) lần",
+   "when": "else › if (mobToAttack.status == 1 || mobToAttack.status == 0 || (Res.abs(num) < 20 && Res.abs(num2) < 20)) › if (typeTool == 0)",
+   "who": [],
+   "idExpr": "(idSkill_atk != -1) ? idSkill_atk : 59"
+  },
+  {
+   "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+   "line": 2445,
+   "method": "setatk_mob",
+   "how": "tại điểm (charToAttack.cx, charToAttack.cy), lặp (dir != 0) ? 1 : (-1) lần",
+   "when": "if (charToAttack.statusMe == 5 || charToAttack.statusMe == 14 || (Res.abs(num3) < 20 && Res.abs(num4) < 20)) › if (typeTool == 0)",
+   "who": [],
+   "idExpr": "(idSkill_atk != -1) ? idSkill_atk : 59"
+  },
+  {
+   "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+   "line": 2786,
+   "method": "updateAttk_Thunuoi",
+   "how": "tại điểm (num, cy), lặp 1 lần, lật theo hướng",
+   "when": "if (isBoss) › if (frameIndex == arrMobTemplate[templateId].frameBossAttack[typeAtt].Length - 2) › if (typeTool == 0)",
+   "who": [],
+   "idExpr": "(idSkill_atk != -1) ? idSkill_atk : 59"
+  },
+  {
+   "file": "Assets/Scripts/Networking/Protocol/Controller.cs",
+   "line": 5537,
+   "method": "messageSubCommand",
+   "how": "tại điểm (Char.getMyChar().cx, Char.getMyChar().cy), lặp 1 lần",
+   "when": "b == -78",
+   "who": [
+    {
+     "kind": "packet",
+     "name": "Gói -78: server gửi hiệu ứng lên nhân vật mình"
+    }
+   ],
+   "idExpr": "msg.reader().readShort()"
+  }
+ ],
+ "allMobs": [
+  {
+   "id": 70,
+   "name": "Dơi đen",
+   "level": 0
+  },
+  {
+   "id": 90,
+   "name": "Dơi xám",
+   "level": 0
+  },
+  {
+   "id": 98,
+   "name": "Bạch Long trụ",
+   "level": 0
+  },
+  {
+   "id": 99,
+   "name": "Hắc Long trụ",
+   "level": 0
+  },
+  {
+   "id": 111,
+   "name": "Ma một mắt",
+   "level": 0
+  },
+  {
+   "id": 113,
+   "name": "Mộc nhân",
+   "level": 0
+  },
+  {
+   "id": 122,
+   "name": "Chim tinh anh",
+   "level": 0
+  },
+  {
+   "id": 142,
+   "name": "Giỏ kẹo trắng",
+   "level": 0
+  },
+  {
+   "id": 143,
+   "name": "Giỏ kẹo đen",
+   "level": 0
+  },
+  {
+   "id": 145,
+   "name": "Bí ngô mặt quỷ",
+   "level": 0
+  },
+  {
+   "id": 150,
+   "name": "Bí ngô câu hồn",
+   "level": 0
+  },
+  {
+   "id": 174,
+   "name": "Thạch tộc",
+   "level": 0
+  },
+  {
+   "id": 176,
+   "name": "Tử hồn",
+   "level": 0
+  },
+  {
+   "id": 183,
+   "name": "Tà tâm thủy",
+   "level": 0
+  },
+  {
+   "id": 191,
+   "name": "Thực giả thú",
+   "level": 0
+  },
+  {
+   "id": 202,
+   "name": "Kền kền nhất tộc",
+   "level": 0
+  },
+  {
+   "id": 205,
+   "name": "Lồng đèn tròn",
+   "level": 0
+  },
+  {
+   "id": 206,
+   "name": "Lồng đèn cá chép",
+   "level": 0
+  },
+  {
+   "id": 207,
+   "name": "Lồng đèn ngôi sao",
+   "level": 0
+  },
+  {
+   "id": 208,
+   "name": "Lồng đèn mặt trăng",
+   "level": 0
+  },
+  {
+   "id": 219,
+   "name": "Con ma",
+   "level": 0
+  },
+  {
+   "id": 233,
+   "name": "Koro",
+   "level": 0
+  },
+  {
+   "id": 257,
+   "name": "Trứng vĩ thú",
+   "level": 0
+  },
+  {
+   "id": 260,
+   "name": "Lồng Đèn Rồng",
+   "level": 0
+  },
+  {
+   "id": 0,
+   "name": "Bù nhìn",
+   "level": 1
+  },
+  {
+   "id": 1,
+   "name": "Ốc sên",
+   "level": 3
+  },
+  {
+   "id": 2,
+   "name": "Cóc xanh",
+   "level": 5
+  },
+  {
+   "id": 3,
+   "name": "Nhím đá",
+   "level": 6
+  },
+  {
+   "id": 4,
+   "name": "Thỏ xám",
+   "level": 8
+  },
+  {
+   "id": 54,
+   "name": "Thảo dược",
+   "level": 8
+  },
+  {
+   "id": 5,
+   "name": "Rùa vàng",
+   "level": 10
+  },
+  {
+   "id": 10,
+   "name": "Ong vàng",
+   "level": 10
+  },
+  {
+   "id": 6,
+   "name": "Nhện đốm",
+   "level": 11
+  },
+  {
+   "id": 11,
+   "name": "Cánh cam",
+   "level": 11
+  },
+  {
+   "id": 7,
+   "name": "Quỷ 1 mắt",
+   "level": 12
+  },
+  {
+   "id": 12,
+   "name": "Cóc lục",
+   "level": 12
+  },
+  {
+   "id": 8,
+   "name": "Muỗi rừng",
+   "level": 13
+  },
+  {
+   "id": 13,
+   "name": "Dơi",
+   "level": 13
+  },
+  {
+   "id": 9,
+   "name": "Quỷ 1 chân",
+   "level": 14
+  },
+  {
+   "id": 14,
+   "name": "Bướm lửa",
+   "level": 14
+  },
+  {
+   "id": 15,
+   "name": "Ốc đá",
+   "level": 15
+  },
+  {
+   "id": 16,
+   "name": "Piranha",
+   "level": 16
+  },
+  {
+   "id": 17,
+   "name": "Kiếm quỷ",
+   "level": 17
+  },
+  {
+   "id": 18,
+   "name": "Bọ nón cối",
+   "level": 18
+  },
+  {
+   "id": 19,
+   "name": "Chuồn chuồn",
+   "level": 19
+  },
+  {
+   "id": 20,
+   "name": "Sâu xanh",
+   "level": 20
+  },
+  {
+   "id": 21,
+   "name": "Piranha đỏ",
+   "level": 21
+  },
+  {
+   "id": 22,
+   "name": "Chuột đồng",
+   "level": 22
+  },
+  {
+   "id": 23,
+   "name": "Bò cạp đá",
+   "level": 23
+  },
+  {
+   "id": 24,
+   "name": "Rắn lục",
+   "level": 24
+  },
+  {
+   "id": 25,
+   "name": "Ốc bưu",
+   "level": 25
+  },
+  {
+   "id": 26,
+   "name": "Khỉ",
+   "level": 26
+  },
+  {
+   "id": 27,
+   "name": "Châu chấu",
+   "level": 27
+  },
+  {
+   "id": 28,
+   "name": "Muỗi vằn",
+   "level": 28
+  },
+  {
+   "id": 29,
+   "name": "Doeto",
+   "level": 29
+  },
+  {
+   "id": 30,
+   "name": "Quỷ băng",
+   "level": 30
+  },
+  {
+   "id": 69,
+   "name": "Heo rừng",
+   "level": 30
+  },
+  {
+   "id": 31,
+   "name": "Quỷ hoa",
+   "level": 31
+  },
+  {
+   "id": 32,
+   "name": "Bọ hung",
+   "level": 32
+  },
+  {
+   "id": 33,
+   "name": "Xương khô",
+   "level": 33
+  },
+  {
+   "id": 34,
+   "name": "Rùa tai xanh",
+   "level": 34
+  },
+  {
+   "id": 35,
+   "name": "Cua biển",
+   "level": 35
+  },
+  {
+   "id": 71,
+   "name": "Heo mọi",
+   "level": 35
+  },
+  {
+   "id": 83,
+   "name": "Dơi thủ hộ",
+   "level": 35
+  },
+  {
+   "id": 84,
+   "name": "Nhện hút máu",
+   "level": 35
+  },
+  {
+   "id": 36,
+   "name": "Ma 1 mắt",
+   "level": 36
+  },
+  {
+   "id": 37,
+   "name": "Rết tinh",
+   "level": 37
+  },
+  {
+   "id": 38,
+   "name": "Dơi vàng",
+   "level": 38
+  },
+  {
+   "id": 39,
+   "name": "Heo vòi",
+   "level": 39
+  },
+  {
+   "id": 88,
+   "name": "Ninja hắc ám",
+   "level": 39
+  },
+  {
+   "id": 40,
+   "name": "Quỷ đầu lâu",
+   "level": 40
+  },
+  {
+   "id": 92,
+   "name": "Quỷ tóc đỏ",
+   "level": 40
+  },
+  {
+   "id": 41,
+   "name": "Dơi lửa",
+   "level": 41
+  },
+  {
+   "id": 42,
+   "name": "Ốc ma",
+   "level": 42
+  },
+  {
+   "id": 43,
+   "name": "Chuột chũi",
+   "level": 43
+  },
+  {
+   "id": 44,
+   "name": "Dù ma",
+   "level": 44
+  },
+  {
+   "id": 45,
+   "name": "Mực",
+   "level": 45
+  },
+  {
+   "id": 85,
+   "name": "Ong đất",
+   "level": 45
+  },
+  {
+   "id": 86,
+   "name": "Bọ ngựa ma",
+   "level": 45
+  },
+  {
+   "id": 87,
+   "name": "Kỳ đà núi",
+   "level": 45
+  },
+  {
+   "id": 97,
+   "name": "Vẹt thủ hộ",
+   "level": 45
+  },
+  {
+   "id": 46,
+   "name": "Nắp ấm bùn",
+   "level": 46
+  },
+  {
+   "id": 47,
+   "name": "Cá hổ",
+   "level": 47
+  },
+  {
+   "id": 48,
+   "name": "Rắn tía",
+   "level": 48
+  },
+  {
+   "id": 49,
+   "name": "Quỷ mọi",
+   "level": 49
+  },
+  {
+   "id": 89,
+   "name": "Thiên vương",
+   "level": 49
+  },
+  {
+   "id": 50,
+   "name": "Cua đá",
+   "level": 50
+  },
+  {
+   "id": 51,
+   "name": "Mada",
+   "level": 51
+  },
+  {
+   "id": 52,
+   "name": "Mada con",
+   "level": 52
+  },
+  {
+   "id": 53,
+   "name": "Nấm độc",
+   "level": 53
+  },
+  {
+   "id": 55,
+   "name": "Kappa",
+   "level": 55
+  },
+  {
+   "id": 100,
+   "name": "Xích trùng",
+   "level": 55
+  },
+  {
+   "id": 101,
+   "name": "Lam hoàng xà",
+   "level": 55
+  },
+  {
+   "id": 102,
+   "name": "Ốc anh vũ",
+   "level": 55
+  },
+  {
+   "id": 103,
+   "name": "Xích long xà",
+   "level": 55
+  },
+  {
+   "id": 104,
+   "name": "Ngân lang",
+   "level": 55
+  },
+  {
+   "id": 56,
+   "name": "Omalai",
+   "level": 56
+  },
+  {
+   "id": 57,
+   "name": "Oan hồn",
+   "level": 57
+  },
+  {
+   "id": 58,
+   "name": "Bọ xanh",
+   "level": 58
+  },
+  {
+   "id": 59,
+   "name": "Sên",
+   "level": 59
+  },
+  {
+   "id": 105,
+   "name": "Ngân lang vương",
+   "level": 59
+  },
+  {
+   "id": 60,
+   "name": "Ma đêm",
+   "level": 60
+  },
+  {
+   "id": 61,
+   "name": "Bướm phấn",
+   "level": 61
+  },
+  {
+   "id": 62,
+   "name": "Cá đèn",
+   "level": 62
+  },
+  {
+   "id": 63,
+   "name": "Xác mù",
+   "level": 63
+  },
+  {
+   "id": 64,
+   "name": "Ốc gai",
+   "level": 64
+  },
+  {
+   "id": 184,
+   "name": "Quỷ bùn",
+   "level": 64
+  },
+  {
+   "id": 65,
+   "name": "Bò cạp lửa",
+   "level": 65
+  },
+  {
+   "id": 117,
+   "name": "Thiên long quỷ",
+   "level": 65
+  },
+  {
+   "id": 118,
+   "name": "Địa ngư quỷ",
+   "level": 65
+  },
+  {
+   "id": 119,
+   "name": "Kền kền quỷ",
+   "level": 65
+  },
+  {
+   "id": 120,
+   "name": "Trùng tam sắc",
+   "level": 65
+  },
+  {
+   "id": 121,
+   "name": "Lam thạch thảo",
+   "level": 65
+  },
+  {
+   "id": 66,
+   "name": "Hoa ăn thịt",
+   "level": 66
+  },
+  {
+   "id": 67,
+   "name": "Xương mắt đỏ",
+   "level": 67
+  },
+  {
+   "id": 68,
+   "name": "Ong lửa",
+   "level": 68
+  },
+  {
+   "id": 170,
+   "name": "Kền kền xám",
+   "level": 68
+  },
+  {
+   "id": 129,
+   "name": "Nhất chân tộc",
+   "level": 71
+  },
+  {
+   "id": 132,
+   "name": "Địa lam thụ",
+   "level": 74
+  },
+  {
+   "id": 169,
+   "name": "Thực hồn thảo",
+   "level": 74
+  },
+  {
+   "id": 123,
+   "name": "Tử mộc",
+   "level": 75
+  },
+  {
+   "id": 124,
+   "name": "Hỏa hồn",
+   "level": 75
+  },
+  {
+   "id": 125,
+   "name": "Thạch trùng",
+   "level": 75
+  },
+  {
+   "id": 126,
+   "name": "Thiên mộng tằm",
+   "level": 75
+  },
+  {
+   "id": 127,
+   "name": "Độc phong",
+   "level": 75
+  },
+  {
+   "id": 128,
+   "name": "Thiên quân nghĩ",
+   "level": 75
+  },
+  {
+   "id": 135,
+   "name": "Hắc nhãn oa",
+   "level": 77
+  },
+  {
+   "id": 178,
+   "name": "Sói xanh",
+   "level": 77
+  },
+  {
+   "id": 130,
+   "name": "Lam tinh thử",
+   "level": 80
+  },
+  {
+   "id": 186,
+   "name": "Độc nhãn xà",
+   "level": 83
+  },
+  {
+   "id": 134,
+   "name": "Huyền nhãn phong",
+   "level": 84
+  },
+  {
+   "id": 181,
+   "name": "Cá răng cưa",
+   "level": 85
+  },
+  {
+   "id": 137,
+   "name": "Độc nhãn quỷ",
+   "level": 88
+  },
+  {
+   "id": 168,
+   "name": "Tử thần",
+   "level": 88
+  },
+  {
+   "id": 146,
+   "name": "Bò cạp đất",
+   "level": 90
+  },
+  {
+   "id": 147,
+   "name": "Địa tinh quỷ",
+   "level": 90
+  },
+  {
+   "id": 148,
+   "name": "Vô chi oa",
+   "level": 90
+  },
+  {
+   "id": 149,
+   "name": "Thực nhân hoa",
+   "level": 90
+  },
+  {
+   "id": 151,
+   "name": "Địa tâm thử",
+   "level": 90
+  },
+  {
+   "id": 152,
+   "name": "Ong đầu quỷ",
+   "level": 90
+  },
+  {
+   "id": 153,
+   "name": "Thiên độc trùng",
+   "level": 90
+  },
+  {
+   "id": 154,
+   "name": "Khô lâu thú",
+   "level": 90
+  },
+  {
+   "id": 155,
+   "name": "Hắc ma",
+   "level": 90
+  },
+  {
+   "id": 156,
+   "name": "Nhím nanh trắng",
+   "level": 90
+  },
+  {
+   "id": 157,
+   "name": "Gekkonidae",
+   "level": 90
+  },
+  {
+   "id": 158,
+   "name": "Độc thiên nhãn",
+   "level": 90
+  },
+  {
+   "id": 159,
+   "name": "Yêu hỏa",
+   "level": 90
+  },
+  {
+   "id": 136,
+   "name": "Khô lâu tướng",
+   "level": 92
+  },
+  {
+   "id": 185,
+   "name": "Khô lâu tí hon",
+   "level": 92
+  },
+  {
+   "id": 131,
+   "name": "Giao long tướng",
+   "level": 96
+  },
+  {
+   "id": 177,
+   "name": "Bất diệt binh",
+   "level": 96
+  },
+  {
+   "id": 171,
+   "name": "Hỏa nha",
+   "level": 99
+  },
+  {
+   "id": 179,
+   "name": "Kẻ săn tử thần",
+   "level": 99
+  },
+  {
+   "id": 193,
+   "name": "Độc nhãn quái",
+   "level": 99
+  },
+  {
+   "id": 194,
+   "name": "Địa linh ngư",
+   "level": 99
+  },
+  {
+   "id": 195,
+   "name": "Trùng phấn",
+   "level": 99
+  },
+  {
+   "id": 72,
+   "name": "Lửa ma",
+   "level": 100
+  },
+  {
+   "id": 73,
+   "name": "Tử thần",
+   "level": 100
+  },
+  {
+   "id": 74,
+   "name": "Dơi đầu lâu",
+   "level": 100
+  },
+  {
+   "id": 76,
+   "name": "Quỷ mộc",
+   "level": 100
+  },
+  {
+   "id": 77,
+   "name": "Ong tà ác",
+   "level": 100
+  },
+  {
+   "id": 78,
+   "name": "Vẹt đỏ",
+   "level": 100
+  },
+  {
+   "id": 80,
+   "name": "Dù lêu lêu",
+   "level": 100
+  },
+  {
+   "id": 82,
+   "name": "Bạo quân",
+   "level": 100
+  },
+  {
+   "id": 133,
+   "name": "Thằn lằn đất",
+   "level": 100
+  },
+  {
+   "id": 175,
+   "name": "Bạch diện yêu",
+   "level": 103
+  },
+  {
+   "id": 180,
+   "name": "Ma săn ninja",
+   "level": 107
+  },
+  {
+   "id": 182,
+   "name": "Cua mặt quỷ",
+   "level": 114
+  },
+  {
+   "id": 187,
+   "name": "Phong lôi thú",
+   "level": 117
+  },
+  {
+   "id": 172,
+   "name": "Yêu trùng",
+   "level": 123
+  },
+  {
+   "id": 189,
+   "name": "Tiểu sơn thử",
+   "level": 126
+  },
+  {
+   "id": 75,
+   "name": "Bạo ngư",
+   "level": 130
+  },
+  {
+   "id": 79,
+   "name": "Mặt nạ sắt",
+   "level": 130
+  },
+  {
+   "id": 81,
+   "name": "Lam thảo",
+   "level": 130
+  },
+  {
+   "id": 91,
+   "name": "Hắc bạch giả",
+   "level": 130
+  },
+  {
+   "id": 93,
+   "name": "Nhím gai",
+   "level": 130
+  },
+  {
+   "id": 94,
+   "name": "Nhện tinh",
+   "level": 130
+  },
+  {
+   "id": 95,
+   "name": "Tử điệp",
+   "level": 130
+  },
+  {
+   "id": 96,
+   "name": "Ong tử sĩ",
+   "level": 130
+  },
+  {
+   "id": 106,
+   "name": "Ong cánh trắng",
+   "level": 130
+  },
+  {
+   "id": 107,
+   "name": "Chuột ú",
+   "level": 130
+  },
+  {
+   "id": 108,
+   "name": "Thạch giác",
+   "level": 130
+  },
+  {
+   "id": 109,
+   "name": "Bọ cánh cứng",
+   "level": 130
+  },
+  {
+   "id": 110,
+   "name": "Ốc sên gai",
+   "level": 130
+  },
+  {
+   "id": 112,
+   "name": "Mực ống đỏ",
+   "level": 130
+  },
+  {
+   "id": 190,
+   "name": "Thi quỷ",
+   "level": 131
+  },
+  {
+   "id": 192,
+   "name": "Quỷ hầu viên",
+   "level": 137
+  },
+  {
+   "id": 188,
+   "name": "Bọ cánh tím",
+   "level": 142
+  },
+  {
+   "id": 197,
+   "name": "Độc thủy thú",
+   "level": 148
+  },
+  {
+   "id": 196,
+   "name": "Bạt sơn nghĩ",
+   "level": 153
+  },
+  {
+   "id": 173,
+   "name": "Thủy tộc",
+   "level": 159
+  }
+ ]
+}
