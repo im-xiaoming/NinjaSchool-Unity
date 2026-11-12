@@ -109,5 +109,5 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ss]ceneDependencyCache*
 .vscode
 .env
-/Packages/*
-/Packages
+# Embedded copy of the Unity AI Assistant package (607 MB, files over GitHub's 100 MB limit)
+/Packages/com.unity.ai.assistant/
