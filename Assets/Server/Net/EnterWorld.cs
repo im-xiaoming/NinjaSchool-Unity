@@ -87,7 +87,7 @@ namespace NsoServer.Net
             w.WriteByte(p.TaskId);
             w.WriteByte(p.Gender);
             w.WriteShort(p.Head);
-            w.WriteByte(FreshSpeed);
+            w.WriteByte(state != null ? state.Speed : FreshSpeed);
             w.WriteUTF(p.Name);
             w.WriteByte(0);              // hieuChien
             w.WriteByte(0);              // typePk
@@ -96,7 +96,7 @@ namespace NsoServer.Net
             w.WriteInt(maxMp);           // maxMP
             w.WriteInt(mp);              // mp
             w.WriteLong(p.Exp);
-            w.WriteLong(0);              // expDown
+            w.WriteLong(state != null ? state.ExpDown : 0); // expDown
             w.WriteShort(0);             // eff5buffhp
             w.WriteShort(0);             // eff5buffmp
             w.WriteByte(p.ClassId);
@@ -192,7 +192,7 @@ namespace NsoServer.Net
             {
                 int levelBoss = mob.LevelBoss, hp = mob.Hp, maxHp = mob.MaxHp;
                 // a chief/elite is only shown as such to players who have fought it
-                if (levelBoss == 1 || levelBoss == 2)
+                if ((levelBoss == 1 || levelBoss == 2) && !mob.HasTunedHp)
                 {
                     levelBoss = 0;
                     maxHp = mob.Template.Hp;

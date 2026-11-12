@@ -438,8 +438,15 @@ public class Menu
                 string[] lines = item.subCaption;
                 int lineCount = lines == null ? 1 : lines.Length;
                 int num = menuTemY[i] + (menuH - lineCount * 14) / 2 + 1;
-                for (int j = 0; j < lineCount; j++)
-                    mFont.tahoma_7_yellow.drawString(g, lines == null ? item.caption : lines[j], menuX + i * menuW + menuW / 2 - 2, num + j * 14, 2);
+                // Offline fix: centre the caption by its drawn pixels ("menuCell" in TextCalib), not by the bitmap font's advance box,
+                // which put the text visibly right of the cell centre. Vertical position is unchanged.
+                TextCalib.Use("menuCell");
+                try
+                {
+                    for (int j = 0; j < lineCount; j++)
+                        mFont.tahoma_7_yellow.drawString(g, lines == null ? item.caption : lines[j], menuX + i * menuW + menuW / 2 - 2, num + j * 14, 2);
+                }
+                finally { TextCalib.Clear(); }
             }
 		}
 		g.translate(-g.getTranslateX(), -g.getTranslateY());

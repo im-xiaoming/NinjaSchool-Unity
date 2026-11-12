@@ -6,17 +6,17 @@ using UnityEngine;
 // (the game's own units, so they stay right at every zoom level) and are saved in PlayerPrefs.
 public class TextCalib : MonoBehaviour
 {
-    public static readonly string[] Items = { "global", "level", "exp", "hp", "mp", "zone", "button", "sign", "buttonLeft", "buttonCenter", "buttonRight", "command", "titleMenu" };
+    public static readonly string[] Items = { "global", "level", "exp", "hp", "mp", "zone", "button", "sign", "buttonLeft", "buttonCenter", "buttonRight", "command", "titleMenu", "menuCell" };
     public static readonly string[] Labels =
     {
-        "All text", "Level number (HUD)", "Exp percent (HUD)", "HP number", "MP number", "Zone numbers", "Button captions (all)", "Zone sign number", "Left button caption", "Center button caption", "Right button caption", "Menu command button caption", "Title menu rows"
+        "All text", "Level number (HUD)", "Exp percent (HUD)", "HP number", "MP number", "Zone numbers", "Button captions (all)", "Zone sign number", "Left button caption", "Center button caption", "Right button caption", "Menu command button caption", "Title menu rows", "Menu cell captions"
     };
 
     // Items: global, level, exp, hp, mp, zone, button, sign, buttonLeft, buttonCenter, buttonRight, command.
     // Each text has its own offset (game pixels, +x right, +y down) on top of the original coordinates. Measured from a 1920x1080 run
     // at UI zoom 3 so the level and exp sit on the circle's centre and the hp/mp numbers on their bars' centre lines.
-    private static readonly float[] defaultX = { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f };
-    private static readonly float[] defaultY = { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f };
+    private static readonly float[] defaultX = { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -0.5f };   // menuCell: anchor is 0.5 px right of the cell image centre
+    private static readonly float[] defaultY = { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f };
     private static readonly Dictionary<string, Vector2> values = new Dictionary<string, Vector2>();
 
     public static bool Open;
@@ -229,17 +229,5 @@ public class TextCalib : MonoBehaviour
         values.Remove(key);
     }
 
-    private void OnGUI()
-    {
-        Event e = Event.current;
-        if (e.type != EventType.KeyDown) return;
-        if (e.keyCode == KeyCode.F6)
-        {
-            Open = !Open;
-            if (Open) NsoSettingsMenu.OnOpened();   // F6 always opens on the Settings page
-            e.Use();
-            return;
-        }
-        if (Open && NsoSettingsMenu.Key(e)) e.Use();   // Settings window, or the text-offset tool inside it
-    }
+    // Keyboard routing is owned by NsoInputSystemBridge, not the repeated IMGUI paint loop.
 }

@@ -33,6 +33,7 @@ namespace NsoServer.DevWiki
         private System.Collections.Generic.Dictionary<string, object> dbParsed;   // db parsed once for the API
 
         public WikiControl Control; // optional: read-only wiki still works without a live game
+        public WikiSprites Sprites; // optional: original game images, read-only and bounded-cache
         public Action<string> Logger = _ => { };
         public string Url { get; private set; }   // null until the wiki thread has bound a port
         public Action<string> Started = _ => { };  // called on the wiki thread once listening (argument: Url)
@@ -173,7 +174,7 @@ namespace NsoServer.DevWiki
                     if (method == "POST")
                     {
                         string token, origin, contentType, length;
-                        if ((path != "/control/rules" && path != "/control/combat") || Control == null)
+                        if ((path != "/control/rules" && path != "/control/combat" && path != "/control/dashboard") || Control == null)
                         { Send(stream, 404, "application/json", "{\"error\":\"Unknown write route\"}"); return; }
                         if (!headers.TryGetValue("X-Nso-Control", out token) || token != Control.Token ||
                             (headers.TryGetValue("Origin", out origin) && origin != "http://" + authority && origin != "http://" + local))
@@ -195,7 +196,14 @@ namespace NsoServer.DevWiki
                         Send(stream, result.Key, "application/json; charset=utf-8", result.Value); return;
                     }
                     if (method != "GET") { Send(stream, 405, "application/json", "{\"error\":\"Read-only route\"}"); return; }
-                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js")
+                    if (path.StartsWith("/sprites/", StringComparison.Ordinal))
+                    {
+                        var asset = Sprites == null ? null : Sprites.Read(path);
+                        if (asset == null) Send(stream, 404, "text/plain", "Sprite unavailable");
+                        else Send(stream, 200, asset.ContentType, asset.Data, "public, max-age=3600");
+                        return;
+                    }
+                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js" || path == "/dashboard.js" || path == "/progression.js" || path == "/sprites.js" || path == "/effects.js")
                     {
                         string name = path == "/" ? "index.html" : path.Substring(1);
                         string file = Path.Combine(folder, name);
@@ -219,10 +227,14 @@ namespace NsoServer.DevWiki
 
         private static void Send(Stream s, int status, string type, string body)
         {
-            byte[] data = Encoding.UTF8.GetBytes(body);
+            Send(s, status, type, Encoding.UTF8.GetBytes(body), "no-store");
+        }
+
+        private static void Send(Stream s, int status, string type, byte[] data, string cacheControl)
+        {
             string reason = status == 200 ? "OK" : status == 404 ? "Not Found" : status == 400 ? "Bad Request" : status == 405 ? "Method Not Allowed" : status == 403 ? "Forbidden" : status == 409 ? "Conflict" : status == 413 ? "Payload Too Large" : status == 503 ? "Service Unavailable" : "Error";
             string head = "HTTP/1.1 " + status + " " + reason + "\r\nContent-Type: " + type + "\r\nContent-Length: " + data.Length +
-                          "\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\nConnection: close\r\n\r\n";
+                          "\r\nCache-Control: " + cacheControl + "\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\nConnection: close\r\n\r\n";
             byte[] h = Encoding.ASCII.GetBytes(head);
             s.Write(h, 0, h.Length);
             s.Write(data, 0, data.Length);

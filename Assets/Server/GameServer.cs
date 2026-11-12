@@ -45,6 +45,16 @@ namespace NsoServer
                 try { World.CombatRules = NsoServer.World.CombatRules.Load(Path.Combine(Config.DataDirectory, "combat-rules.json")); }
                 catch (Exception ex) { Log("combat rules load error (defaults retained): " + ex.Message); }
             }
+            if (World != null)
+            {
+                try { World.MobTuning = NsoServer.World.MobTuning.Load(System.IO.Path.Combine(Config.DataDirectory, "monster-tuning.json"), World); }
+                catch (Exception ex) { Log("monster tuning load error (defaults retained): " + ex.Message); }
+            }
+            if (World != null)
+            {
+                try { World.BalanceRules = NsoServer.World.GameBalanceRules.Load(System.IO.Path.Combine(Config.DataDirectory, "game-balance.json"), World); }
+                catch (Exception ex) { Log("balance load error (defaults retained): " + ex.Message); }
+            }
             running = true;
             new Thread(TickLoop) { IsBackground = true, Name = "nso-tick" }.Start();
             Log("Server started");

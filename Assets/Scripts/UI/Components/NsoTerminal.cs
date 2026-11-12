@@ -146,7 +146,7 @@ public static class NsoTerminal
 		{
 			View.addElement(Log.elementAt(i));
 		}
-		string line = Prompt + (typing ?? "") + UnityEngine.Input.compositionString;   // IME text not yet committed
+		string line = Prompt + (typing ?? "") + NsoInputSystemBridge.Composition;   // IME text not yet committed
 		// Long input: show its tail so the caret stays visible.
 		int width = GameScr.popupW > 60 ? GameScr.popupW - 30 : 160;
 		while (line.Length > 1 && mFont.tahoma_7.getWidth(line) + CaretWidth + 2 > width)

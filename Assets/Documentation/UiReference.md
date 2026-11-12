@@ -196,3 +196,39 @@ NSO Game Control > Gameplay > `_instantMovementStop` (Instant Movement Stop, def
 
 ## Render-motion tunables (2026-11-12)
 NSO Game Control: `_smoothWorldMotion` true adds fractional camera/world/projectile placement. `_smoothEffects` also smooths weather particles and Scroll content. Render cap `_targetFrameRate` range is 60-144, default 60; original logic remains 24. Scroll viewport/hit-testing are unchanged. No asset interpolation/new sprite frames. Checks: Tools/verify_world_presentation.cs (94); measurement: Tools/measure_presentation_rate.cs -> %TEMP%/nso-presentation-rate.txt.
+
+## Notification ticker smoothing (2026-11-12)
+Info/InfoMe use fractional render-time text placement when NSO Game Control > Smooth Effects is enabled. Logical text speed, dwell time and viewport clipping are unchanged. Final change is compile-verified; visual checks are left to the user.
+
+## Wheel input (2026-11-12)
+Information/skill panels use existing Scroll mouse-wheel handling. The input bridge now respects normalized wheel notches; only native Windows range is divided by 120. WheelStepPx remains 24. Hardware verification is left to the user.
+
+## Workbench dark appearance (2026-11-12)
+Dev wiki defaults to dark mode. Reading text is mostly 15-17px, labels heavier, navigation wider. UI fonts prefer native Apple/SF Pro; Windows uses Segoe UI when Apple fonts are unavailable. Code prefers SF Mono/Menlo with Consolas fallback. No external font requests or font assets. Refresh the local website to apply.
+
+### Unified web font correction (2026-11-12)
+Supersedes the separate code-font description above: code, JSON, IDs and all UI now share --font-ui. There is no separate monospace font family.
+
+## Global balancing dashboard (2026-11-12)
+Open #dashboard / Can bang game. Character tab: global percent/flat coefficients for four potentials, fourteen combat stats and future EXP gain. Equipment tab: all equipment or every instance of one template, with percent/flat option rules. Monster tab: durable template values across maps/spawns. Player/level/item/monster samples are read-only; no character/save editor. Save & apply writes game-balance.json or monster-tuning.json; Reset restores the chosen scope. Existing raw points/options are preserved. Percent 0..1000, flat +/-1000000; effective potential 0..30000 and speed 0..17. Forms keep drafts; shared dark font/layout. Browser/runtime validation belongs to user.
+
+## Character progression dashboard (2026-11-12)
+Under Character: choose unclassed/classed, then shared class profile or a specific class. Step 1 shows original Level-1 values, optional base targets and server-calculated results. Step 2 edits native growth percent and additive growth per level; blanks inherit. Advanced attributes can be revealed without crowding the core tables. Step 3 previews every level in a chosen range, compares classes and shows milestones/deltas. Inputs trigger read-only draft calculations; Save publishes the selected profile; Discard keeps saved settings; Reset removes selected rules. Classed samples have no allocated points/items/learned skills; level 1 is a theoretical class reference. Existing all-game coefficients/EXP remain in the advanced compatibility section. See docs/CHARACTER_PROGRESSION.md.
+
+### Progression help panels (2026-11-12)
+Step 02 and its formula-term guidance default collapsed; expand the heading to read explanations and the worked example. Guidance distinguishes cumulative native growth from per-level extra, blank from zero, and illustrative examples from actual draft results. Uses the existing dark palette/unified font and stacks terms on narrow screens. Syntax-only checked; visual QA left to user.
+
+### Separate Wooden Sword preview (2026-11-12)
+Step 03 has Unclassed and Classed comparison groups. Under Unclassed, bare character and Wooden Sword have separate choices/rows. Wooden Sword is enabled by default and uses the quest item; actual school classes stay separate. Step 01 still describes naked base stats.
+
+## Item and monster portraits (2026-11-12)
+Workbench item/mob lists, details, related links and selected balance editor headings show original game sprites. Default boxes 48px, large 96px (72px mobile), inline links 24px. Images preserve pixelated rendering and load lazily except large headings. Missing source art shows a question-mark placeholder with a descriptive title. Monsters use static representative frames; bosses are assembled from their sprite-sheet metadata. User checks visual appearance after Play/refresh.
+
+## Open Workbench from F6 (2026-11-12)
+F6 > Dev > Mo web can bang is the first action row. Click or Enter opens the live dashboard through the OS default browser. The URL is read at activation so alternate wiki ports work. The selected-row hint explains when the debug wiki has not started or could not open. Existing pointer/keyboard/gamepad action behavior is reused.
+
+### Progression layout correction (2026-11-12)
+The standalone top unclassed/classed tab panel is removed. Scope/class selection lives in Step 01. Step 03 has three separate boxes: Unclassed, Wooden Sword, Classed; Wooden Sword is not nested in either other box. Mobile layout stacks these boxes.
+
+### Collapsed growth default (2026-11-12)
+Step 02 and its nested explanatory guidance start collapsed. Click the Step-02 heading to expand. Save/discard/reset remain visible below it. Validation opens the section if a growth input needs correction.

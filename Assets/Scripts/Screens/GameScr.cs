@@ -6158,11 +6158,13 @@ public class GameScr : mScreen, IActionListener, IChatable
             g.drawImage(imgTopBar, 0, hpBarY - 7, 0);
             TextCalib.UseBox("hp", hpBarX + 9.67f, hpBarY + 4.67f); mFont.number_white.drawString(g, string.Empty + Char.getMyChar().cHP, 0, 0, 0); TextCalib.Clear();
             TextCalib.UseBox("mp", hpBarX + 9.67f, hpBarY + 19.33f); mFont.number_white.drawString(g, string.Empty + Char.getMyChar().cMP, 0, 0, 0); TextCalib.Clear();
-            TextCalib.UseBox("level", hpBarX - 28.17f, hpBarY + 13.33f); mFont.bigNumber_yellow.drawString(g, string.Empty + Char.getMyChar().clevel, 0, 0, 2); TextCalib.Clear();
+            // Logical pixels: keep EXP on the badge axis and optically balance the heavier level font.
+            float badgeCenterX = hpBarX - 28.17f;
+            TextCalib.UseBox("level", badgeCenterX - 1f, hpBarY + 12.33f); mFont.bigNumber_yellow.drawString(g, string.Empty + Char.getMyChar().clevel, 0, 0, mFont.CENTER); TextCalib.Clear();
             long num2 = 0L;
             num2 = ((Char.getMyChar().cExpDown <= 0) ? (Char.getMyChar().cExpR * 10000 / exps[Char.getMyChar().clevel]) : (Char.getMyChar().cExpDown * 10000 / exps[Char.getMyChar().clevel]));
             int num3 = (int)(num2 % 100);
-            TextCalib.UseBox("exp", hpBarX - 28.17f, hpBarY + 21f); mFont.number_white.drawString(g, ((Char.getMyChar().cExpDown <= 0) ? (string.Empty + num2 / 100) : ("-" + num2 / 100)) + "." + ((num3 >= 10) ? (string.Empty + num3) : ("0" + num3)) + "%", 0, 0, 2); TextCalib.Clear();
+            TextCalib.UseBox("exp", badgeCenterX, hpBarY + 22f); mFont.number_white.drawString(g, ((Char.getMyChar().cExpDown <= 0) ? (string.Empty + num2 / 100) : ("-" + num2 / 100)) + "." + ((num3 >= 10) ? (string.Empty + num3) : ("0" + num3)) + "%", 0, 0, mFont.CENTER); TextCalib.Clear();
         }
     }
 

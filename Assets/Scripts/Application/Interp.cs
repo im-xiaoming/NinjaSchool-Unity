@@ -42,6 +42,8 @@ public static class Interp
         GameScr.CaptureEffectPaintState();
         if (GameCanvas.menu != null) GameCanvas.menu.CapturePaintState();
         Scroll.CaptureAllPaintStates();
+        Info.CapturePaintState();
+        InfoMe.CapturePaintState();
         prevCmx = GameScr.cmx;
         prevCmy = GameScr.cmy;
         havePrevCamera = true;

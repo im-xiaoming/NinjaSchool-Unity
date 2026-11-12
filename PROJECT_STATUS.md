@@ -76,3 +76,52 @@ Removed the manual ground-running friction tail on button release. Play-mode bas
 
 ## Broad render-motion pass (2026-11-12)
 Extended render-rate fractional placement to the world camera, player/remote characters/NPCs, monsters/pets, dropped items, arrows, monster darts/trails, lanterns, eggs, training figures, weather particles and Scroll content. Configured render cap range is now 60-144; logic remains 24 by default. Play sampling in the current village: 60.0 paints/s at cap 60 and 120.0 at cap 120, both 24.0 logic ticks/s. Regression: world/camera/scroll 94, effects 17/17, movement release 18/18, skill-hit 8/8. Unity compile/current Console clean. World and bag screenshots inspected; this is not all-map/combat frame-time certification. Original finite sprite poses and remaining paint-owned animation counters are not converted or certified as 60 unique poses/s.
+
+## Scrolling notification presentation (2026-11-12)
+Info and InfoMe now interpolate text placement at render rate using Smooth Effects. Original movement steps, timers and clipping remain. Final revision: Unity compilationFailed=false, consoleErrors=0. User requested compile-only validation and will judge visual smoothness.
+
+## Mouse wheel conversion fix (2026-11-12)
+Fixed input bridge dividing already-normalized Input System wheel notches by 120, which made Scroll round ordinary input to zero. Native Windows mode still divides by 120. Compile/Console validation only per user instruction; physical skill/item information scrolling awaits user verification.
+
+## Workbench dark appearance (2026-11-12)
+Local dev wiki now uses a dark palette, larger 15-17px reading text, heavier labels and Apple-first system font stacks with Windows fallbacks. Sidebar widened for larger navigation. Presentation files only; user handles browser visual QA.
+
+## Unified workbench font (2026-11-12)
+All web text now uses the same --font-ui stack, including code, JSON, IDs and keyboard hints. Removed the separate monospace family at user request.
+
+## Global game-balance dashboard (2026-11-12)
+Added #dashboard for durable whole-game balancing, per the user's clarified scope. Player stat/potential percent + flat adjustments and future EXP gain rate apply globally. Equipment option rules target all equipment or a selected template and affect old/new items without rewriting saved options. Monster template rules persist across maps/spawns/restarts. game-balance.json and monster-tuning.json load without the website. Only compile/syntax validation; user handles runtime/browser/restart debugging.
+
+## Character progression refactor (2026-11-12)
+Character balancing now has unclassed and classed groups, inherited shared/per-class profiles, editable original/reference Level-1 bases and native-growth parameters. A read-only draft preview calls the gameplay calculator for each selected level/class. Classed manual allocation and original integer/MP-floor formulas remain. Version-2 balance settings accept version 1 without rewriting saves. See docs/CHARACTER_PROGRESSION.md. Compile/syntax only; user performs runtime/browser checks.
+
+## Progression formula help (2026-11-12)
+Step 02 now explains every formula term, percent conversion, cumulative native growth, per-level additions, separate contributions, inheritance vs zero and classed zero-growth behavior. Added an illustrative Level-5 HP calculation and expandable attribute glossary. UI-only; node syntax checked, browser QA left to user.
+
+## Separate wooden-sword progression sample (2026-11-12)
+Step 03 now separates unclassed/no equipment, unclassed/quest wooden sword and actual classed characters. The wooden-sword row uses class 0, real quest item #194 and current equipment rules through SetAbility. Unity compile/current Console clean; JS syntax passed. User handles runtime/browser checks.
+
+## Wiki access diagnosis (2026-11-12)
+Reported inaccessible URL was stale: port 8787 listened but timed out; current ServerBootstrap.WikiUrl was http://127.0.0.1:8788/. Root, db.json, control/state, control/dashboard and progression.js returned HTTP 200 on 8788. Use the Server Control open-wiki button for the actual port. No gameplay/config mutation.
+
+## Item/monster sprites in Workbench (2026-11-12)
+Added original item icons and representative monster sprites to item/mob lists, details, related links and balance editors. Boss portraits compose a source frame from the original sprite sheet. Read-only local asset routes, lazy loading, missing-art fallback and bounded cache; no copied/generated bitmap assets or gameplay changes. Unity compile/current Console clean and JS syntax passed; browser/image HTTP verification left to user.
+
+## F6 Workbench shortcut (2026-11-12)
+Added F6 > Dev > Open balance web action using the OS default browser and current ServerBootstrap.WikiUrl/#dashboard, including fallback ports. Shows readiness/failure guidance in the existing help line. Compile-only validation; no actual browser launch tested.
+
+## Progression layout correction (2026-11-12)
+Removed the standalone top group-selection card per screenshot. Profile selection is compactly placed inside Step 01. Step 03 now has three independent boxes: Unclassed, Wooden Sword, Classed. UI-only, JS syntax verified; browser QA left to user.
+
+## Growth panel collapsed by default (2026-11-12)
+Step 02 is now a closed-by-default details panel. Clicking its heading expands the growth table/help. Nested formula guidance also defaults closed. Save/discard/reset stay outside the collapsed content. UI-only syntax verified.
+
+
+## 2026-11-12 - Slow effect animation previews
+- Added original status icons and a separate paginated animation gallery in the Effects tab. Status IDs are not assumed to map to animation IDs.
+- Sources: `nj_effect` frame order, image IDs and offsets from `GameScr.readEfect` / `ServerEffect.paint`; allowlisted original Small images served by WikiSprites as zoom-normalized SVGs. No gameplay calculation or timing changes.
+- Files: WikiData.cs, WikiSprites.cs, WikiServer.cs, ServerBootstrap.cs; NsoWiki/effects.js (+ Unity meta), sprites.js, app.js, index.html, app.css; project status/task/decision/handoff documents, ServerPort.md and notes.json.
+- Presentation defaults: 4 frames/second, 12 cards/page, at most 6 visible animated canvases, one shared timer, 128-image client cache and existing 16 MiB server asset cache. Pause on hidden document, offscreen cards and route changes; respect reduced-motion preference at initial load. Manual pause/resume available. Missing art displays a notice.
+- Validation: node --check passed for effects.js, sprites.js and app.js. Unity refreshed and finished compiling: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. No automated gameplay tests or Play/browser validation, per user compile-only instruction.
+- Known limitations: names of standalone VFX are numeric source IDs; no invented association to status effects. Browser rendering/performance remains unverified.
+- Next: start Play manually, open the workbench through F6 > Dev > Open web, visit Effects, check looping, pagination, pause/resume and scrolling. CLI validation: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.

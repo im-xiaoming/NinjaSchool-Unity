@@ -57,7 +57,7 @@ namespace NsoServer.Net
             if (target <= me.Level) return "Đang ở cấp " + me.Level + ", không thể lên cấp " + target + ".";
             long need = world.ExpForLevel(target) - me.Record.Exp;
             if (need <= 0) return "Đang ở cấp " + me.Level + ".";
-            PlayerCombat.AddExp(me, world, need + me.ExpDown);   // AddExp pays off lost experience first
+            PlayerCombat.AddExp(me, world, need + me.ExpDown, false);   // AddExp pays off lost experience first
             return "Đã lên cấp " + me.Level + ".";
         }
 

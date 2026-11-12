@@ -18,6 +18,23 @@ public class Info
 
 	public static int hI = 15;
 
+	private static int previousX;
+	private static InfoItem previousInfo;
+
+	// Offline presentation deviation: retain the original Info.update/InfoMe.update
+	// timing; interpolate only the text, inside the unchanged clipping rectangle.
+	internal static void CapturePaintState()
+	{
+		previousX = x;
+		previousInfo = info;
+	}
+
+	internal static float PaintX(float fraction)
+	{
+		return info != null && object.ReferenceEquals(info, previousInfo)
+			? Interp.EffectPosition(previousX, x, fraction) : x;
+	}
+
 	public static void paint(mGraphics g)
 	{
 		g.setClip(0, -200, GameCanvas.w, 200 + GameCanvas.h);
@@ -30,7 +47,12 @@ public class Info
 			g.setColor(1, 0.5f);
 			g.fillRect(num, y, w, hI);
 			g.setClip(num, y, w, hI + 5);
-			info.f.drawString(g, info.s, x, y, 0);
+			g.SetScrollPaintOffset(PaintX(Interp.TickFraction) - x, 0);
+			try
+			{
+				info.f.drawString(g, info.s, x, y, 0);
+			}
+			finally { g.ClearScrollPaintOffset(); }
 		}
 	}
 

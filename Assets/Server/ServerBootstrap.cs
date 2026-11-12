@@ -69,6 +69,7 @@ public static class ServerBootstrap
             wiki = new NsoServer.DevWiki.WikiServer(folder, NsoServerControl.WikiPort,
                 () => NsoServer.DevWiki.WikiData.Build(tables, world, notes), export);
             wiki.Control = new NsoServer.DevWiki.WikiControl(server);
+            wiki.Sprites = new NsoServer.DevWiki.WikiSprites(world, tables["item"], tables["effect"], tables["nj_effect"]);
             wiki.Logger = text => Debug.LogWarning("[NsoWiki] " + text);   // Debug.Log* is safe from other threads
             bool open = NsoServerControl.WikiOpenBrowser;
             // runs on the wiki thread; opening the browser is left to the main thread (NsoServerControl.Update)

@@ -28,6 +28,15 @@ namespace NsoServer.Net
         private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
         private static int NextInt(int min, int max) { return min >= max ? max : Rng.Next(max + 1 - min) + min; }
 
+        // Char.receiveWoodenSword: shared quest reward/preview factory, not a new character class.
+        public static PlayerItem CreateTaskWoodenSword()
+        {
+            var sword = NewItem(ItemWoodenSword);
+            sword.Options.Add(new PlayerItemOption { Id = 0, Param = 10 });
+            sword.Options.Add(new PlayerItemOption { Id = 8, Param = 1 });
+            return sword;
+        }
+
         // ---------------------------------------------------------------- bag basics
 
         // Char.getSlotNull

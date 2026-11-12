@@ -10,9 +10,9 @@ namespace NsoServer.DevWiki
     using Math = System.Math;
     using Mob = NsoServer.World.Mob;
 
-    // Local debug control surface. Reads snapshots only; the sole write replaces validated loot rules.
-    // It cannot execute code, edit player records, grant items or call Unity APIs from an HTTP thread.
-    public sealed class WikiControl
+    // Local debug control surface with explicit validated settings/dashboard writes.
+    // No arbitrary code execution or Unity APIs on HTTP threads.
+    public sealed partial class WikiControl
     {
         private readonly GameServer server;
         private readonly object changes = new object();
@@ -63,6 +63,7 @@ namespace NsoServer.DevWiki
             try
             {
                 if (server.World == null) return Reply(503, Obj("error", "World data is not loaded."));
+                if (path == "/control/dashboard" && (method == "GET" || method == "POST")) return Dashboard(method, body);
                 if (path == "/control/combat" && (method == "GET" || method == "POST")) return Combat(method, body);
                 if (path == "/control/state" && method == "GET")
                 {
@@ -83,7 +84,7 @@ namespace NsoServer.DevWiki
                 return Reply(404, Obj("error", "Unknown control route or method."));
             }
             catch (ArgumentException ex) { return Reply(400, Obj("error", ex.Message)); }
-            catch (Exception) { return Reply(500, Obj("error", "Operation failed; no settings change was applied.")); }
+            catch (Exception) { return Reply(500, Obj("error", "Operation failed. Reload to check the current state before retrying.")); }
         }
 
         private KeyValuePair<int, string> Update(string body)

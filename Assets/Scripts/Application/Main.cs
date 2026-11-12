@@ -153,7 +153,6 @@ public class Main : MonoBehaviour
     private void OnGUI()
     {
         if (canvas == null || g == null) return;   // statics are gone after a script reload during Play
-        checkInput();
         Session_ME.update();
         if (Event.current.type == EventType.Repaint)
         {
@@ -224,118 +223,9 @@ public class Main : MonoBehaviour
         Handle.Fixed();
     }
 
-    private void Update()
-    {
-        if (!isPC)
-        {
-            int num = 1 / a;
-        }
-        UpdateChatText();
-        // Mouse wheel for the in-game lists (Scroll.AddWheel); cursor converted like the clicks in OnGUI.
-        Vector3 wheelMouse = Input.mousePosition;
-        Scroll.AddWheel(Input.mouseScrollDelta.y, (int)(wheelMouse.x / (float)mGraphics.zoomLevel), (int)(((float)Screen.height - wheelMouse.y) / (float)mGraphics.zoomLevel));
-    }
+    // Input acquisition and text/IME routing are owned by NsoInputSystemBridge.
 
-    // Typing into the chat box / terminal. Input.inputString holds this frame's characters exactly as the OS
-    // produced them, including char 8 for Backspace in order, which is how Unikey writes a mark (Backspace + the
-    // marked letter). IME composition is enabled while the box is open for IME-style Vietnamese keyboards.
-    private void UpdateChatText()
-    {
-        bool open = ChatTextField.IsShowing;
-        IMECompositionMode ime = open ? IMECompositionMode.On : IMECompositionMode.Auto;
-        if (Input.imeCompositionMode != ime) Input.imeCompositionMode = ime;
-        if (!open) return;
-        string typed = Input.inputString;
-        if (string.IsNullOrEmpty(typed)) return;
-        TField field = ChatTextField.gI().tfChat;
-        foreach (char c in typed)
-        {
-            if (c == (char)8) field.clear();   // Backspace
-            else if (c >= ' ' && c != (char)127) ChatTextField.gI().keyPressed(c);
-            // Line breaks (10, 13) are ignored: Enter sends through the key-code path (GameScr fires the chat command).
-        }
-    }
-
-    private void checkInput()
-    {
-        if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.F9 || Event.current.keyCode == KeyCode.F10))
-        {
-            tickRate = Mathf.Clamp(tickRate + (Event.current.keyCode == KeyCode.F10 ? 2 : -2), 10, 60);
-            Time.fixedDeltaTime = 1f / tickRate;
-        }
-        if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.F11 || (Event.current.alt && Event.current.keyCode == KeyCode.Return)))
-        {
-            Screen.fullScreenMode = Screen.fullScreen ? FullScreenMode.Windowed : FullScreenMode.FullScreenWindow;
-        }
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 mousePosition = Input.mousePosition;
-            canvas.pointerPressed((int)(mousePosition.x / (float)mGraphics.zoomLevel), (int)(((float)Screen.height - mousePosition.y) / (float)mGraphics.zoomLevel));
-            lastMousePos.x = mousePosition.x / (float)mGraphics.zoomLevel;
-            lastMousePos.y = mousePosition.y / (float)mGraphics.zoomLevel;
-        }
-        if (Input.GetMouseButton(0))
-        {
-            Vector3 mousePosition2 = Input.mousePosition;
-            canvas.pointerDragged((int)(mousePosition2.x / (float)mGraphics.zoomLevel), (int)(((float)Screen.height - mousePosition2.y) / (float)mGraphics.zoomLevel));
-            lastMousePos.x = mousePosition2.x / (float)mGraphics.zoomLevel;
-            lastMousePos.y = mousePosition2.y / (float)mGraphics.zoomLevel;
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
-            Vector3 mousePosition3 = Input.mousePosition;
-            lastMousePos.x = mousePosition3.x / (float)mGraphics.zoomLevel;
-            lastMousePos.y = mousePosition3.y / (float)mGraphics.zoomLevel;
-            canvas.pointerReleased((int)(mousePosition3.x / (float)mGraphics.zoomLevel), (int)(((float)Screen.height - mousePosition3.y) / (float)mGraphics.zoomLevel));
-        }
-        if (TextCalib.Open)
-        {
-            return;
-        }
-        // Chat box / terminal open: text comes from Input.inputString in Update (Unicode, Vietnamese from Unikey or
-        // the Windows keyboard, Backspace in order). Here the printable keys and Backspace are only swallowed so
-        // they do not also reach the game; Enter, arrows and Esc keep the key-code path below.
-        if (ChatTextField.IsShowing && Event.current.type == EventType.KeyDown)
-        {
-            if (Event.current.keyCode == KeyCode.Backspace || Event.current.character >= ' '
-                || (Event.current.keyCode != KeyCode.None && MyKeyMap.map(Event.current.keyCode) >= 32)
-                || Event.current.keyCode == KeyCode.Space)
-            {
-                Event.current.Use();
-                return;
-            }
-        }
-        if (Input.anyKeyDown && Event.current.type == EventType.KeyDown)
-        {
-            int num = MyKeyMap.map(Event.current.keyCode);
-            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-            {
-                switch (Event.current.keyCode)
-                {
-                    case KeyCode.Alpha2:
-                        num = 64;
-                        break;
-                    case KeyCode.Minus:
-                        num = 95;
-                        break;
-                }
-            }
-            if (num != 0)
-            {
-                canvas.keyPressed(num);
-            }
-        }
-        if (Event.current.type == EventType.KeyUp)
-        {
-            int num2 = MyKeyMap.map(Event.current.keyCode);
-            if (num2 != 0)
-            {
-                canvas.keyReleased(num2);
-            }
-        }
-    }
-
-    private void OnApplicationQuit()
+private void OnApplicationQuit()
     {
 
         Sound.stopAll();

@@ -33,6 +33,8 @@ namespace NsoServer.Net
         private static int NextInt(int min, int max)
         {
             if (min >= max) return max;
+            long span = (long)max + 1 - min;
+            if (span > int.MaxValue) return (int)(min + (long)(Rng.NextDouble() * span));
             return Rng.Next(max + 1 - min) + min;
         }
 
@@ -51,7 +53,8 @@ namespace NsoServer.Net
             me.Progress = PlayerProgress.Load(me.Record.Data);
             me.PotentialPoint = me.Progress.PotentialPoint;
             me.SkillPoint = me.Progress.SkillPoint;
-            if (me.Record.ClassId == 0 || me.Progress.Potential == null) SetClassZeroPotential(me);
+            if (me.Record.ClassId == 0) SetClassZeroPotential(me);
+            else if (me.Progress.Potential == null) Array.Copy(CharacterProgressionRules.OriginalPotential(me.Record.ClassId), me.Potential, 4);
             else for (int i = 0; i < 4; i++) me.Potential[i] = me.Progress.Potential[i];
             SyncBasicSkill(me);   // saves made before the basic attack grew
             // the first attack skill the character knows (a new character: the basic attack, template 0)
@@ -62,7 +65,7 @@ namespace NsoServer.Net
         }
 
         // Char.addExp: a character without a class gets +2/+1/+1/+1 potential per level. Starting values are 15/5/5/5,
-        // so the potentials follow from the level. (Characters with a class use potential points, not ported yet.)
+        // so the potentials follow from the level. Classed characters retain their saved manual allocations.
         // Offline deviation (BasicSkillGrowth): without a school the basic attack gets one point per level, spent
         // automatically. Returns true when the point changed.
         private static bool SyncBasicSkill(PlayerState me)
@@ -81,10 +84,9 @@ namespace NsoServer.Net
         private static void SetClassZeroPotential(PlayerState me)
         {
             int up = Math.Max(0, me.Level - 1);
-            me.Potential[0] = 15 + 2 * up;
-            me.Potential[1] = 5 + up;
-            me.Potential[2] = 5 + up;
-            me.Potential[3] = 5 + up;
+            var basis = CharacterProgressionRules.OriginalPotential(0);
+            var growth = CharacterProgressionRules.OriginalGrowth(0);
+            for (int i = 0; i < 4; i++) me.Potential[i] = basis[i] + growth[i] * up;
         }
 
         // Char.getSideClass: classes 2, 4, 6 hit with inner strength (potential 3), the others with outer (potential 0)
@@ -100,15 +102,19 @@ namespace NsoServer.Net
         }
 
         // AbilityFromEquip.setAbility, with equipment and fashion options and the selected skill's options.
-        public static void SetAbility(PlayerState me, GameWorld world)
+        public static void SetAbility(PlayerState me, GameWorld world, GameBalanceRules balance = null, bool applyProgression = true)
         {
-            int[] o = me.Options;
-            Array.Clear(o, 0, o.Length);
+            balance = balance ?? world.BalanceRules;
+            int previousHp = me.Hp, previousMp = me.Mp;
+            int[] rawOptions = me.Options;
+            Array.Clear(rawOptions, 0, rawOptions.Length);
             if (me.Inventory != null)
             {
-                AddOptions(o, me.Inventory.Equipment, world);
-                AddOptions(o, me.Inventory.Fashion, world);
+                AddOptions(rawOptions, me.Inventory.Equipment, world, balance);
+                AddOptions(rawOptions, me.Inventory.Fashion, world, balance);
             }
+            // Wide intermediates prevent overflow under global equipment/stat balancing.
+            long[] o = Array.ConvertAll(rawOptions, value => (long)value);
             var support = new int[o.Length];           // Char.optionsSupportSkill: passive skills
             PlayerSkills.AddSupportOptions(me, world, support);
             var skillOptions = new int[o.Length];
@@ -118,68 +124,87 @@ namespace NsoServer.Net
                     int id = me.SelectedSkill.OptionIds[i];
                     if (id >= 0 && id < skillOptions.Length) skillOptions[id] += me.SelectedSkill.OptionParams[i];
                 }
-            int[] pot = me.Potential;
-            me.Exactly = pot[1] + (pot[1] * o[58] / 100) + o[57] + o[12];
-            me.Miss = (pot[1] + o[57] + (pot[1] * o[58] / 100)) * 150 / 100;
-            int potentialDame;
+            long[] pot = Array.ConvertAll(PlayerTuning.Potentials(me, balance), value => (long)value); // Global balance never rewrites saved potential points.
+            me.Exactly = GameBalanceRules.Stat(pot[1] + (pot[1] * o[58] / 100) + o[57] + o[12]);
+            me.Miss = GameBalanceRules.Stat((pot[1] + o[57] + (pot[1] * o[58] / 100)) * 150 / 100);
+            long potentialDame;
             if (SideClass(me.Record.ClassId) == 0)
             {
                 potentialDame = (pot[0] + o[57]) + (pot[0] * o[58] / 100);
-                int basicAttack = potentialDame + o[38] + (potentialDame * skillOptions[11] / 100);
-                me.Damage = (basicAttack + o[0] + o[21] + o[23] + o[25]) + (potentialDame * o[8] / 100) + potentialDame;
+                long basicAttack = potentialDame + o[38] + (potentialDame * skillOptions[11] / 100);
+                me.Damage = GameBalanceRules.Stat((basicAttack + o[0] + o[21] + o[23] + o[25]) + (potentialDame * o[8] / 100) + potentialDame);
             }
             else
             {
                 potentialDame = pot[3] + o[57] + (pot[3] * o[58] / 100);
-                int basicAttack = potentialDame + o[38] + (potentialDame * skillOptions[11] / 100);
-                me.Damage = (basicAttack + o[1] + o[22] + o[24] + o[26]) + (potentialDame * o[9] / 100) + potentialDame;
+                long basicAttack = potentialDame + o[38] + (potentialDame * skillOptions[11] / 100);
+                me.Damage = GameBalanceRules.Stat((basicAttack + o[1] + o[22] + o[24] + o[26]) + (potentialDame * o[9] / 100) + potentialDame);
             }
-            me.Damage += o[73] + o[87] + o[76];
-            me.Damage += (potentialDame * 4) * o[94] / 100;
-            me.Damage += support[8] + support[6] + support[9] + support[7] + support[1];
-            for (int i = 2; i <= 10; i++) me.Damage += skillOptions[i];
+            me.Damage = GameBalanceRules.Stat((long)me.Damage + (o[73] + o[87] + o[76]));
+            me.Damage = GameBalanceRules.Stat((long)me.Damage + ((potentialDame * 4) * o[94] / 100));
+            me.Damage = GameBalanceRules.Stat((long)me.Damage + (support[8] + support[6] + support[9] + support[7] + support[1]));
+            for (int i = 2; i <= 10; i++) me.Damage = GameBalanceRules.Stat((long)me.Damage + (skillOptions[i]));
             switch (ClassSys(me.Record.ClassId))
             {
-                case 1: me.Damage += o[88]; break;
-                case 2: me.Damage += o[89]; break;
-                case 3: me.Damage += o[90]; break;
+                case 1: me.Damage = GameBalanceRules.Stat((long)me.Damage + (o[88])); break;
+                case 2: me.Damage = GameBalanceRules.Stat((long)me.Damage + (o[89])); break;
+                case 3: me.Damage = GameBalanceRules.Stat((long)me.Damage + (o[90])); break;
             }
-            me.Damage2 = me.Damage - me.Damage / 10;
+            me.Damage2 = GameBalanceRules.Stat(me.Damage - me.Damage / 10);
 
-            int basicHp = (pot[2] + o[57] + (pot[2] * o[58] / 100)) * 10;
-            me.MaxHp = basicHp + basicHp * (o[31] + o[61] + support[17]) / 100;
-            me.MaxHp += o[6] + o[32] + o[77] + o[82] + o[125];
-            me.MaxHp += me.MaxHp * o[128] / 100;
-            if (me.MaxHp <= 0) me.MaxHp = 50;
+            long basicHp = (pot[2] + o[57] + (pot[2] * o[58] / 100)) * 10;
+            me.MaxHp = GameBalanceRules.Stat(basicHp + basicHp * (o[31] + o[61] + support[17]) / 100);
+            me.MaxHp = GameBalanceRules.Stat((long)me.MaxHp + (o[6] + o[32] + o[77] + o[82] + o[125]));
+            me.MaxHp = GameBalanceRules.Stat((long)me.MaxHp + (me.MaxHp * o[128] / 100));
+            if (me.MaxHp <= 0) me.MaxHp = GameBalanceRules.Stat(50);
             if (me.Hp > me.MaxHp) me.Hp = me.MaxHp;
 
-            int basicMp = (pot[3] + o[57] + (pot[3] * o[58] / 100)) * 10;
-            int maxMp = basicMp + (basicMp + (o[28] + o[60] + support[18])) / 100;
+            long basicMp = (pot[3] + o[57] + (pot[3] * o[58] / 100)) * 10;
+            long maxMp = basicMp + (basicMp + (o[28] + o[60] + support[18])) / 100;
             maxMp += o[7] + o[19] + o[29] + o[83] + o[117];
             // Offline: never below the 100 MP the Java server gives a new character (captured in enter_map22).
-            me.MaxMp = Math.Max(FreshMp, maxMp);
+            me.MaxMp = GameBalanceRules.Stat(Math.Max(FreshMp, maxMp));
             if (me.Mp > me.MaxMp) me.Mp = me.MaxMp;
 
-            me.DameDown = o[47] + o[74] + o[80] + o[124];
-            me.Miss += o[5] + o[17] + o[62] + o[68] + o[78] + o[84] + o[115] + support[13];
-            me.Exactly += o[10] + o[18] + o[75] + o[86] + o[116] + support[12];
-            me.ResFire = o[2] + o[11] + o[33] + o[70] + o[96] + support[19] + support[20] + o[36] + o[118];
-            me.ResIce = o[3] + o[12] + o[34] + o[71] + o[95] + support[19] + support[21] + o[36] + o[118];
-            me.ResWind = o[4] + o[13] + o[35] + o[72] + o[97] + support[19] + support[22] + o[36] + o[118];
-            me.Fatal = o[14] + o[37] + o[69] + o[92] + o[114] + support[14];
+            me.DameDown = GameBalanceRules.Stat(o[47] + o[74] + o[80] + o[124]);
+            me.Miss = GameBalanceRules.Stat((long)me.Miss + (o[5] + o[17] + o[62] + o[68] + o[78] + o[84] + o[115] + support[13]));
+            me.Exactly = GameBalanceRules.Stat((long)me.Exactly + (o[10] + o[18] + o[75] + o[86] + o[116] + support[12]));
+            me.ResFire = GameBalanceRules.Stat(o[2] + o[11] + o[33] + o[70] + o[96] + support[19] + support[20] + o[36] + o[118]);
+            me.ResIce = GameBalanceRules.Stat(o[3] + o[12] + o[34] + o[71] + o[95] + support[19] + support[21] + o[36] + o[118]);
+            me.ResWind = GameBalanceRules.Stat(o[4] + o[13] + o[35] + o[72] + o[97] + support[19] + support[22] + o[36] + o[118]);
+            me.Fatal = GameBalanceRules.Stat(o[14] + o[37] + o[69] + o[92] + o[114] + support[14]);
             me.SupportOptions = support;
-            me.FatalDame = o[105];
-            me.PercentFatalDame = o[39] + o[67];
+            me.FatalDame = GameBalanceRules.Stat(o[105]);
+            me.PercentFatalDame = GameBalanceRules.Stat(o[39] + o[67]);
+            PlayerTuning.ApplyAbility(me, world, balance, applyProgression); // Shared gameplay and draft-preview calculation.
+            // Intermediate base-stat clamps must not drain resources under a larger dashboard maximum.
+            me.Hp = Math.Min(previousHp, me.MaxHp);
+            me.Mp = Math.Min(previousMp, me.MaxMp);
+        }
+
+        // Preview and native-curve anchors reuse the gameplay calculator, with no session, packets or save.
+        public static PlayerState ProgressionSample(GameWorld world, GameBalanceRules balance, int cls, int level, bool applyProgression = true)
+        {
+            var p = new PlayerState {
+                Record = new PlayerRecord { ClassId = (sbyte)cls }, Level = level,
+                Inventory = PlayerInventory.Load("{}", world), Progress = PlayerProgress.Load("{}")
+            };
+            var basis = CharacterProgressionRules.OriginalPotential(cls);
+            var growth = CharacterProgressionRules.OriginalGrowth(cls);
+            for (int i = 0; i < 4; i++) p.Potential[i] = basis[i] + growth[i] * (level - 1);
+            p.SelectedSkill = cls == 0 ? world.FindSkill(0, BasicSkillGrowth.PointForLevel(level)) : null;
+            SetAbility(p, world, balance, applyProgression);
+            return p;
         }
 
         // option types 3..7 only count once the item is upgraded to +4 / +8 / +12 / +14 / +16
-        private static void AddOptions(int[] o, PlayerItem[] items, GameWorld world)
+        private static void AddOptions(int[] o, PlayerItem[] items, GameWorld world, GameBalanceRules balance)
         {
             foreach (var item in items)
             {
                 if (item == null) continue;
                 if (item.Expire > 0 && item.Expire < Now()) continue;
-                foreach (var opt in item.Options)
+                foreach (var opt in balance.EffectiveOptions(item))
                 {
                     if (opt.Id < 0 || opt.Id >= o.Length) continue;
                     int type = world.ItemOptionType(opt.Id);
@@ -314,7 +339,7 @@ namespace NsoServer.Net
             {
                 if (mob.IsDead) continue;
                 int miss = NextInt(mob.Level + 10);
-                int exactly = NextInt(me.Exactly + 100);
+                int exactly = NextInt(GameBalanceRules.Stat((long)me.Exactly + 100));
                 bool isMiss = miss > exactly;
                 if (tplId == 7 || tplId == 25 || tplId == 34 || tplId == 43) isMiss = false;
                 // bosses ignore characters more than 20 levels away (ordinary maps)
@@ -325,22 +350,24 @@ namespace NsoServer.Net
                     continue;
                 }
                 int damageBasic = NextInt(me.Damage2, me.Damage);
-                int dameHit = damageBasic;
+                long hit = damageBasic;
                 if (isFatal)
                 {
-                    dameHit += damageBasic;
-                    dameHit += damageBasic * me.PercentFatalDame / 100;
-                    dameHit += me.FatalDame;
+                    hit += damageBasic;
+                    hit += (long)damageBasic * me.PercentFatalDame / 100;
+                    hit += me.FatalDame;
                 }
-                dameHit += me.Options[102];
-                dameHit += me.Options[113];
+                hit += me.Options[102];
+                hit += me.Options[113];
+                hit = Math.Min(int.MaxValue, hit); // Bound the intermediate before elemental percent bonuses.
                 switch (mob.Sys)
                 {
-                    case 1: dameHit += me.Options[51]; dameHit += dameHit * me.Options[54] / 100; break;
-                    case 2: dameHit += me.Options[52]; dameHit += dameHit * me.Options[55] / 100; break;
-                    case 3: dameHit += me.Options[53]; dameHit += dameHit * me.Options[56] / 100; break;
+                    case 1: hit += me.Options[51]; hit += hit * me.Options[54] / 100; break;
+                    case 2: hit += me.Options[52]; hit += hit * me.Options[55] / 100; break;
+                    case 3: hit += me.Options[53]; hit += hit * me.Options[56] / 100; break;
                 }
-                if (dameHit <= 0) continue;
+                if (hit <= 0) continue;
+                int dameHit = GameBalanceRules.Stat(hit);
                 int preHp = mob.Hp;
                 // the training dummy (Bù nhìn) always loses a fifth of its HP
                 if (mob.Template.Id == MobBuNhin) mob.Hp -= mob.MaxHp / 5;
@@ -399,9 +426,10 @@ namespace NsoServer.Net
         }
 
         // Char.addExp(long): pays off lost experience first, then levels up
-        public static void AddExp(PlayerState me, GameWorld world, long exp)
+        public static void AddExp(PlayerState me, GameWorld world, long exp, bool applyBalance = true)
         {
-            exp *= RateExp;
+            exp = (long)Math.Min(world.ExpMax, (decimal)exp * RateExp * (applyBalance ? world.BalanceRules.ExperiencePercent : 100) / 100m);
+            if (exp <= 0) return;
             if (me.ExpDown > 0)
             {
                 long paid = Math.Min(me.ExpDown, exp);
@@ -511,7 +539,7 @@ namespace NsoServer.Net
         private static void SendRecovery(Zone zone, Mob mob)
         {
             int levelBoss = mob.LevelBoss, maxHp = mob.MaxHp;
-            if (levelBoss == 1 || levelBoss == 2) { levelBoss = 0; maxHp = mob.Template.Hp; }
+            if ((levelBoss == 1 || levelBoss == 2) && !mob.HasTunedHp) { levelBoss = 0; maxHp = mob.Template.Hp; }
             var m = new Message(NPC_LIVE);
             m.Writer.WriteByte(mob.Id);
             m.Writer.WriteByte(mob.Sys);

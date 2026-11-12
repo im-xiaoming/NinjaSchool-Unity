@@ -393,9 +393,7 @@ namespace NsoServer.Net
             {
                 case TaskKienThuc:
                     // Char.receiveWoodenSword (the basic attack is already known offline)
-                    var sword = PlayerItems.NewItem(194);
-                    sword.Options.Add(new PlayerItemOption { Id = 0, Param = 10 });
-                    sword.Options.Add(new PlayerItemOption { Id = 8, Param = 1 });
+                    var sword = PlayerItems.CreateTaskWoodenSword();
                     PlayerItems.AddItemToBag(me, world, sword);
                     PlayerService.LoadClass(me);
                     PlayerService.LoadSkill(me, world);
@@ -773,8 +771,9 @@ namespace NsoServer.Net
             me.SkillPoint = me.Level - 9;
             me.PotentialPoint = me.Level * 10;
             for (int lv = 70; lv <= 100; lv += 10) if (me.Level >= lv) me.PotentialPoint += (me.Level - lv) * 10;
+            // Char.selectClass: keep the original saved base; tuning changes only effective stats.
             bool outer = cls == 1 || cls == 3 || cls == 5;
-            me.Potential[0] = outer ? 15 : 5; me.Potential[1] = 5; me.Potential[2] = outer ? 5 : 10; me.Potential[3] = outer ? 5 : 10;
+            Array.Copy(CharacterProgressionRules.OriginalPotential(cls), me.Potential, 4);
             me.Progress.Skills.Clear();
             me.SelectedSkill = null;
             PlayerService.SkillShortcut(me, "OSkill", 5);

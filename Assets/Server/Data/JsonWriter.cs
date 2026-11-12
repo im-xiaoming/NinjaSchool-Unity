@@ -29,10 +29,10 @@ namespace NsoServer.Data
                 EndArray();
                 return;
             }
-            if (v is Dictionary<string, object> d)
+            if (v is System.Collections.IDictionary d)
             {
                 BeginObject();
-                foreach (var kv in d) Prop(kv.Key, kv.Value);
+                foreach (System.Collections.DictionaryEntry kv in d) Prop((string)kv.Key, kv.Value);
                 EndObject();
                 return;
             }

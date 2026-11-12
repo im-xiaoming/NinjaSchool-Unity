@@ -183,11 +183,12 @@ public class NsoGamepadInput : MonoBehaviour
         if (pressed)
         {
             _sentCode[slot] = code;
-            if (code != 0) Main.canvas.keyPressed(code);
+            if (code != 0) NsoInputSystemBridge.Press(code);
         }
         else if (_sentCode[slot] != 0)
         {
-            Main.canvas.keyReleased(_sentCode[slot]);
+            NsoInputSystemBridge.Release(_sentCode[slot]);
+            _sentCode[slot] = 0;
         }
     }
 
@@ -198,7 +199,8 @@ public class NsoGamepadInput : MonoBehaviour
         {
             if (!_down[i]) continue;
             _down[i] = false;
-            if (_sentCode[i] != 0 && Main.canvas != null) Main.canvas.keyReleased(_sentCode[i]);
+            if (_sentCode[i] != 0) NsoInputSystemBridge.Release(_sentCode[i]);
+            _sentCode[i] = 0;
         }
     }
 }

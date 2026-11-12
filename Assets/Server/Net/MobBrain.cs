@@ -109,14 +109,15 @@ namespace NsoServer.Net
         private static void Hit(Zone zone, Mob mob, PlayerState pl)
         {
             if (pl.IsDead) return;
-            int dameHp = NextInt(mob.DamageOnPlayer2, mob.DamageOnPlayer);
-            dameHp -= pl.DameDown;
+            long reducedDamage = NextInt(mob.DamageOnPlayer2, mob.DamageOnPlayer);
+            reducedDamage -= pl.DameDown;
             switch (mob.Sys)
             {
-                case 1: dameHp -= dameHp * pl.Options[127] / 100; dameHp -= pl.ResFire; dameHp -= pl.Options[48]; break;
-                case 2: dameHp -= dameHp * pl.Options[130] / 100; dameHp -= pl.ResIce; dameHp -= pl.Options[49]; break;
-                case 3: dameHp -= dameHp * pl.Options[131] / 100; dameHp -= pl.ResWind; dameHp -= pl.Options[50]; break;
+                case 1: reducedDamage -= reducedDamage * pl.Options[127] / 100; reducedDamage -= pl.ResFire; reducedDamage -= pl.Options[48]; break;
+                case 2: reducedDamage -= reducedDamage * pl.Options[130] / 100; reducedDamage -= pl.ResIce; reducedDamage -= pl.Options[49]; break;
+                case 3: reducedDamage -= reducedDamage * pl.Options[131] / 100; reducedDamage -= pl.ResWind; reducedDamage -= pl.Options[50]; break;
             }
+            int dameHp = GameBalanceRules.Stat(reducedDamage);
             var rules = pl.Session.Server.World.CombatRules;
             bool isMiss = Rng.NextDouble() < rules.DodgeChance(mob.Level, pl.Miss);
             if (isMiss) dameHp = -1;

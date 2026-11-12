@@ -115,3 +115,59 @@ User request: PS5 controller with Elden Ring-style buttons. Implemented as a key
 
 ### Basic attack grows for class 0 (2026-11-12, user request)
 - Java gives class 0 no skill points and the data has one row for skill template 0. Offline, the basic attack gets one automatic point per level (max 9, -20 ms cooldown each). Generated rows ids 30001..30009 on client and server from `BasicSkillGrowth`. Offline deviation.
+
+## Notification text interpolation (2026-11-12)
+Offline presentation deviation: interpolate Info/InfoMe text between pre-tick and current coordinates using the existing Smooth Effects option. Preserve original update timing and text speed. Apply the offset only to text inside a fixed clip; new message identity snaps, paused logic captures stationary state. No server or gameplay changes. User requests compile/Console checks only; leave runtime debugging to them.
+
+## Wheel unit correction (2026-11-12)
+Keep existing offline mouse-wheel support and Scroll.WheelStepPx. Input System 1.19 defaults to UniformAcrossAllPlatforms (one notch); divide by 120 only for KeepPlatformSpecificInputRange on Windows. No input settings, bindings, selection, clipping or gameplay change.
+
+## Workbench typography/theme (2026-11-12)
+User requested dark mode, larger/heavier text and Apple fonts. Make dark the default (including native color-scheme). Use locally available -apple-system/BlinkMacSystemFont/SF Pro Text/SF Pro Display with Segoe UI/Arial fallbacks, and ui-monospace/SFMono-Regular/Menlo/Consolas for code. Do not download or bundle proprietary Apple fonts. Existing local API, routes and settings behavior are preserved.
+
+## Single workbench font (2026-11-12)
+User supersedes the separate UI/mono font choice: use --font-ui everywhere, including code/pre/IDs. Retain Apple-first system UI stack with Segoe UI fallback; no separate monospace stack or downloads.
+
+## Whole-game balancing system (2026-11-12, clarified user request)
+- User clarified a durable game-balancing system, not a character/session editor. The final dashboard writes global rules only; it never changes PlayerRecord, currency, allocated points or raw inventory options.
+- Intentional offline deviation: GameBalanceRules in game-balance.json holds percent + flat adjustments for four potentials and fourteen final combat stats, plus experiencePercent. Potentials feed a temporary calculation array before AbilityFromEquip.setAbility; final-stat adjustments run afterwards. Each recalculation starts from the original base, avoiding compounding. Normal EXP gains use the rate; /lv and /tolv bypass it.
+- Equipment rules run for all templates (key -1), then per template, using value * percent / 100 + flat at each stage. Effective options are computed at ability/item/shop-info time. Already-owned and future items use the same rules; saves keep raw options. Original upgrade-option gates remain.
+- Percent range 0..1000, flat +/-1000000; integer fractions truncate. Effective potentials are bounded 0..30000, speed 0..17 and adjusted combat values to protocol-safe bounds; maxima remain positive. Wide formula/damage intermediates prevent 32-bit wrap under tuning.
+- MobTuning in monster-tuning.json applies six per-template combat fields across zones/spawn/recovery. Live changes preserve HP/death/rank. Explicit HP overrides are absolute final maxima and are reflected accurately in map/recovery packets; reset removes template overrides.
+- Both version-1 files load from the save folder in GameServer.Start without the wiki, including release. Atomic file replacement precedes rule publication. Dashboard changes then SyncRoot locks serialize save/recalculation; no account writes or Unity API on HTTP threads. Existing protocol refreshes client caches at unchanged coordinates.
+- Keep B2 embedded server, in-memory transport, original tables/references and debug-site authentication. GET/POST /control/dashboard uses existing token/Host/Origin/size checks and its own revision. Sample characters are temporary unsaved objects. Forms are explicit-save snapshots.
+- User requested compile/Console checks only. Runtime/visual/restart behavior remains unverified.
+
+## Character progression profiles (2026-11-12)
+User requested intuitive Level-1 bases, configurable growth, two character groups and per-class differences, with maintainable code. Keep Char.addExp/selectClass default potential curves and AbilityFromEquip.setAbility as the single calculator. Classed characters still receive and manually allocate points; default previews assume none allocated. Profiles 0/classed/1..6 inherit each base/growthPercent/growthFlat field. Derived stat rules adjust the native naked curve and retain actual equipment/skill/allocation contributions; potential rules use original class curves and temporary arrays. This configurable overlay is an intentional offline deviation; empty profiles preserve native progression. Advanced global coefficients remain compatible. game-balance.json now writes version 2 and reads versions 1/2; no player-save migration. Draft previews validate and calculate without saving/publishing/packets. Core config, stat application, HTTP representation and frontend drafts remain separate; formulas are not duplicated in JavaScript. See docs/CHARACTER_PROGRESSION.md for exact semantics, bounds and extension points.
+
+## Formula guidance (2026-11-12)
+Explain the existing progression formula in the dashboard, including explicit percent /100, cumulative native growth rather than growth per tick, blank inheritance versus numeric zero, classed manual allocation and an illustrative example distinct from current preview values. Keep the calculation engine unchanged.
+
+## Wooden-sword preview scenario (2026-11-12)
+User requested a distinct Wooden Sword entry in Step 03, outside the classed group. Model it as unclassed class 0 equipped with the quest wooden sword #194, not a new class/profile. Share CreateTaskWoodenSword with the existing quest reward so preview options do not diverge (0:10, 8:1). The separate Tajima menu sword variant (0:10, 9:10) stays unchanged. Do not grant/equip a real player; compute a temporary sample through SetAbility, including global/template equipment rules.
+
+## Wiki URL guidance (2026-11-12)
+Keep existing fallback-port behavior. Runtime WikiUrl and NSO Server Control > Open dev wiki in browser are authoritative; 8787 is only the preferred starting port. Do not terminate Unity or disturb the running game just to reclaim a default port when the current wiki is healthy elsewhere.
+
+## Workbench sprite display (2026-11-12)
+User requested corresponding sprites for items and monsters. Reuse existing NsoStatic/Data/Img art by numeric template ID, without external services, asset copying or UnityEngine calls on HTTP threads. WikiSprites resolves item icon IDs from the original item table and serves PNGs; monster thumbnails use a representative frame, composed as a self-contained SVG for bosses following Mob.paint frame offsets/layers/flips. Static portrait only, no animation/gameplay timing changes. Numeric-only routes prevent arbitrary file reads; 16 MiB per-wiki FIFO cache and one-hour browser asset caching. Existing HTML/API keep no-store. Missing art returns 404 and a visible UI fallback.
+
+## F6 web shortcut (2026-11-12)
+User requested a default-browser button in F6. Reuse the existing Dev Action row/input/rendering, with Application.OpenURL on the main thread and live WikiUrl instead of a hardcoded port. Availability/errors appear in the normal hint area. Do not change the debug-only web lifecycle or saved settings.
+
+## Progression layout correction (2026-11-12)
+User clarified Wooden Sword must be a separate entry in Step 03, then requested removing the top unclassed/classed card. Remove that card; keep a compact target profile selector in Step 01. Present Unclassed / Wooden Sword / Classed as three separate comparison boxes. Wooden Sword remains a class-0 equipment scenario, not a new class or saved profile.
+
+## Collapsed growth section (2026-11-12)
+User requested the pictured growth section collapsed by default. Use native details/summary for Step 02 and close nested guidance initially. Keep shared form actions outside the collapsible section; reveal it when an invalid growth field needs focus. Stat formulas and saved settings remain unchanged.
+
+
+## 2026-11-12 - Slow effect animation previews
+- Added original status icons and a separate paginated animation gallery in the Effects tab. Status IDs are not assumed to map to animation IDs.
+- Sources: `nj_effect` frame order, image IDs and offsets from `GameScr.readEfect` / `ServerEffect.paint`; allowlisted original Small images served by WikiSprites as zoom-normalized SVGs. No gameplay calculation or timing changes.
+- Files: WikiData.cs, WikiSprites.cs, WikiServer.cs, ServerBootstrap.cs; NsoWiki/effects.js (+ Unity meta), sprites.js, app.js, index.html, app.css; project status/task/decision/handoff documents, ServerPort.md and notes.json.
+- Presentation defaults: 4 frames/second, 12 cards/page, at most 6 visible animated canvases, one shared timer, 128-image client cache and existing 16 MiB server asset cache. Pause on hidden document, offscreen cards and route changes; respect reduced-motion preference at initial load. Manual pause/resume available. Missing art displays a notice.
+- Validation: node --check passed for effects.js, sprites.js and app.js. Unity refreshed and finished compiling: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. No automated gameplay tests or Play/browser validation, per user compile-only instruction.
+- Known limitations: names of standalone VFX are numeric source IDs; no invented association to status effects. Browser rendering/performance remains unverified.
+- Next: start Play manually, open the workbench through F6 > Dev > Open web, visit Effects, check looping, pagination, pause/resume and scrolling. CLI validation: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.

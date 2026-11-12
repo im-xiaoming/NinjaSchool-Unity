@@ -186,5 +186,73 @@ Giải thích: 20% sát thương tương đương giảm 80% hiện tại; 100% 
 - Kiểm thử runtime quái đánh nhân vật, HP mất và tử vong, với/không thức ăn để phân biệt hồi HP và né. Ghi rõ test nào chưa chạy; không tuyên bố fix hoàn tất chỉ vì compile.
 - Giữ các sửa lỗi EXP khi chết và lưu thức ăn hiện có; regression thoát/vào, chết/hồi sinh.
 
-## Phạm vi duyệt lần này
-Chỉ triển khai phần bổ sung combat web này; các bước overlay/Inspector trước đó là bối cảnh lịch sử, không tự thực hiện lại. Không tự hạ stat người chơi, không tự đổi default cân bằng, không thêm backend cloud/packages.
+## Phạm vi duyệt trước đây
+Phần combat web và các bước overlay/Inspector trên là bối cảnh lịch sử; không tự triển khai lại trong đợt input dưới đây.
+
+# Input System Migration — Current Approval Scope
+
+# Project Overview
+- Game Title: NSO / NinjaGame (retain existing title).
+- High-Level Concept: Preserve the existing Java-port ninja client and embedded server while replacing deprecated gameplay input acquisition with Unity Input System.
+- Players: Existing offline client with in-process server; no networking changes.
+- Inspiration / Reference Games: Original NSO; existing controls are the baseline.
+- Tone / Art Direction: Existing pixel art; no art or renderer changes.
+- Target Platform: StandaloneWindows64.
+- Screen Orientation / Resolution: Preserve existing window/fullscreen and zoom settings.
+- Render Pipeline: URP, Unity 6000.6.8f1; installed Input System 1.19.0, URP 17.6.0, Test Framework 1.8.0.
+
+# Game Mechanics
+## Core Gameplay Loop
+Keep movement, combat, target selection, menus, chat, terminal commands and server updates unchanged. Translate Input System events into the existing GameCanvas keyPressed/keyReleased and pointer methods; do not rewrite gameplay.
+## Controls and Input Methods
+Preserve MyKeyMap mappings, including Space/up jump, arrows, letter/digit shortcuts, F1–F3, Tab, Enter, Backspace, slash/keypad divide and Shift+2/minus special mappings. Preserve F6 settings, F9/F10 speed, F11/Alt+Enter fullscreen. Retain current gamepad Inspector mappings and world/menu behavior.
+Use event-driven InputActions for keyboard bindings, pointer press/position/scroll and global hotkeys; use Keyboard.onTextInput and onIMECompositionChange for committed text and composition. Queue events and dispatch once per dynamic frame rather than in repeated OnGUI calls. Track the code sent on press so release remains correct after modifiers or context change. Release held controls on focus loss, disable and device removal; prevent keyboard/gamepad sources releasing a code still held by another source where shared ownership is required.
+
+# UI
+No menu/HUD redesign. Keep the existing IMGUI diagnostics and custom game renderer. Route diagnostic input ahead of gameplay when the F6 window is open, with one owner per event. Preserve chat printable-key suppression, Enter submission, navigation and Escape behavior. Composition remains visible in NsoTerminal without duplicate committed characters.
+```
+Keyboard / Mouse actions + text / IME events
+              -> ordered input bridge
+              -> diagnostics OR chat / GameCanvas
+Existing gamepad -> preserved mappings / shared held-key ownership
+EventSystem     -> InputSystemUIInputModule
+```
+
+# Key Asset & Context
+- Assets/Scripts/Application/Main.cs: currently polls legacy mouse/text in Update and processes keys/pointer inside OnGUI. Remove checkInput acquisition from paint; retain Session_ME.update and render hooks unchanged.
+- Assets/Scripts/Input/MyKeyMap.cs: explicit client key translation; retain existing API if referenced and add Input System mapping support rather than changing client key codes.
+- Assets/Scripts/Input/NsoGamepadInput.cs: already Input System-based, runtime bootstrapped. Do not remap controller or add duplicate actions; minimally integrate shared release ownership if needed.
+- Create Assets/Scripts/Input/NsoInputSystemBridge.cs and Assets/Input/NsoControls.inputactions (or equivalent action asset path following existing conventions after checking assets). One lifecycle owner; callbacks register/unregister safely and actions dispose/disable appropriately.
+- Assets/Scripts/Rendering/mGraphics.cs and Assets/Scripts/Diagnostics/TextAlignPanel.cs: replace legacy mouse-position reads with bridge/Input System pointer state and null-device handling.
+- Assets/Scripts/Diagnostics/TextCalib.cs, NsoSettingsMenu.cs, TextAlignPanel.cs: audit full diagnostic event handling and adapt key routing without redesigning diagnostics.
+- Assets/Scripts/UI/Components/NsoTerminal.cs: replace Input.compositionString with bridge composition state.
+- Assets/Scripts/UI/Components/Scroll.cs: preserve game-coordinate wheel behavior and update outdated comments. Verify new scroll-unit scaling against current list behavior.
+- Assets/Prefabs/NSO Game.prefab (actual asset name includes a space) and Assets/Scenes/NinjaGame.unity: migrate StandaloneInputModule to InputSystemUIInputModule, wire action references and bridge once, preserve overrides.
+- ProjectSettings/ProjectSettings.asset: activeInputHandler verified as 2 (Both); change to Input System only after migration tests. Input Manager axes may remain as unused rollback data.
+- Assets/Scripts/Platform/GPS.cs: Input.location is a separate location service with no direct Input System equivalent; retain it, do not invent a replacement.
+- Dependencies inspected with AssetDatabase.GetDependencies. Game prefab owns Main and StandaloneInputModule; dependents include NinjaGame.unity, testNj.unity and _Recovery/0.unity. Inspect test scene for active legacy modules before final switch; do not rewrite recovery assets automatically. Script dependency results are empty and do not prove absence of references: supplement with text/reference scans.
+- Add migration documentation and focused tests within compatible existing test assemblies; inspect assembly definitions before adding tests, do not blindly reference Assembly-CSharp from a new asmdef.
+- Reference: https://docs.unity3d.com/Packages/com.unity.inputsystem@1.19/manual/Migration.html (text events, IME, mouse APIs, location limitations).
+
+# Implementation Steps
+1. **Complete baseline and impact audit.** Read full diagnostic routing, chat/terminal field editing, GameCanvas key/pointer handling, existing action assets/settings and test assemblies. Inspect prefab/scene serialization and all runtime legacy APIs, including non-Scripts folders and aliases. Check dependencies/dependents before each edited asset. Record mappings, text order/repeat behavior and mouse wheel baseline. Dependencies: none.
+2. **Implement action bridge and translation.** Create action asset and bridge; map all existing keyboard codes explicitly and capture modifiers at press time. Add pointer conversion preserving Screen.height Y inversion and mGraphics.zoomLevel, guarded against invalid zoom/no devices. Dispatch edge events once; continuous drag at most once per frame. Actions use dynamic update compatible with the current FixedUpdate gameplay loop; short taps remain visible to legacy logic. Dependencies: 1.
+3. **Migrate text and diagnostic routing.** Subscribe to keyboard text/composition events with device-change cleanup. Preserve Unicode/Vietnamese, ordered Backspace replacement, repeat editing, slash-open behavior, Enter/escape/navigation; avoid action/text double delivery and accidental immediate submission. Verify actual Backspace behavior on Windows rather than assuming onTextInput includes it. Move diagnostic/global hotkey handling into a deterministic route; retain OnGUI for drawing. Dependencies: 2.
+4. **Replace remaining reads and integrate sources.** Remove Main legacy acquisition and update hover/diagnostic pointer reads and terminal composition. Preserve gamepad mappings; coordinate shared held codes where necessary so source releases do not cause stuck/dropped movement. Release/cancel input on focus loss, device disconnect, scene teardown, chat/diagnostic context changes and component disable. Dependencies: 2–3.
+5. **Wire prefab and UI module.** Update actual NSO Game prefab and main scene without duplicate bridge/EventSystem. Configure InputSystemUIInputModule actions explicitly; ensure UI navigation does not also dispatch duplicate game commands. Audit testNj scene and other active scene modules; any additional changes require verified relevance. Do not edit recovery copies, package source, renderer, server or combat settings. Dependencies: 4.
+6. **Test while Both remains enabled, then retire legacy backend.** Compile and run focused tests first, scan for remaining legacy gameplay APIs, distinguish retained location API from backend-dependent controls. Switch Active Input Handling to Input System only via supported settings, allowing Editor restart if requested. Re-run tests after restart; no generated scripting defines or compatibility guard changes. Dependencies: 5 and successful preliminary regression checks.
+7. **Documentation and verification report.** Document controls, ownership, text/IME caveats, action editing, restart requirement and rollback. Report test outcomes and tests not executed. Dependencies: 6.
+
+# Verification & Testing
+- Mapping tests cover every MyKeyMap key, modifier exceptions, matched release codes and aliases (Space/up). Simultaneous keyboard/gamepad holds must not release each other prematurely.
+- Simulated action presses/releases: single delivery, tap between logic ticks, sustained movement, pointer drag/release, no duplicate callbacks across OnGUI Layout/Repaint, scroll sign/magnitude and hover coordinates across zoom/resize/fullscreen.
+- Runtime controls: movement/jump, attack/interact, skills 7/8/9, target switching, menus/back, F6 diagnostic navigation/text drag, F9/F10 tick-rate ownership, F11 and Alt+Enter once per press.
+- Text: chat/terminal open/close, slash command entry, Enter once, Backspace press/hold, cursor navigation, paste if currently supported, Unicode accented Vietnamese and real Unikey/Windows IME composition/commit/cancel. Confirm no duplicated deletion or committed character and no gameplay keys while typing.
+- No keyboard/mouse/gamepad, hot-plug, focus loss/return, disable/re-enable, scene reload, repeated Play and Domain Reload on/off: no exceptions, stale composition, stuck keys or duplicate subscriptions.
+- EventSystem/module serialization, prefab overrides, save/reopen scene and test scene compatibility; exactly one active input route per context.
+- Verify activeInputHandler is Input System only after restart, compile cleanly and scan remaining Input references. Retained GPS location calls are documented exceptions, not unfinished gameplay migration.
+- Windows development build smoke test if tooling available; manual hardware/IME checks are required and cannot be claimed solely from simulated tests.
+- Rollback: revert migration scripts/action assets/prefab changes and restore Both in settings; preserve saves, Inspector configuration, gamepad mappings and server data.
+
+## Current Approval Boundary
+Only implement the Input System migration above. Earlier overlay, Inspector and combat-web plans are historical context. No new controls, art/UI redesign, package upgrades, server changes or performance claims.

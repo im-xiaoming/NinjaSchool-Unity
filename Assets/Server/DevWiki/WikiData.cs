@@ -45,6 +45,15 @@ namespace NsoServer.DevWiki
             w.Key("shops"); Shops(w, ctx);
             w.Key("skills"); Skills(w, ctx);
             w.Key("effects"); Simple(w, tables["effect"], "id", new[] { "name", "type", "icon" });
+            w.Key("effectAnimations"); w.BeginArray();
+            // GameScr.readEfect: retain original image order and signed frame offsets.
+            var animations = tables["nj_effect"];
+            foreach (var row in animations.Rows)
+            {
+                w.BeginObject(); w.Prop("id", int.Parse(row[animations.Col("id")]));
+                w.Key("frames"); w.Value(Json.Parse(row[animations.Col("info")])); w.EndObject();
+            }
+            w.EndArray();
             w.Key("itemOptions"); Simple(w, tables["item_option"], "id", new[] { "name", "type" });
             w.Key("classes"); Simple(w, tables["clazz"], "id", new[] { "name" });
             // hand-written collections, merged raw (each value must be a JSON array of documents)

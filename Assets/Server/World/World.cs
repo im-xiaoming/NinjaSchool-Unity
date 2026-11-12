@@ -107,7 +107,8 @@ namespace NsoServer.World
         public int Id;
         public MobTemplate Template;
         public bool IsDisable, IsDontMove, IsFire, IsIce, IsWind;
-        public sbyte Sys;
+        public sbyte Sys, TuningBaseSys;
+        public bool HasTunedHp;
         public int Hp, MaxHp;
         public short Level, X, Y;
         public sbyte Status;
@@ -159,6 +160,8 @@ namespace NsoServer.World
     public sealed partial class GameWorld
     {
         public LootRules LootRules = new LootRules(); // immutable snapshot, replaced under SyncRoot
+        public GameBalanceRules BalanceRules = new GameBalanceRules(); // persistent global balance
+        public MobTuning MobTuning = new MobTuning(); // persistent offline per-template tuning
         public CombatRules CombatRules = new CombatRules(); // replaced under SyncRoot
         private const int MobHopBiAn = 225, MobJuubiShinjuu = 237;
         private const int MaxMobsPerZone = 127;
@@ -197,6 +200,8 @@ namespace NsoServer.World
             int t;
             return itemOptionTypes.TryGetValue(optionId, out t) ? t : 0;
         }
+
+        public bool HasItemOption(int optionId) { return itemOptionTypes.ContainsKey(optionId); }
 
         private void LoadItemOptionTypes(SqlTable t)
         {
@@ -306,6 +311,10 @@ namespace NsoServer.World
             TileMap t;
             return tileMaps.TryGetValue(id, out t) ? t : null;
         }
+
+        public List<ItemTemplateData> ItemTemplates() { return new List<ItemTemplateData>(itemTemplates.Values); }
+
+        public List<MobTemplate> MonsterTemplates() { return new List<MobTemplate>(mobTemplates.Values); }
 
         public MobTemplate FindMob(int id)
         {
@@ -600,7 +609,10 @@ namespace NsoServer.World
         private void SetupMob(Zone z, Mob mob)
         {
             var tpl = mob.Template;
+            mob.Level = tpl.Level;
+            mob.AttackDelay = 3000;
             mob.Sys = (sbyte)rng.Next(1, 3);
+            mob.TuningBaseSys = mob.Sys;
             SetLevelBoss(z, mob);
             int hp = tpl.Hp;
             mob.Hp = mob.MaxHp = mob.LevelBoss == 1 ? hp * 10 : mob.LevelBoss == 2 ? hp * 100 : mob.LevelBoss == 3 ? hp * 200 : hp;
@@ -610,6 +622,8 @@ namespace NsoServer.World
             if (mob.IsBoss) d *= 20; else if (mob.LevelBoss == 1) d *= 2; else if (mob.LevelBoss == 2) d *= 3;
             mob.DamageOnPlayer = d;
             mob.DamageOnPlayer2 = d - d / 10;
+            MobTuning.Apply(mob);
+            mob.Hp = mob.MaxHp;
         }
 
         // Mob.recovery(): the monster comes back alive with fresh class, rank, HP and damage

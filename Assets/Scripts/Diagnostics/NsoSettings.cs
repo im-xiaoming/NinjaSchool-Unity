@@ -112,6 +112,26 @@ public static class NsoSettings
 
     private static int Percent(float v) { return Mathf.RoundToInt(Mathf.Clamp01(v) * 100f); }
 
+    // Offline workbench shortcut. Action rows run on the main thread; resolve the live fallback port on click.
+    private static void OpenWorkbench(Option option)
+    {
+        string url = ServerBootstrap.WikiUrl;
+        if (string.IsNullOrEmpty(url))
+        {
+            option.hint = "Web chưa sẵn sàng. Cần bật Dev Wiki và chạy game trong Editor hoặc bản development.";
+            return;
+        }
+        try
+        {
+            Application.OpenURL(url + "#dashboard");
+            option.hint = "Đã gửi yêu cầu mở trình duyệt: " + url;
+        }
+        catch (Exception)
+        {
+            option.hint = "Không mở được trình duyệt. Mở thủ công: " + url;
+        }
+    }
+
     // ---- the option lists ----
     private static void Build()
     {
@@ -196,6 +216,13 @@ public static class NsoSettings
         Info(keys, "Cài đặt: về mặc định", "Backspace");
 
         Tab dev = AddTab("Dev");
+        var workbench = new Option {
+            label = "Mở web cân bằng",
+            hint = "Mở Workbench bằng trình duyệt mặc định, dùng đúng cổng web đang chạy.",
+            kind = Kind.Action
+        };
+        workbench.run = () => OpenWorkbench(workbench);
+        dev.options.Add(workbench);
         dev.options.Add(new Option { label = "Căn chỉnh chữ", hint = "Bảng chỉnh vị trí X / Y của từng loại chữ (công cụ cũ của F6).", kind = Kind.Action, run = NsoSettingsMenu.OpenTextOffsets });
         Slider(dev, "tickRate", "Tốc độ logic game", "Số nhịp logic mỗi giây (24 = gốc). F9 / F10 cũng đổi được.", 10, 60, 2, "",
             () => NsoGameControl.Active != null ? NsoGameControl.Active.logicTicksPerSecond : (Main.main != null ? Main.main.tickRate : 24),

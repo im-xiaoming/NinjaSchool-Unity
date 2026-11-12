@@ -11,7 +11,7 @@ public class Scroll
     private static float wheelAccum, wheelTime;
     private static int wheelX, wheelY;
 
-    /// <summary>Called by Main.Update with Input.mouseScrollDelta.y and the cursor in game coordinates.</summary>
+    /// <summary>Called by the input bridge with normalized wheel notches and the cursor in game coordinates.</summary>
     public static void AddWheel(float delta, int x, int y)
     {
         if (delta == 0f)

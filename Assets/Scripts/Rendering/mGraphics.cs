@@ -112,7 +112,8 @@ public class mGraphics
 	// True when the mouse is over this rectangle (game pixels, in the current translation). Used for hover highlights.
 	public bool isMouseOver(int x, int y, int w, int h)
 	{
-		Vector3 m = Input.mousePosition;
+        if (!NsoInputSystemBridge.MousePresent) return false;
+		Vector3 m = NsoInputSystemBridge.MousePosition;
 		float mx = m.x, my = Screen.height - m.y;   // screen pixels, Y down like the game
 		float rx = x * zoomLevel + (isTranslate ? translateX : 0);
 		float ry = y * zoomLevel + (isTranslate ? translateY : 0);

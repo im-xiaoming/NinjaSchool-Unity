@@ -120,3 +120,25 @@ NaturalRegenPercent defaults to 0 per user correction. Source-free HP/MP gain is
 - Dev terminal `/lv`, `/tolv n`: `DevTerminal.LevelTo` adds the missing experience via `PlayerCombat.AddExp` (offline deviation).
 
 - Basic attack growth (class 0): `GameWorld.AddBasicSkillGrowth` adds skill rows, `PlayerCombat.SyncBasicSkill` sets the point from the level (offline deviation, see `BasicSkillGrowth`).
+
+## Offline global balance system (2026-11-12)
+Protected GET/POST /control/dashboard edits whole-game rules. GameBalanceRules (game-balance.json) stores player/potential coefficients, normal EXP gain and global/per-template equipment coefficients. PlayerTuning wraps AbilityFromEquip.setAbility using temporary values; saved allocation/raw options stay original. Item/shop info uses the same effective option calculation as combat. MobTuning (monster-tuning.json) extends Mob.setClass/setHP/setDamage/recovery globally. Both files load in release without the wiki. Existing packets refresh clients; no account writes/new protocol. Wide math supports configurable values. Defaults preserve original gameplay. Compile/syntax only; runtime verification left to user.
+
+## Configurable character progression (2026-11-12)
+CharacterProgressionRules centralizes the original Char.addExp/selectClass potential bases and native growth. PlayerTuning overlays configured Level-1/native-growth parameters around the existing AbilityFromEquip.setAbility port, preserving raw allocated points/equipment contributions. PlayerCombat.ProgressionSample and the protected WikiProgression draft API reuse this calculator. game-balance.json v2 reads v1/v2 and keeps older coefficients. No actual player save changes or new game protocol. Detailed semantics: docs/CHARACTER_PROGRESSION.md. Compile-only validation; user owns runtime verification.
+
+## Quest wooden-sword preview factory (2026-11-12)
+PlayerItems.CreateTaskWoodenSword shares the existing Char.receiveWoodenSword quest reward construction (item 194, option 0=10 and 8=1) with the read-only progression preview. The quest still receives the exact same item; the alternate NPC-menu variant remains unchanged. Preview equipment exists only in a temporary class-0 PlayerState and is calculated by SetAbility. Compile-only validation.
+
+## Workbench sprite endpoints (2026-11-12)
+GET /sprites/items/{templateId}.png maps item.icon to Img/Small/{zoom}/Small{icon}.png. GET /sprites/mobs/{templateId}.svg uses Img/Mob/{zoom}/{id}_0.png (98/99 single files), composing bosses from MobTemplate.ImageInfo/Frames/FrameBossMove as the client does. WikiSprites requires the existing item table and world data root, accepts canonical numeric IDs only, uses a 16 MiB FIFO cache and returns 404 for missing art. No gameplay/protocol changes; compile-only verified.
+
+
+## 2026-11-12 - Slow effect animation previews
+- Added original status icons and a separate paginated animation gallery in the Effects tab. Status IDs are not assumed to map to animation IDs.
+- Sources: `nj_effect` frame order, image IDs and offsets from `GameScr.readEfect` / `ServerEffect.paint`; allowlisted original Small images served by WikiSprites as zoom-normalized SVGs. No gameplay calculation or timing changes.
+- Files: WikiData.cs, WikiSprites.cs, WikiServer.cs, ServerBootstrap.cs; NsoWiki/effects.js (+ Unity meta), sprites.js, app.js, index.html, app.css; project status/task/decision/handoff documents, ServerPort.md and notes.json.
+- Presentation defaults: 4 frames/second, 12 cards/page, at most 6 visible animated canvases, one shared timer, 128-image client cache and existing 16 MiB server asset cache. Pause on hidden document, offscreen cards and route changes; respect reduced-motion preference at initial load. Manual pause/resume available. Missing art displays a notice.
+- Validation: node --check passed for effects.js, sprites.js and app.js. Unity refreshed and finished compiling: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. No automated gameplay tests or Play/browser validation, per user compile-only instruction.
+- Known limitations: names of standalone VFX are numeric source IDs; no invented association to status effects. Browser rendering/performance remains unverified.
+- Next: start Play manually, open the workbench through F6 > Dev > Open web, visit Effects, check looping, pagination, pause/resume and scrolling. CLI validation: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.

@@ -91,6 +91,12 @@ namespace NsoServer.World
         }
 
         // StoreManager.find(type): the items of one shop in display order
+        public StoreItem ItemStoreSample(int itemId)
+        {
+            foreach (var store in stores.Values) foreach (var item in store) if (item.ItemId == itemId) return item;
+            return null;
+        }
+
         public List<StoreItem> Store(int type)
         {
             List<StoreItem> s;

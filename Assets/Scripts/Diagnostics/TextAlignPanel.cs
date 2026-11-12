@@ -174,7 +174,7 @@ public static class TextAlignPanel
         {
             if (dragText)
             {
-                Vector3 m = Input.mousePosition;
+                Vector3 m = NsoInputSystemBridge.MousePosition;
                 float z = Mathf.Max(1, mGraphics.zoomLevel);
                 string key = TextCalib.Items[TextCalib.Selected];
                 Vector2 v = TextCalib.Get(key);
@@ -214,7 +214,7 @@ public static class TextAlignPanel
         if (!InWindow(x, y))
         {
             int hit = TextCalib.HitTest(x * mGraphics.zoomLevel, y * mGraphics.zoomLevel, 6f);
-            if (hit >= 0) { TextCalib.Selected = hit; ScrollToSelected(); dragText = true; lastMouse = Input.mousePosition; }
+            if (hit >= 0) { TextCalib.Selected = hit; ScrollToSelected(); dragText = true; lastMouse = NsoInputSystemBridge.MousePosition; }
             return true;
         }
         if (y >= ButtonY && y <= ButtonY + ButtonH)

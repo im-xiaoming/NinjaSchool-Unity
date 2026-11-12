@@ -228,7 +228,7 @@ namespace NsoServer.Net
             if (t != null && (IsWearable(t) || (t.Type >= 29 && t.Type <= 34)))
             {
                 m.Writer.WriteByte(item.System);
-                foreach (var o in item.Options) { m.Writer.WriteByte(o.Id); m.Writer.WriteInt(o.Param); }
+                foreach (var o in me.Session.Server.World.BalanceRules.EffectiveOptions(item)) { m.Writer.WriteByte(o.Id); m.Writer.WriteInt(o.Param); }
             }
             me.Session.Send(m);
         }
@@ -246,7 +246,9 @@ namespace NsoServer.Net
             if (t != null && (IsWearable(t) || (t.Type >= 29 && t.Type <= 34)))
             {
                 m.Writer.WriteByte(s.Sys);
-                for (int i = 0; i < s.OptionIds.Length; i++) { m.Writer.WriteByte(s.OptionIds[i]); m.Writer.WriteInt(s.MaxParams[i]); }
+                var preview = new PlayerItem { Id = s.ItemId };
+                for (int i = 0; i < s.OptionIds.Length; i++) preview.Options.Add(new PlayerItemOption { Id = s.OptionIds[i], Param = s.MaxParams[i] });
+                foreach (var option in me.Session.Server.World.BalanceRules.EffectiveOptions(preview)) { m.Writer.WriteByte(option.Id); m.Writer.WriteInt(option.Param); }
             }
             me.Session.Send(m);
         }
