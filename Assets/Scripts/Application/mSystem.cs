@@ -18,10 +18,12 @@ public class mSystem
             {
                 array[i] = dest[i];
             }
+
             for (int j = destPos; j < destPos + lenght; j++)
             {
                 array[j] = scr[scrPos + j - destPos];
             }
+
             for (int k = destPos + lenght; k < array.Length; k++)
             {
                 array[k] = dest[destPos + k - lenght];
@@ -48,6 +50,7 @@ public class mSystem
         {
             array[i] = (sbyte)scr[i];
         }
+
         return array;
     }
 
@@ -72,6 +75,7 @@ public class mSystem
                 array[i] = (byte)(scr[i] + 256);
             }
         }
+
         return array;
     }
 
@@ -82,6 +86,7 @@ public class mSystem
         {
             array[i] = (char)scr[i];
         }
+
         return array;
     }
 

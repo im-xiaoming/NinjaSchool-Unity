@@ -20,98 +20,158 @@ public static class TargetCycler
     private static float[] bestD = new float[8];
     private static object[] bestO = new object[8];
     private static int bestCount, bestCap;
-
     /// <summary>Current sorted list (nearest first). Read-only view for debugging.</summary>
-    public static IReadOnlyList<object> Targets { get { return list; } }
+    public static IReadOnlyList<object> Targets
+    {
+        get
+        {
+            return list;
+        }
+    }
 
     /// <summary>Rebuilds the sorted list. Cheap; call it periodically while in the world.</summary>
-    /// <param name="maxTargets">N: how many nearest targets the list holds.</param>
-    /// <param name="radiusX">Horizontal ellipse radius (bigger = horizontal distance counts less).</param>
-    /// <param name="radiusY">Vertical ellipse radius.</param>
+    /// <param name = "maxTargets">N: how many nearest targets the list holds.</param>
+    /// <param name = "radiusX">Horizontal ellipse radius (bigger = horizontal distance counts less).</param>
+    /// <param name = "radiusY">Vertical ellipse radius.</param>
     public static void Refresh(int maxTargets, float radiusX, float radiusY)
     {
         list.Clear();
         Char me = Char.getMyChar();
-        if (me == null || GameScr.vMob == null) return;
+        if (me == null || GameScr.vMob == null)
+            return;
         float rx = radiusX < 1f ? 1f : radiusX, ry = radiusY < 1f ? 1f : radiusY;
         bestCap = maxTargets < 1 ? 1 : maxTargets;
-        if (bestD.Length < bestCap) { bestD = new float[bestCap]; bestO = new object[bestCap]; }
+        if (bestD.Length < bestCap)
+        {
+            bestD = new float[bestCap];
+            bestO = new object[bestCap];
+        }
+
         bestCount = 0;
         // Entities come straight from the map lists, so the O(m) "still in map" check is skipped here.
-        for (int i = 0; i < GameScr.vMob.size(); i++) Add(me, GameScr.vMob.elementAt(i), rx, ry);
-        for (int i = 0; i < GameScr.vNpc.size(); i++) Add(me, GameScr.vNpc.elementAt(i), rx, ry);
-        for (int i = 0; i < GameScr.vCharInMap.size(); i++) Add(me, GameScr.vCharInMap.elementAt(i), rx, ry);
-        for (int i = 0; i < GameScr.vItemMap.size(); i++) Add(me, GameScr.vItemMap.elementAt(i), rx, ry);
-        for (int i = 0; i < bestCount; i++) { list.Add(bestO[i]); bestO[i] = null; } // ascending distance
+        for (int i = 0; i < GameScr.vMob.size(); i++)
+            Add(me, GameScr.vMob.elementAt(i), rx, ry);
+        for (int i = 0; i < GameScr.vNpc.size(); i++)
+            Add(me, GameScr.vNpc.elementAt(i), rx, ry);
+        for (int i = 0; i < GameScr.vCharInMap.size(); i++)
+            Add(me, GameScr.vCharInMap.elementAt(i), rx, ry);
+        for (int i = 0; i < GameScr.vItemMap.size(); i++)
+            Add(me, GameScr.vItemMap.elementAt(i), rx, ry);
+        for (int i = 0; i < bestCount; i++)
+        {
+            list.Add(bestO[i]);
+            bestO[i] = null;
+        } // ascending distance
     }
 
     /// <summary>Focuses the next target in the list (wrapping to index 0 after the last).</summary>
     public static void Next()
     {
         Char me = Char.getMyChar();
-        if (me == null || me.skillPaint != null || me.arr != null) return; // same guard as findNextFocusByKey
-        if (list.Count == 0) return;
+        if (me == null || me.skillPaint != null || me.arr != null)
+            return; // same guard as findNextFocusByKey
+        if (list.Count == 0)
+            return;
         int current = list.IndexOf(CurrentFocus(me));
         // current == -1 (no focus / focus not in list) -> index 0, the nearest target.
         int next = (current + 1) % list.Count;
-        if (IsValid(list[next], true)) Focus(me, list[next]);
+        if (IsValid(list[next], true))
+            Focus(me, list[next]);
     }
 
     private static object CurrentFocus(Char me)
     {
-        if (me.mobFocus != null) return me.mobFocus;
-        if (me.npcFocus != null) return me.npcFocus;
-        if (me.charFocus != null) return me.charFocus;
+        if (me.mobFocus != null)
+            return me.mobFocus;
+        if (me.npcFocus != null)
+            return me.npcFocus;
+        if (me.charFocus != null)
+            return me.charFocus;
         return me.itemFocus;
     }
 
     private static void Add(Char me, object o, float rx, float ry)
     {
-        if (o == null || o == me || !IsValid(o, false)) return;
+        if (o == null || o == me || !IsValid(o, false))
+            return;
         int x, y;
         Position(o, out x, out y);
         float dx = (x - me.cx) / rx, dy = (y - me.cy) / ry;
         float d = dx * dx + dy * dy;
-        if (bestCount == bestCap && d >= bestD[bestCap - 1]) return; // farther than the current N-th
+        if (bestCount == bestCap && d >= bestD[bestCap - 1])
+            return; // farther than the current N-th
         // Insertion into the sorted top-N array: shift farther entries right by one.
         int j = bestCount < bestCap ? bestCount++ : bestCap - 1;
-        while (j > 0 && bestD[j - 1] > d) { bestD[j] = bestD[j - 1]; bestO[j] = bestO[j - 1]; j--; }
-        bestD[j] = d; bestO[j] = o;
+        while (j > 0 && bestD[j - 1] > d)
+        {
+            bestD[j] = bestD[j - 1];
+            bestO[j] = bestO[j - 1];
+            j--;
+        }
+
+        bestD[j] = d;
+        bestO[j] = o;
     }
 
     private static void Position(object o, out int x, out int y)
     {
-        Mob mob = o as Mob; if (mob != null) { x = mob.x; y = mob.y; return; }
-        Npc npc = o as Npc; if (npc != null) { x = npc.cx; y = npc.cy; return; }
-        Char c = o as Char; if (c != null) { x = c.cx; y = c.cy; return; }
-        ItemMap it = (ItemMap)o; x = it.x; y = it.y;
+        Mob mob = o as Mob;
+        if (mob != null)
+        {
+            x = mob.x;
+            y = mob.y;
+            return;
+        }
+
+        Npc npc = o as Npc;
+        if (npc != null)
+        {
+            x = npc.cx;
+            y = npc.cy;
+            return;
+        }
+
+        Char c = o as Char;
+        if (c != null)
+        {
+            x = c.cx;
+            y = c.cy;
+            return;
+        }
+
+        ItemMap it = (ItemMap)o;
+        x = it.x;
+        y = it.y;
     }
 
     /// <summary>Still in the map, on screen and targetable (rules from Char.findNextFocusByKey).</summary>
-    /// <param name="checkInMap">Also check the object is still in the map list (O(m)); false when it was just read from it.</param>
+    /// <param name = "checkInMap">Also check the object is still in the map list (O(m)); false when it was just read from it.</param>
     private static bool IsValid(object o, bool checkInMap)
     {
         Mob mob = o as Mob;
         if (mob != null)
         {
-            if ((checkInMap && !GameScr.vMob.contains(mob)) || mob.status == 0 || mob.status == 1 || !mob.isPaint()) return false;
+            if ((checkInMap && !GameScr.vMob.contains(mob)) || mob.status == 0 || mob.status == 1 || !mob.isPaint())
+                return false;
         }
         else if (o is Npc)
         {
             Npc npc = (Npc)o;
-            if ((checkInMap && !GameScr.vNpc.contains(npc)) || npc.statusMe == 15 || !npc.isPaint()) return false;
+            if ((checkInMap && !GameScr.vNpc.contains(npc)) || npc.statusMe == 15 || !npc.isPaint())
+                return false;
         }
         else if (o is Char)
         {
             Char c = (Char)o;
-            if ((checkInMap && !GameScr.vCharInMap.contains(c)) || c.isNhanbanz() || c.isInvisible || c.statusMe == 15) return false;
+            if ((checkInMap && !GameScr.vCharInMap.contains(c)) || c.isNhanbanz() || c.isInvisible || c.statusMe == 15)
+                return false;
         }
-        else if (!(o is ItemMap) || (checkInMap && !GameScr.vItemMap.contains(o))) return false;
+        else if (!(o is ItemMap) || (checkInMap && !GameScr.vItemMap.contains(o)))
+            return false;
         int x, y;
         Position(o, out x, out y);
         // Same on-screen rectangle as Char.findNextFocusByKey.
-        return GameScr.cmx + 10 <= x && x <= GameScr.cmx + GameCanvas.w - 10
-            && GameScr.cmy + 10 <= y && y <= GameScr.cmy + GameScr.gH;
+        return GameScr.cmx + 10 <= x && x <= GameScr.cmx + GameCanvas.w - 10 && GameScr.cmy + 10 <= y && y <= GameScr.cmy + GameScr.gH;
     }
 
     /// <summary>Sets the focus the same way GameScr.doFocusbyTouch does.</summary>
@@ -121,10 +181,14 @@ public static class TargetCycler
         me.deFocusNPC();
         me.charFocus = null;
         me.itemFocus = null;
-        if (o is Mob) me.mobFocus = (Mob)o;
-        else if (o is Npc) me.npcFocus = (Npc)o;
-        else if (o is Char) me.charFocus = (Char)o;
-        else me.itemFocus = (ItemMap)o;
+        if (o is Mob)
+            me.mobFocus = (Mob)o;
+        else if (o is Npc)
+            me.npcFocus = (Npc)o;
+        else if (o is Char)
+            me.charFocus = (Char)o;
+        else
+            me.itemFocus = (ItemMap)o;
         Char.isManualFocus = true;
     }
 }

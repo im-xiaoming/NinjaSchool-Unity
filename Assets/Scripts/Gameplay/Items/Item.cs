@@ -3,231 +3,119 @@ using System;
 public class Item
 {
     public const int TYPE_BODY_MIN = 0;
-
     public const int TYPE_BODY_MAX = 15;
-
     public const int TYPE_NON = 0;
-
     public const int TYPE_VUKHI = 1;
-
     public const int TYPE_AO = 2;
-
     public const int TYPE_LIEN = 3;
-
     public const int TYPE_GANGTAY = 4;
-
     public const int TYPE_NHAN = 5;
-
     public const int TYPE_QUAN = 6;
-
     public const int TYPE_NGOCBOI = 7;
-
     public const int TYPE_GIAY = 8;
-
     public const int TYPE_PHU = 9;
-
     public const int TYPE_THUNUOI = 10;
-
     public const int TYPE_MATNA = 11;
-
     public const int TYPE_AOCHOANG = 12;
-
     public const int TYPE_BAOTAY = 13;
-
     public const int TYPE_UNKNOW2 = 14;
-
     public const int TYPE_BIKIP = 15;
-
     public const int TYPE_HP = 16;
-
     public const int TYPE_MP = 17;
-
     public const int TYPE_EAT = 18;
-
     public const int TYPE_MONEY = 19;
-
     public const int TYPE_TUI_TIEN = 20;
-
     public const int TYPE_MEAT = 21;
-
     public const int TYPE_DRAGONBALL = 22;
-
     public const int TYPE_TASK_SAVE = 23;
-
     public const int TYPE_TASK_WAIT = 24;
-
     public const int TYPE_TASK = 25;
-
     public const int TYPE_CRYSTAL = 26;
-
     public const int TYPE_ORDER = 27;
-
     public const int TYPE_PROTECT = 28;
-
     public const int TYPE_MON0 = 29;
-
     public const int TYPE_MON1 = 30;
-
     public const int TYPE_MON2 = 31;
-
     public const int TYPE_MON3 = 32;
-
     public const int TYPE_MON4 = 33;
-
     public const int TYPE_NGOCKHAM = 34;
-
     public const sbyte UI_WEAPON = 2;
-
     public const sbyte UI_BAG = 3;
-
     public const sbyte UI_BOX = 4;
-
     public const sbyte UI_BODY = 5;
-
     public const sbyte UI_STACK = 6;
-
     public const sbyte UI_STACK_LOCK = 7;
-
     public const sbyte UI_GROCERY = 8;
-
     public const sbyte UI_GROCERY_LOCK = 9;
-
     public const sbyte UI_UPGRADE = 10;
-
     public const sbyte UI_UPPEARL = 11;
-
     public const sbyte UI_UPPEARL_LOCK = 12;
-
     public const sbyte UI_SPLIT = 13;
-
     public const sbyte UI_STORE = 14;
-
     public const sbyte UI_BOOK = 15;
-
     public const sbyte UI_LIEN = 16;
-
     public const sbyte UI_NHAN = 17;
-
     public const sbyte UI_NGOCBOI = 18;
-
     public const sbyte UI_PHU = 19;
-
     public const sbyte UI_NONNAM = 20;
-
     public const sbyte UI_NONNU = 21;
-
     public const sbyte UI_AONAM = 22;
-
     public const sbyte UI_AONU = 23;
-
     public const sbyte UI_GANGTAYNAM = 24;
-
     public const sbyte UI_GANGTAYNU = 25;
-
     public const sbyte UI_QUANNAM = 26;
-
     public const sbyte UI_QUANNU = 27;
-
     public const sbyte UI_GIAYNAM = 28;
-
     public const sbyte UI_GIAYNU = 29;
-
     public const sbyte UI_TRADE = 30;
-
     public const sbyte UI_UPGRADE_GOLD = 31;
-
     public const sbyte UI_FASHION = 32;
-
     public const sbyte UI_CONVERT = 33;
-
     public const sbyte UI_CLANSHOP = 34;
-
     public const sbyte UI_ELITES = 35;
-
     public const sbyte UI_AUCTION_SALE = 36;
-
     public const sbyte UI_AUCTION_BUY = 37;
-
     public const sbyte UI_LUCKY_SPIN = 38;
-
     public const sbyte UI_CLAN = 39;
-
     public const sbyte UI_AUTO = 40;
-
     public const sbyte UI_MON = 41;
-
-
     public const sbyte UI_LUYEN_THACH = 43;
-
     public const sbyte UI_TINH_LUYEN_AO = 44;
-
     public const sbyte UI_TINH_LUYEN_THU = 45;
-
     public const sbyte UI_LUYEN_NGOC = 46;
-
     public const sbyte UI_KHAM_NGOC = 47;
-
     public const sbyte UI_GIAO_DO = 48;
-
     public const sbyte UI_GOT_NGOC = 49;
-
     public const sbyte UI_THAO_NGOC = 50;
-
     public const sbyte UI_SHOP_ONLINE = 52;
-
     public const sbyte UI_ViThu = 51;
-
     public const sbyte UI_CHE_DO = 53;
-
     public int indexFrame;
-
     public ItemTemplate template;
-
     public MyVector options;
-
     public int itemId;
-
     public int playerId;
-
     public int indexUI;
-
     public int quantity;
-
     public long expires;
-
     public bool isLock;
-
     public int sys;
-
     public int upgrade;
-
     public int buyCoin;
-
     public int buyCoinLock;
-
     public int buyGold;
-
     public int buyGoldLock;
-
     public int saleCoinLock;
-
     public int typeUI;
-
     public bool isExpires;
-
     public EffectCharPaint eff;
-
     public int indexEff;
-
     public Image img;
     public bool s = false;
-
     public long t = 0L;
     public long u = 0L;
     public bool v = false;
     public bool w = false;
-
-
     public Item clone()
     {
         Item item = new Item();
@@ -243,6 +131,7 @@ public class Item
                 item.options.addElement(itemOption);
             }
         }
+
         item.itemId = itemId;
         item.playerId = playerId;
         item.indexUI = indexUI;
@@ -260,6 +149,7 @@ public class Item
         item.isExpires = isExpires;
         return item;
     }
+
     public int getPecentUpgradeVuKhi(int updrade)
     {
         int num = GameScr.crystals[template.id] * 100 / GameScr.upWeapon[updrade];
@@ -267,8 +157,10 @@ public class Item
         {
             num = GameScr.maxPercents[updrade];
         }
+
         return num;
     }
+
     public int getPecentUpgradeDoRight(int updrade)
     {
         int num = GameScr.crystals[template.id] * 100 / GameScr.upAdorn[updrade];
@@ -276,8 +168,10 @@ public class Item
         {
             num = GameScr.maxPercents[updrade];
         }
+
         return num;
     }
+
     public int getPecentUpgradeDoLeft(int updrade)
     {
         int num = GameScr.crystals[template.id] * 100 / GameScr.upClothe[updrade];
@@ -285,8 +179,10 @@ public class Item
         {
             num = GameScr.maxPercents[updrade];
         }
+
         return num;
     }
+
     public Item viewNext(int up)
     {
         Item item = clone();
@@ -296,6 +192,7 @@ public class Item
         {
             return item;
         }
+
         item.upgrade = up;
         if (item.options != null)
         {
@@ -324,6 +221,7 @@ public class Item
                 }
             }
         }
+
         return item;
     }
 
@@ -333,6 +231,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -342,6 +241,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -351,6 +251,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -365,14 +266,17 @@ public class Item
         {
             return mResources.SPECUPGRADE;
         }
+
         if (template.level < 10 || template.type >= 10)
         {
             return mResources.NOTUPGRADE;
         }
+
         if (upgrade == 0)
         {
             return mResources.NOUPGRADE;
         }
+
         return null;
     }
 
@@ -382,6 +286,7 @@ public class Item
         {
             return mResources.FOREVER;
         }
+
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).Add(new TimeSpan(expires * 10000)).ToLocalTime();
         int hour = dateTime.Hour;
         int minute = dateTime.Minute;
@@ -397,26 +302,32 @@ public class Item
         {
             return mResources.FOREVER;
         }
+
         if (expires / 1000 >= 2592000)
         {
             return expires / 1000 / 2592000 + " " + mResources.MONTH;
         }
+
         if (expires / 1000 >= 604800)
         {
             return expires / 1000 / 604800 + " " + mResources.WEEK;
         }
+
         if (expires / 1000 >= 86400)
         {
             return expires / 1000 / 86400 + " " + mResources.DAY;
         }
+
         if (expires / 1000 >= 3600)
         {
             return expires / 1000 / 3600 + " " + mResources.HOUR;
         }
+
         if (expires / 1000 >= 60)
         {
             return expires / 1000 / 60 + " " + mResources.MINUTE;
         }
+
         return string.Empty;
     }
 
@@ -434,6 +345,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -443,10 +355,12 @@ public class Item
         {
             return true;
         }
+
         if (isTypeUIStore() || isTypeUIBook() || isTypeUIFashion() || isTypeUIClanShop())
         {
             return true;
         }
+
         return false;
     }
 
@@ -456,6 +370,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -465,6 +380,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -474,6 +390,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -483,6 +400,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -492,6 +410,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -501,6 +420,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -510,6 +430,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -519,6 +440,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -528,18 +450,22 @@ public class Item
         {
             return 4;
         }
+
         if (template.level >= 20 && template.level < 40)
         {
             return 8;
         }
+
         if (template.level >= 40 && template.level < 50)
         {
             return 12;
         }
+
         if (template.level >= 50 && template.level < 60)
         {
             return 14;
         }
+
         return 16;
     }
 
@@ -549,6 +475,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -558,6 +485,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -567,6 +495,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -576,6 +505,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -585,6 +515,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -594,6 +525,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -603,6 +535,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -612,6 +545,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -621,6 +555,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -630,6 +565,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -639,6 +575,7 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
 
@@ -648,8 +585,10 @@ public class Item
         {
             return true;
         }
+
         return false;
     }
+
     public bool isTypeYoroi()
     {
         return template.type == TYPE_AOCHOANG;
@@ -662,16 +601,7 @@ public class Item
 
     public bool isdontSale()
     {
-        return template.id == 799
-            || template.id == 800
-            || template.id == 849
-            || template.id == 795
-            || template.id == 796
-            || template.id == 806
-            || template.id == 805
-            || template.type == TYPE_AOCHOANG
-        || template.type == TYPE_TASK
-        || template.type == TYPE_TASK_WAIT;
+        return template.id == 799 || template.id == 800 || template.id == 849 || template.id == 795 || template.id == 796 || template.id == 806 || template.id == 805 || template.type == TYPE_AOCHOANG || template.type == TYPE_TASK || template.type == TYPE_TASK_WAIT;
     }
 
     public bool isNewitem()
@@ -687,10 +617,9 @@ public class Item
                 }
             }
         }
+
         return false;
     }
-
-
 
     public bool checkOption(int var1)
     {

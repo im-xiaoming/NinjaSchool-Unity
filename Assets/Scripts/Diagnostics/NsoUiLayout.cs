@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using NsoServer.Configuration;
 
 // Hierarchy object "NSO UI Layout": the UI spacing numbers, edited in the Inspector (also live while playing).
 // All values are game pixels (multiplied by the UI zoom when drawn). Without this object in the scene the defaults below
@@ -104,30 +105,83 @@ public class NsoUiLayout : MonoBehaviour
         public int switchW = 26;
     }
 
-    [SerializeField] private BottomButtons bottomButtons = new BottomButtons();
-    [SerializeField] private PotionButtons potionButtons = new PotionButtons();
-    [SerializeField] private NpcMenu npcMenu = new NpcMenu();
-    [SerializeField] private DeveloperWindow developerWindow = new DeveloperWindow();
-    [SerializeField] private SettingsWindow settingsWindow = new SettingsWindow();
-
+    [SerializeField]
+    private BottomButtons bottomButtons = new BottomButtons();
+    [SerializeField]
+    private PotionButtons potionButtons = new PotionButtons();
+    [SerializeField]
+    private NpcMenu npcMenu = new NpcMenu();
+    [SerializeField]
+    private DeveloperWindow developerWindow = new DeveloperWindow();
+    [SerializeField]
+    private SettingsWindow settingsWindow = new SettingsWindow();
     private static NsoUiLayout active;
     private static readonly BottomButtons defaultBottomButtons = new BottomButtons();
     private static readonly PotionButtons defaultPotionButtons = new PotionButtons();
     private static readonly NpcMenu defaultNpcMenu = new NpcMenu();
     private static readonly DeveloperWindow defaultDeveloperWindow = new DeveloperWindow();
     private static readonly SettingsWindow defaultSettingsWindow = new SettingsWindow();
-
     // Values in use: this object's when it is in the scene and enabled, else the defaults.
-    public static BottomButtons Buttons { get { return active != null ? active.bottomButtons : defaultBottomButtons; } }
-    public static PotionButtons Potions { get { return active != null ? active.potionButtons : defaultPotionButtons; } }
-    public static NpcMenu Menu { get { return active != null ? active.npcMenu : defaultNpcMenu; } }
-    public static DeveloperWindow Window { get { return active != null ? active.developerWindow : defaultDeveloperWindow; } }
-    public static SettingsWindow Settings { get { return active != null ? active.settingsWindow : defaultSettingsWindow; } }
+    public static BottomButtons Buttons
+    {
+        get
+        {
+            return RuntimeConfiguration.Value("ui", "bottomButtons", active != null ? active.bottomButtons : defaultBottomButtons);
+        }
+    }
+
+    public static PotionButtons Potions
+    {
+        get
+        {
+            return RuntimeConfiguration.Value("ui", "potionButtons", active != null ? active.potionButtons : defaultPotionButtons);
+        }
+    }
+
+    public static NpcMenu Menu
+    {
+        get
+        {
+            return RuntimeConfiguration.Value("ui", "npcMenu", active != null ? active.npcMenu : defaultNpcMenu);
+        }
+    }
+
+    public static DeveloperWindow Window
+    {
+        get
+        {
+            return RuntimeConfiguration.Value("ui", "developerWindow", active != null ? active.developerWindow : defaultDeveloperWindow);
+        }
+    }
+
+    public static SettingsWindow Settings
+    {
+        get
+        {
+            return RuntimeConfiguration.Value("ui", "settingsWindow", active != null ? active.settingsWindow : defaultSettingsWindow);
+        }
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() { active = null; }
+    private static void ResetStatics()
+    {
+        active = null;
+    }
 
-    private void OnEnable() { active = this; }
+    private void OnEnable()
+    {
+        active = this;
+        NsoConfigurationBridge.Register("ui", this);
+    }
 
-    private void OnDisable() { if (active == this) active = null; }
+    private void OnValidate()
+    {
+        NsoConfigurationBridge.Register("ui", this);
+    }
+
+    private void OnDisable()
+    {
+        if (active == this)
+            active = null;
+    }
 }

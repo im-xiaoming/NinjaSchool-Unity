@@ -2,7 +2,6 @@ public class Out
 {
     public static void println(string s)
     {
-
     }
 
     public static void Log(string str)

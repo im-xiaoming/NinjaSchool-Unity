@@ -1,9 +1,7 @@
 using System;
 using System.IO;
-
 using System.Text;
 using System.Threading;
-
 using UnityEngine;
 
 namespace Functions.Auto
@@ -11,60 +9,35 @@ namespace Functions.Auto
     public class Handle
     {
         public static int dem;
-
         public static int count;
-
         public static Thread GetThread;
-
         public static ThreadStart GetthreadStart;
-
         public static Auto T;
-
         public static bool DkChay;
-
         public static TanSat tanSat;
         public static long timeAutouse;
         public static long w;
-
         public static MyVector s;
-
         public static long timeChangeZone;
-
         public static int demTask;
-
         public static AutoTask autoTask;
         public static AutoNVHN autoNVHN;
-
         public static Buff buff;
-
         public static int ccc;
-
         public static int CharIDSave;
-
         public static bool isHackGiay = true;
-
         public static int HackGiay = 8;
-
         public static MyVector vCharInMap;
-
         public static MyVector vItemMap;
-
         public static bool FirstZone;
-
         public static bool bagshort;
-
         public static int test;
-
         public static MyVector Item;
-
         public static long timeDo;
-
         public static bool acUse;
         public static long lastimeAutoDel = 0;
-
         public static int SpNextMap;
         public static short[] arrItemDell = new short[120];
-
         public static int NextMinMaxInt => new System.Random().Next(int.MinValue, int.MaxValue);
 
         public static void Sleep(int milisSeconds)
@@ -95,7 +68,6 @@ namespace Functions.Auto
             }
 
             var1 = -1;
-
             for (int var2 = 0; var2 < arrItemDell.Length; ++var2)
             {
                 if (arrItemDell[var2] < 0)
@@ -110,7 +82,6 @@ namespace Functions.Auto
                 var1 = arrItemDell.Length;
                 short[] var4;
                 Array.Copy(var4 = new short[arrItemDell.Length + 10], 0, arrItemDell, 0, arrItemDell.Length);
-
                 for (int var3 = arrItemDell.Length; var3 < var4.Length; ++var3)
                 {
                     var4[var3] = -1;
@@ -122,7 +93,6 @@ namespace Functions.Auto
             arrItemDell[var1] = var0;
         }
 
-
         public static void removeItemDell(short var0)
         {
             for (int var1 = 0; var1 < arrItemDell.Length; ++var1)
@@ -132,7 +102,6 @@ namespace Functions.Auto
                     arrItemDell[var1] = -1;
                 }
             }
-
         }
 
         public static void sortItemDel()
@@ -152,8 +121,8 @@ namespace Functions.Auto
                     }
                 }
             }
-
         }
+
         public static void GoMap(int mapID)
         {
             new Thread((ThreadStart)delegate
@@ -167,11 +136,13 @@ namespace Functions.Auto
                 {
                     Console.WriteLine(value);
                 }
+
                 GC.Collect();
                 if (Session_ME.connecting)
                 {
                     GameScr.gI().switchToMe();
                 }
+
                 GameCanvas.endDlg();
                 GameCanvas.isLoading = false;
             }).Start();
@@ -209,6 +180,7 @@ namespace Functions.Auto
                             {
                                 continue;
                             }
+
                             MobTemplate mobTemplate = Mob.arrMobTemplate[mob.templateId];
                             string path = string.Concat("Ảnh/x" + mGraphics.zoomLevel + "/map/", TileMap.mapID, "/mob/", mob.templateId);
                             int num = dem;
@@ -220,14 +192,17 @@ namespace Functions.Auto
                                 {
                                     Directory.CreateDirectory("Ảnh/x" + mGraphics.zoomLevel + "/map/" + TileMap.mapID);
                                 }
+
                                 if (!Directory.Exists("Ảnh/x" + mGraphics.zoomLevel + "/map/" + TileMap.mapID + "/mob"))
                                 {
                                     Directory.CreateDirectory("Ảnh/x" + mGraphics.zoomLevel + "/map/" + TileMap.mapID + "/mob");
                                 }
+
                                 if (!Directory.Exists(path))
                                 {
                                     Directory.CreateDirectory(path);
                                 }
+
                                 if (image != null && !File.Exists(text))
                                 {
                                     GetPngFile(image, text);
@@ -238,6 +213,7 @@ namespace Functions.Auto
                     catch (Exception)
                     {
                     }
+
                     Sleep(10);
                 }
             }
@@ -275,15 +251,18 @@ namespace Functions.Auto
                 {
                     Console.WriteLine(value);
                 }
+
                 GC.Collect();
                 if (Session_ME.connecting)
                 {
                     GameScr.gI().switchToMe();
                 }
+
                 GameCanvas.endDlg();
                 GameCanvas.isLoading = false;
             }).Start();
         }
+
         public static bool delItem(Item var0)
         {
             if (T is AutoTask)
@@ -308,6 +287,7 @@ namespace Functions.Auto
                         return true;
                     }
                 }
+
                 if (!var0.v && mSystem.currentTimeMillis() - var0.u >= 5000L)
                 {
                     if (var0.template.type == 26 && var0.template.id < 11)
@@ -370,7 +350,6 @@ namespace Functions.Auto
                                 var5 = false;
                             }
 
-
                             if (!var5)
                             {
                                 return true;
@@ -423,6 +402,7 @@ namespace Functions.Auto
                 }
             }
         }
+
         public static void Run()
         {
             try
@@ -435,9 +415,9 @@ namespace Functions.Auto
                         Char var3 = Char.getMyChar();
                         if (T != null)
                         {
-
                             T.Run();
                         }
+
                         if (mSystem.currentTimeMillis() - GameScr.lastimeAutouse > 2000)
                         {
                             int var9;
@@ -479,6 +459,7 @@ namespace Functions.Auto
                     catch (Exception)
                     {
                     }
+
                     long num2 = mSystem.currentTimeMillis() - num;
                     if (mSystem.currentTimeMillis() - num < 100)
                     {
@@ -504,8 +485,8 @@ namespace Functions.Auto
                 GetThread = new Thread(GetthreadStart);
                 GetThread.Start();
             }
-            CharIDSave = Char.getMyChar().charID;
 
+            CharIDSave = Char.getMyChar().charID;
         }
 
         public static void Abort()
@@ -514,6 +495,7 @@ namespace Functions.Auto
             {
                 T = null;
             }
+
             if (GetThread != null)
             {
                 GetThread.Abort();
@@ -523,6 +505,7 @@ namespace Functions.Auto
                     GetthreadStart = null;
                 }
             }
+
             GetthreadStart = Run;
             GetThread = new Thread(GetthreadStart);
             GetThread.Start();
@@ -536,26 +519,28 @@ namespace Functions.Auto
             {
                 T = null;
             }
-            if (GetThread != null)
-            {
-                GetThread.Abort();
-                GetThread = null;
-                if (GetthreadStart != null)
-                {
-                    GetthreadStart = null;
-                }
-            }
-            if (GetThread != null)
-            {
-                GetThread.Abort();
-                GetThread = null;
-                if (GetthreadStart != null)
-                {
-                    GetthreadStart = null;
-                }
-            }
-            T = t;
 
+            if (GetThread != null)
+            {
+                GetThread.Abort();
+                GetThread = null;
+                if (GetthreadStart != null)
+                {
+                    GetthreadStart = null;
+                }
+            }
+
+            if (GetThread != null)
+            {
+                GetThread.Abort();
+                GetThread = null;
+                if (GetthreadStart != null)
+                {
+                    GetthreadStart = null;
+                }
+            }
+
+            T = t;
         }
 
         public static void S(Auto auto)
@@ -574,6 +559,7 @@ namespace Functions.Auto
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -608,6 +594,7 @@ namespace Functions.Auto
                     {
                         Char.Move((Char.getMyChar().cx - 200 <= 0) ? (Char.getMyChar().cx + 200 + Math.abs(Char.getMyChar().cx - npc.cx)) : (Char.getMyChar().cx - 200), YDirt(Char.getMyChar().cx + 200, Char.getMyChar().cy));
                     }
+
                     Char.Move(Char.getMyChar().cx, YDirt(Char.getMyChar().cx, Char.getMyChar().cy));
                     Service.gI().openUIZone();
                 }
@@ -638,6 +625,7 @@ namespace Functions.Auto
                     return num;
                 }
             }
+
             for (int j = 0; j < 240; j++)
             {
                 int num2 = cy + j * 12;
@@ -646,22 +634,23 @@ namespace Functions.Auto
                     return num2;
                 }
             }
+
             return cy;
         }
 
         public static void PaintG(mGraphics g)
         {
         }
+
         public static void Update()
         {
-
         }
+
         public static void TS(int templateId, int mobId = -1)
         {
             tanSat.update(templateId, mobId);
             S(tanSat);
         }
-
 
         public static void ATNVHN()
         {
@@ -671,7 +660,6 @@ namespace Functions.Auto
 
         public static void AT(int phai, bool isLevel10, int LorETask = -1)
         {
-
             autoTask.update(phai, isLevel10, LorETask);
             S(autoTask);
         }
@@ -693,13 +681,15 @@ namespace Functions.Auto
             {
                 return 0;
             }
+
             return 1;
         }
 
         public static void LoadAuto()
         {
             sbyte[] autoData = RMS.loadRMS("NjAuto");
-            if (autoData == null || autoData.Length == 0) return; // first run: nothing saved yet
+            if (autoData == null || autoData.Length == 0)
+                return; // first run: nothing saved yet
             DataInputStream dataInputStream = new DataInputStream(autoData);
             if (dataInputStream != null)
             {
@@ -741,6 +731,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             bagshort = false;
         }
 
@@ -768,7 +759,6 @@ namespace Functions.Auto
                 }
 
                 dos.writeInt(lent);
-
                 for (i = 0; i < arrItemDell.Length; ++i)
                 {
                     if (arrItemDell[i] >= 0)
@@ -776,8 +766,8 @@ namespace Functions.Auto
                         dos.writeShort(arrItemDell[i]);
                     }
                 }
-                RMS.saveRMS("NjAuto", dos.toByteArray());
 
+                RMS.saveRMS("NjAuto", dos.toByteArray());
             }
             catch (Exception e)
             {
@@ -794,16 +784,15 @@ namespace Functions.Auto
                     Out.println(ex2.Message + ex2.StackTrace);
                 }
             }
+
             string path = Application.persistentDataPath + "/buffmap";
             string path2 = Application.persistentDataPath + "/buffzone";
             File.WriteAllText(path, string.Concat(-2));
             File.WriteAllText(path2, string.Concat(-2));
         }
 
-
         public static void atcAutoUse(Item item)
         {
-
             try
             {
                 int var1 = 0;
@@ -813,6 +802,7 @@ namespace Functions.Auto
                     {
                         return;
                     }
+
                     if (mSystem.currentTimeMillis() - timeAutouse >= 50)
                     {
                         Service.gI().useItem(item.indexUI);
@@ -824,11 +814,11 @@ namespace Functions.Auto
                             break;
                         }
                     }
-                } while (Char.solg_hanhtrang() > 0);
+                }
+                while (Char.solg_hanhtrang() > 0);
             }
             catch (Exception e)
             {
-
             }
         }
     }

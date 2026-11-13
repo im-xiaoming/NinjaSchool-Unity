@@ -9,20 +9,58 @@ namespace NsoServer.Net
     public interface IStaticData
     {
         byte[] Version { get; }
+
         byte[] Data { get; }
+
         byte[] Map { get; }
+
         byte[] Skill { get; }
+
         byte[] Item { get; }
     }
 
     public sealed class EmptyStaticData : IStaticData
     {
         private static readonly byte[] None = new byte[0];
-        public byte[] Version { get { return None; } }
-        public byte[] Data { get { return None; } }
-        public byte[] Map { get { return None; } }
-        public byte[] Skill { get { return None; } }
-        public byte[] Item { get { return None; } }
+        public byte[] Version
+        {
+            get
+            {
+                return None;
+            }
+        }
+
+        public byte[] Data
+        {
+            get
+            {
+                return None;
+            }
+        }
+
+        public byte[] Map
+        {
+            get
+            {
+                return None;
+            }
+        }
+
+        public byte[] Skill
+        {
+            get
+            {
+                return None;
+            }
+        }
+
+        public byte[] Item
+        {
+            get
+            {
+                return None;
+            }
+        }
     }
 
     // Port of com.nsoz.network.Controller for the pre-game flow:
@@ -38,17 +76,25 @@ namespace NsoServer.Net
         private int zoomLevel = 1;
         private bool clientOk;
         private UserRecord user;
-
-        public Controller(Session session) { this.session = session; }
+        public Controller(Session session)
+        {
+            this.session = session;
+        }
 
         // One lock for all game state: player messages and the monster tick never run at the same time.
-        private object Gate { get { return session.Server.World != null ? session.Server.World.SyncRoot : this; } }
+        private object Gate
+        {
+            get
+            {
+                return session.Server.World != null ? session.Server.World.SyncRoot : this;
+            }
+        }
 
         public void OnMessage(Message m)
         {
             lock (Gate)
             {
-                PlayerLog.In(session, actions != null ? actions.State : null, m);   // offline debug log of every player action
+                PlayerLog.In(session, actions != null ? actions.State : null, m); // offline debug log of every player action
                 NsoServer.Ai.Rl.RlRuntime.RecordHuman(session, actions != null ? actions.State : null, m);
                 var rewardReceipt = NsoServer.Ai.Rl.RlRuntime.BeginAction(session, m);
                 Handle(m);
@@ -62,49 +108,148 @@ namespace NsoServer.Net
             {
                 switch (m.Command)
                 {
-                    case Cmd.NOT_LOGIN: OnNotLogin(m); break;
-                    case Cmd.NOT_MAP: OnNotMap(m); break;
-                    case Cmd.ME_BACK: if (actions != null) actions.ReturnTownFromDead(); break;
-                    case Cmd.ME_LIVE: if (actions != null) actions.ReviveInPlace(); break;
-                    case Cmd.PLAYER_MOVE: if (actions != null) actions.Move(m); break;
-                    case Cmd.MAP_CHANGE: if (actions != null) actions.RequestChangeMap(); break;
-                    case Cmd.OPEN_UI_ZONE: if (actions != null) actions.OpenUiZone(); break;
-                    case Cmd.ZONE_CHANGE: if (actions != null) actions.ChangeZone(m); break;
-                    case 41: if (actions != null) PlayerCombat.SelectSkill(m, actions.State, session.Server.World); break; // SKILL_SELECT
-                    case 60: if (actions != null) PlayerCombat.AttackMonster(m, actions.State, session.Server.World); break; // PLAYER_ATTACK_NPC
-                    case PlayerItemUse.CmdAutoAttackMove: if (actions != null) PlayerItemUse.MoveForAuto(m, actions.State, session.Server.World); break;
-                    case 61: if (actions != null) Gymnasium.AttackPlayer(m, actions.State, session.Server.World); break;  // PLAYER_ATTACK_PLAYER (NV Thách đấu only)
+                    case Cmd.NOT_LOGIN:
+                        OnNotLogin(m);
+                        break;
+                    case Cmd.NOT_MAP:
+                        OnNotMap(m);
+                        break;
+                    case Cmd.ME_BACK:
+                        if (actions != null)
+                            actions.ReturnTownFromDead();
+                        break;
+                    case Cmd.ME_LIVE:
+                        if (actions != null)
+                            actions.ReviveInPlace();
+                        break;
+                    case Cmd.PLAYER_MOVE:
+                        if (actions != null)
+                            actions.Move(m);
+                        break;
+                    case Cmd.MAP_CHANGE:
+                        if (actions != null)
+                            actions.RequestChangeMap();
+                        break;
+                    case Cmd.OPEN_UI_ZONE:
+                        if (actions != null)
+                            actions.OpenUiZone();
+                        break;
+                    case Cmd.ZONE_CHANGE:
+                        if (actions != null)
+                            actions.ChangeZone(m);
+                        break;
+                    case 41:
+                        if (actions != null)
+                            PlayerCombat.SelectSkill(m, actions.State, session.Server.World);
+                        break; // SKILL_SELECT
+                    case 60:
+                        if (actions != null)
+                            PlayerCombat.AttackMonster(m, actions.State, session.Server.World);
+                        break; // PLAYER_ATTACK_NPC
+                    case PlayerItemUse.CmdAutoAttackMove:
+                        if (actions != null)
+                            PlayerItemUse.MoveForAuto(m, actions.State, session.Server.World);
+                        break;
+                    case 61:
+                        if (actions != null)
+                            Gymnasium.AttackPlayer(m, actions.State, session.Server.World);
+                        break; // PLAYER_ATTACK_PLAYER (NV Thách đấu only)
                     // NPC menus and quests (PlayerTasks)
-                    case 40: if (actions != null) PlayerTasks.OpenMenu(m, actions.State, session.Server.World); break;   // OPEN_UI_MENU
-                    case 29: if (actions != null) PlayerTasks.Menu(m, actions.State, session.Server.World); break;       // MENU
-                    case 47: if (actions != null) PlayerTasks.GetTask(m, actions.State, session.Server.World); break;    // TASK_GET
+                    case 40:
+                        if (actions != null)
+                            PlayerTasks.OpenMenu(m, actions.State, session.Server.World);
+                        break; // OPEN_UI_MENU
+                    case 29:
+                        if (actions != null)
+                            PlayerTasks.Menu(m, actions.State, session.Server.World);
+                        break; // MENU
+                    case 47:
+                        if (actions != null)
+                            PlayerTasks.GetTask(m, actions.State, session.Server.World);
+                        break; // TASK_GET
                     // items and shops (PlayerItems)
-                    case 11: if (actions != null) PlayerItems.UseItem(m, actions.State, session.Server.World); break;
-                    case 12: if (actions != null) PlayerItemUse.ChangeMap(m, actions.State, session.Server.World); break;   // ITEM_USE_CHANGE_MAP
-                    case 92: if (actions != null) PlayerLuong.Input(m, actions.State); break;   // OPEN_TEXT_BOX_ID: text box answer        // ITEM_USE
-                    case 13: if (actions != null) PlayerItems.BuyItem(m, actions.State, session.Server.World); break;        // ITEM_BUY
-                    case 15: if (actions != null) PlayerItems.ItemBodyToBag(m, actions.State, session.Server.World); break;  // ITEM_BODY_TO_BAG
-                    case 42: if (actions != null) PlayerItems.RequestItemInfo(m, actions.State, session.Server.World); break; // REQUEST_ITEM_INFO
+                    case 11:
+                        if (actions != null)
+                            PlayerItems.UseItem(m, actions.State, session.Server.World);
+                        break;
+                    case 12:
+                        if (actions != null)
+                            PlayerItemUse.ChangeMap(m, actions.State, session.Server.World);
+                        break; // ITEM_USE_CHANGE_MAP
+                    case 92:
+                        if (actions != null)
+                            PlayerLuong.Input(m, actions.State);
+                        break; // OPEN_TEXT_BOX_ID: text box answer        // ITEM_USE
+                    case 13:
+                        if (actions != null)
+                            PlayerItems.BuyItem(m, actions.State, session.Server.World);
+                        break; // ITEM_BUY
+                    case 15:
+                        if (actions != null)
+                            PlayerItems.ItemBodyToBag(m, actions.State, session.Server.World);
+                        break; // ITEM_BODY_TO_BAG
+                    case 42:
+                        if (actions != null)
+                            PlayerItems.RequestItemInfo(m, actions.State, session.Server.World);
+                        break; // REQUEST_ITEM_INFO
                     // storage box, selling, throwing (PlayerStorage)
-                    case 14: if (actions != null) PlayerStorage.Sale(m, actions.State, session.Server.World); break;        // ITEM_SALE
-                    case 16: if (actions != null) PlayerStorage.BoxToBag(m, actions.State, session.Server.World); break;    // ITEM_BOX_TO_BAG
-                    case 17: if (actions != null) PlayerStorage.BagToBox(m, actions.State, session.Server.World); break;    // ITEM_BAG_TO_BOX
-                    case -12: if (actions != null) PlayerStorage.Throw(m, actions.State, session.Server.World); break;      // ME_THROW
-                    case 74: if (actions != null) PlayerBuff.Use(m, actions.State, session.Server.World); break;   // USE_SKILL_MY_BUFF
+                    case 14:
+                        if (actions != null)
+                            PlayerStorage.Sale(m, actions.State, session.Server.World);
+                        break; // ITEM_SALE
+                    case 16:
+                        if (actions != null)
+                            PlayerStorage.BoxToBag(m, actions.State, session.Server.World);
+                        break; // ITEM_BOX_TO_BAG
+                    case 17:
+                        if (actions != null)
+                            PlayerStorage.BagToBox(m, actions.State, session.Server.World);
+                        break; // ITEM_BAG_TO_BOX
+                    case -12:
+                        if (actions != null)
+                            PlayerStorage.Throw(m, actions.State, session.Server.World);
+                        break; // ME_THROW
+                    case 74:
+                        if (actions != null)
+                            PlayerBuff.Use(m, actions.State, session.Server.World);
+                        break; // USE_SKILL_MY_BUFF
                     // Kenshinto's forge (PlayerUpgrade)
-                    case 19: if (actions != null) PlayerUpgrade.UpPearl(m, actions.State, session.Server.World, true); break;   // UPPEARL (xu)
-                    case 20: if (actions != null) PlayerUpgrade.UpPearl(m, actions.State, session.Server.World, false); break;  // UPPEARL_LOCK (yen, then xu)
-                    case 21: if (actions != null) PlayerUpgrade.Upgrade(m, actions.State, session.Server.World); break;        // UPGRADE
-                    case 22: if (actions != null) PlayerUpgrade.Split(m, actions.State, session.Server.World); break;          // SPLIT
-                    case -14: if (actions != null) PlayerItems.PickItem(m, actions.State, session.Server.World); break;      // ITEMMAP_MYPICK
-                    case -23: if (actions != null && !session.IsBot) DevTerminal.Run(m, actions, session.Server.World); break;   // AI players never reach the dev terminal // CHAT_MAP: dev terminal (offline)
-                    case Cmd.SUB_COMMAND: if (actions != null) OnSubCommand(m); break;
-                    default: session.Server.Log("Client " + session.Id + ": cmd " + m.Command); break;
+                    case 19:
+                        if (actions != null)
+                            PlayerUpgrade.UpPearl(m, actions.State, session.Server.World, true);
+                        break; // UPPEARL (xu)
+                    case 20:
+                        if (actions != null)
+                            PlayerUpgrade.UpPearl(m, actions.State, session.Server.World, false);
+                        break; // UPPEARL_LOCK (yen, then xu)
+                    case 21:
+                        if (actions != null)
+                            PlayerUpgrade.Upgrade(m, actions.State, session.Server.World);
+                        break; // UPGRADE
+                    case 22:
+                        if (actions != null)
+                            PlayerUpgrade.Split(m, actions.State, session.Server.World);
+                        break; // SPLIT
+                    case -14:
+                        if (actions != null)
+                            PlayerItems.PickItem(m, actions.State, session.Server.World);
+                        break; // ITEMMAP_MYPICK
+                    case -23:
+                        if (actions != null && !session.IsBot)
+                            DevTerminal.Run(m, actions, session.Server.World);
+                        break; // AI players never reach the dev terminal // CHAT_MAP: dev terminal (offline)
+                    case Cmd.SUB_COMMAND:
+                        if (actions != null)
+                            OnSubCommand(m);
+                        break;
+                    default:
+                        session.Server.Log("Client " + session.Id + ": cmd " + m.Command);
+                        break;
                 }
             }
             catch (Exception ex)
             {
-                session.Server.Log("Client " + session.Id + " message error (cmd " + m.Command + "): " + ex);   // full stack trace for debugging
+                session.Server.Log("Client " + session.Id + " message error (cmd " + m.Command + "): " + ex); // full stack trace for debugging
             }
         }
 
@@ -113,18 +258,32 @@ namespace NsoServer.Net
             lock (Gate)
             {
                 NsoServer.Ai.Rl.RlRuntime.SaveHumanRewardHistory(session);
-                if (actions != null) { actions.SaveAndLeave(); actions = null; }
+                if (actions != null)
+                {
+                    actions.SaveAndLeave();
+                    actions = null;
+                }
             }
         }
 
         private void OnNotLogin(Message m)
         {
-            if (user != null) return;
+            if (user != null)
+                return;
             sbyte sub = m.Reader.ReadSByte();
             switch (sub)
             {
                 case Cmd.CLIENT_INFO:
-                    try { m.Reader.ReadSByte(); int z = m.Reader.ReadSByte(); session.ZoomLevel = z < 1 || z > 4 ? 1 : z; } catch (Exception) { }
+                    try
+                    {
+                        m.Reader.ReadSByte();
+                        int z = m.Reader.ReadSByte();
+                        session.ZoomLevel = z < 1 || z > 4 ? 1 : z;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
                     clientInfoSet = true; // the fields (screen size, platform...) are not needed offline
                     SignInLocalPlayer();
                     break;
@@ -140,12 +299,18 @@ namespace NsoServer.Net
         // Offline build: there is one local account, signed in as soon as the client sends its info (no login message).
         private void SignInLocalPlayer()
         {
-            if (user != null) return;
+            if (user != null)
+                return;
             UserRecord found;
             // offline AI players sign in with their own account (Session.BotAccount)
             string account = session.IsBot ? session.BotAccount : LocalAccount;
             var result = session.Server.Accounts.Login(account, session.IsBot ? BotPassword : LocalPassword, out found);
-            if (found == null) { session.Close(); return; }
+            if (found == null)
+            {
+                session.Close();
+                return;
+            }
+
             user = found;
             if (result == AccountStore.LoginResult.Created)
                 session.Server.Log("Created account " + account);
@@ -156,7 +321,11 @@ namespace NsoServer.Net
         {
             string username = m.Reader.ReadUTF().Trim();
             string password = m.Reader.ReadUTF().Trim();
-            if (!clientInfoSet) { session.Close(); return; }
+            if (!clientInfoSet)
+            {
+                session.Close();
+                return;
+            }
 
             UserRecord found;
             var result = session.Server.Accounts.Login(username, password, out found);
@@ -169,6 +338,7 @@ namespace NsoServer.Net
                     Dialog("Tài khoản hoặc mật khẩu không chính xác.");
                     return;
             }
+
             user = found;
             if (result == AccountStore.LoginResult.Created)
                 session.Server.Log("Created account " + username);
@@ -177,23 +347,51 @@ namespace NsoServer.Net
 
         private void OnNotMap(Message m)
         {
-            if (user == null) return;
+            if (user == null)
+                return;
             sbyte sub = m.Reader.ReadSByte();
             switch (sub)
             {
-                case Cmd.UPDATE_DATA: SendNotMap(sub, session.Server.Static.Data); break;
-                case Cmd.UPDATE_MAP: SendNotMap(sub, session.Server.Static.Map); break;
-                case Cmd.UPDATE_SKILL: SendNotMap(sub, session.Server.Static.Skill); break;
-                case Cmd.UPDATE_ITEM: SendNotMap(sub, session.Server.Static.Item); break;
-                case -115: SendIcon(m); break; // REQUEST_ICON
-                case -108: SendMobTemplate(m); break; // REQUEST_NPCTEMPLATE
-                case -109: SendMapTemplate(m); break; // REQUEST_MAPTEMPLATE
-                case PlayerUpgrade.CmdConvertUpgrade: if (actions != null) PlayerUpgrade.ConvertUpgrade(m, actions.State, session.Server.World); break;   // CONVERT_UPGRADE
-                case PlayerStorage.StackSplitSub: if (actions != null) PlayerStorage.SplitStack(m, actions.State, session.Server.World); break;
-                case Cmd.CLIENT_OK:
-                    if (!clientOk) { clientOk = true; SendCharList(); }
+                case Cmd.UPDATE_DATA:
+                    SendNotMap(sub, session.Server.Static.Data);
                     break;
-                case Cmd.CREATE_PLAYER: CreateCharacter(m); break;
+                case Cmd.UPDATE_MAP:
+                    SendNotMap(sub, session.Server.Static.Map);
+                    break;
+                case Cmd.UPDATE_SKILL:
+                    SendNotMap(sub, session.Server.Static.Skill);
+                    break;
+                case Cmd.UPDATE_ITEM:
+                    SendNotMap(sub, session.Server.Static.Item);
+                    break;
+                case -115:
+                    SendIcon(m);
+                    break; // REQUEST_ICON
+                case -108:
+                    SendMobTemplate(m);
+                    break; // REQUEST_NPCTEMPLATE
+                case -109:
+                    SendMapTemplate(m);
+                    break; // REQUEST_MAPTEMPLATE
+                case PlayerUpgrade.CmdConvertUpgrade:
+                    if (actions != null)
+                        PlayerUpgrade.ConvertUpgrade(m, actions.State, session.Server.World);
+                    break; // CONVERT_UPGRADE
+                case PlayerStorage.StackSplitSub:
+                    if (actions != null)
+                        PlayerStorage.SplitStack(m, actions.State, session.Server.World);
+                    break;
+                case Cmd.CLIENT_OK:
+                    if (!clientOk)
+                    {
+                        clientOk = true;
+                        SendCharList();
+                    }
+
+                    break;
+                case Cmd.CREATE_PLAYER:
+                    CreateCharacter(m);
+                    break;
                 case Cmd.SELECT_PLAYER:
                     SelectCharacter(m);
                     break;
@@ -205,28 +403,49 @@ namespace NsoServer.Net
 
         private PlayerRecord current;
         private PlayerActions actions;
-
         /// <summary>The character in the game, or null (read by the offline AI players).</summary>
-        public PlayerActions Actions { get { return actions; } }
+        public PlayerActions Actions
+        {
+            get
+            {
+                return actions;
+            }
+        }
 
         private void SelectCharacter(Message m)
         {
-            if (current != null) return;
+            if (current != null)
+                return;
             string name = m.Reader.ReadUTF();
             var chosen = session.Server.Accounts.GetPlayers(user.Id).Find(p => p.Name == name);
-            if (chosen == null) { session.Close(); return; }
-            if (session.Server.World == null) { Dialog("Dữ liệu thế giới chưa được nạp."); return; }
+            if (chosen == null)
+            {
+                session.Close();
+                return;
+            }
+
+            if (session.Server.World == null)
+            {
+                Dialog("Dữ liệu thế giới chưa được nạp.");
+                return;
+            }
+
             current = chosen;
             var state = EnterWorld.Send(session, user, chosen, session.Server.World);
             actions = new PlayerActions(session, session.Server.World, state);
-            Presence.Joined(state);   // Zone.join: the other characters of the zone (players and AI players) see each other
-            PlayerTasks.OnEnterWorld(state, session.Server.World);   // quest in progress (User.selectChar)
+            Presence.Joined(state); // Zone.join: the other characters of the zone (players and AI players) see each other
+            PlayerTasks.OnEnterWorld(state, session.Server.World); // quest in progress (User.selectChar)
         }
 
         private void CreateCharacter(Message m)
         {
             var store = session.Server.Accounts;
-            if (store.GetPlayers(user.Id).Count >= 3) { Dialog("Bạn chỉ được tạo tối đa 3 nhân vật."); return; }
+            if (store.GetPlayers(user.Id).Count >= 3)
+            {
+                Dialog("Bạn chỉ được tạo tối đa 3 nhân vật.");
+                return;
+            }
+
             string name = m.Reader.ReadUTF();
             sbyte gender = m.Reader.ReadSByte();
             sbyte head = m.Reader.ReadSByte();
@@ -236,12 +455,43 @@ namespace NsoServer.Net
                     Dialog("Tên nhân vật không được chứa ký tự đặc biệt!");
                     return;
                 }
-            sbyte[] heads = gender == 0 ? new sbyte[] { 11, 26, 27, 28 } : new sbyte[] { 2, 23, 24, 25 };
+
+            sbyte[] heads = gender == 0 ? new sbyte[]
+            {
+                11,
+                26,
+                27,
+                28
+            }
+
+            : new sbyte[]
+            {
+                2,
+                23,
+                24,
+                25
+            };
             gender = (sbyte)(gender == 0 ? 0 : 1);
             sbyte chosen = heads[0];
-            foreach (sbyte h in heads) if (h == head) { chosen = h; break; }
-            if (name.Length < 5 || name.Length > 15) { Dialog("Tên tài khoản chỉ cho phép từ 5 đến 15 ký tự!"); return; }
-            if (store.NameTaken(name)) { Dialog("Tên nhân vật đã tồn tại!"); return; }
+            foreach (sbyte h in heads)
+                if (h == head)
+                {
+                    chosen = h;
+                    break;
+                }
+
+            if (name.Length < 5 || name.Length > 15)
+            {
+                Dialog("Tên tài khoản chỉ cho phép từ 5 đến 15 ký tự!");
+                return;
+            }
+
+            if (store.NameTaken(name))
+            {
+                Dialog("Tên nhân vật đã tồn tại!");
+                return;
+            }
+
             store.AddPlayer(user.Id, name, gender, chosen);
             SendCharList();
         }
@@ -264,14 +514,20 @@ namespace NsoServer.Net
                 w.WriteShort(p.Body);
                 w.WriteShort(p.Leg);
             }
+
             session.Send(ms);
         }
 
         private static readonly string[] ClassNames =
         {
-            "Chưa vào trường", "Ninja kiếm", "Ninja phi tiêu", "Ninja kunai", "Ninja cung", "Ninja đao", "Ninja quạt"
+            "Chưa vào trường",
+            "Ninja kiếm",
+            "Ninja phi tiêu",
+            "Ninja kunai",
+            "Ninja cung",
+            "Ninja đao",
+            "Ninja quạt"
         };
-
         private static string ClassName(int id)
         {
             return id >= 0 && id < ClassNames.Length ? ClassNames[id] : ClassNames[0];
@@ -288,13 +544,16 @@ namespace NsoServer.Net
         // and waits for the tiles of the player's current map. Without the reply the screen stays black.
         private void SendMapTemplate(Message m)
         {
-            if (actions == null || actions.State.Zone == null) return;
+            if (actions == null || actions.State.Zone == null)
+                return;
             var grid = session.Server.World.GetGrid(actions.State.Zone.Tile);
-            if (grid == null) return;
+            if (grid == null)
+                return;
             var ms = NotMap(-109);
             ms.Writer.WriteByte(grid.Tmw);
             ms.Writer.WriteByte(grid.Tmh);
-            for (int i = 0; i < grid.Tmw * grid.Tmh; i++) ms.Writer.WriteByte(grid.Maps[i]);
+            for (int i = 0; i < grid.Tmw * grid.Tmh; i++)
+                ms.Writer.WriteByte(grid.Maps[i]);
             session.Send(ms);
         }
 
@@ -309,8 +568,15 @@ namespace NsoServer.Net
         {
             int icon = m.Reader.ReadInt();
             byte[] png;
-            try { png = session.Server.World.LoadFile("Img/Small/" + session.ZoomLevel + "/Small" + icon + ".png"); }
-            catch (System.IO.IOException) { return; }
+            try
+            {
+                png = session.Server.World.LoadFile("Img/Small/" + session.ZoomLevel + "/Small" + icon + ".png");
+            }
+            catch (System.IO.IOException)
+            {
+                return;
+            }
+
             var ms = NotMap(-115);
             ms.Writer.WriteInt(icon);
             ms.Writer.WriteInt(png.Length);
@@ -321,11 +587,12 @@ namespace NsoServer.Net
         private void SendMobTemplate(Message request)
         {
             var world = session.Server.World;
-            if (world == null) return;
+            if (world == null)
+                return;
             int id = request.Reader.ReadShort();
             var mob = world.FindMob(id);
-            if (mob == null) return;
-
+            if (mob == null)
+                return;
             var ms = NotMap(-108);
             var w = ms.Writer;
             w.WriteShort(id);
@@ -353,17 +620,21 @@ namespace NsoServer.Net
             if (mob.IsBoss)
             {
                 w.WriteByte(mob.FrameBossMove.Length);
-                foreach (var value in mob.FrameBossMove) w.WriteSByte(value);
+                foreach (var value in mob.FrameBossMove)
+                    w.WriteSByte(value);
                 w.WriteByte(mob.FrameBossAttack.Length);
                 foreach (var attack in mob.FrameBossAttack)
                 {
                     w.WriteByte(attack.Length);
-                    foreach (var value in attack) w.WriteSByte(value);
+                    foreach (var value in attack)
+                        w.WriteSByte(value);
                 }
+
                 w.WriteInt(1);
                 WriteMobFrames(w, mob, id >= 236 && id != 259);
             }
-            else w.WriteInt(0);
+            else
+                w.WriteInt(0);
             session.Send(ms);
         }
 
@@ -372,28 +643,49 @@ namespace NsoServer.Net
             w.WriteByte(mob.ImageInfo.Length);
             foreach (var image in mob.ImageInfo)
             {
-                w.WriteByte(image.Id); w.WriteByte(image.X); w.WriteByte(image.Y); w.WriteByte(image.W); w.WriteByte(image.H);
+                w.WriteByte(image.Id);
+                w.WriteByte(image.X);
+                w.WriteByte(image.Y);
+                w.WriteByte(image.W);
+                w.WriteByte(image.H);
             }
+
             w.WriteShort(mob.Frames.Length);
             foreach (var frame in mob.Frames)
             {
                 w.WriteByte(frame.IdImg.Length);
                 for (int i = 0; i < frame.IdImg.Length; i++)
                 {
-                    w.WriteShort(frame.Dx[i]); w.WriteShort(frame.Dy[i]); w.WriteByte(frame.IdImg[i]);
-                    if (modern) { w.WriteByte(frame.Flip[i]); w.WriteByte(frame.OnTop[i]); }
+                    w.WriteShort(frame.Dx[i]);
+                    w.WriteShort(frame.Dy[i]);
+                    w.WriteByte(frame.IdImg[i]);
+                    if (modern)
+                    {
+                        w.WriteByte(frame.Flip[i]);
+                        w.WriteByte(frame.OnTop[i]);
+                    }
                 }
             }
-            if (!modern) { w.WriteShort(0); return; }
+
+            if (!modern)
+            {
+                w.WriteShort(0);
+                return;
+            }
+
             w.WriteByte(mob.Sequence.Length);
-            foreach (short value in mob.Sequence) w.WriteShort(value);
+            foreach (short value in mob.Sequence)
+                w.WriteShort(value);
             w.WriteByte(mob.FrameChar.Length);
             foreach (var frames in mob.FrameChar)
             {
                 w.WriteByte(frames.Length);
-                foreach (var value in frames) w.WriteSByte(value);
+                foreach (var value in frames)
+                    w.WriteSByte(value);
             }
-            foreach (var value in mob.IndexSplash) w.WriteSByte(value);
+
+            foreach (var value in mob.IndexSplash)
+                w.WriteSByte(value);
         }
 
         // Controller.messageSubCommand: shop list, potential and skill points
@@ -403,13 +695,27 @@ namespace NsoServer.Net
             var world = session.Server.World;
             switch (sub)
             {
-                case -103: PlayerItems.RequestShop(m, actions.State, world); break;     // REQUEST_ITEM
-                case -109: PlayerSkills.UpPotential(m, actions.State, world); break;    // POTENTIAL_UP
-                case -108: PlayerSkills.UpSkill(m, actions.State, world); break;        // SKILL_UP
-                case -107: PlayerItems.BagSort(actions.State, world); break;            // BAG_SORT
-                case -106: PlayerItems.BoxSort(actions.State, world); break;            // BOX_SORT
-                case -67: PlayerSkills.SaveRms(m, actions.State); break;                // SAVE_RMS
-                default: session.Server.Log("Client " + session.Id + ": sub " + sub); break;
+                case -103:
+                    PlayerItems.RequestShop(m, actions.State, world);
+                    break; // REQUEST_ITEM
+                case -109:
+                    PlayerSkills.UpPotential(m, actions.State, world);
+                    break; // POTENTIAL_UP
+                case -108:
+                    PlayerSkills.UpSkill(m, actions.State, world);
+                    break; // SKILL_UP
+                case -107:
+                    PlayerItems.BagSort(actions.State, world);
+                    break; // BAG_SORT
+                case -106:
+                    PlayerItems.BoxSort(actions.State, world);
+                    break; // BOX_SORT
+                case -67:
+                    PlayerSkills.SaveRms(m, actions.State);
+                    break; // SAVE_RMS
+                default:
+                    session.Server.Log("Client " + session.Id + ": sub " + sub);
+                    break;
             }
         }
 

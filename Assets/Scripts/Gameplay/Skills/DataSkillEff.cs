@@ -4,129 +4,67 @@ using System.Collections;
 public class DataSkillEff
 {
     public long timeRemove;
-
     public static mHashtable ALL_DATA_SKILL_EFF = new mHashtable();
-
     public MyVector listFrame = new MyVector();
-
     public MyVector listAnima = new MyVector();
-
     public SmallImage[] smallImage;
-
     public sbyte[][] frameChar = new sbyte[4][];
-
     public sbyte[] sequence;
-
     public sbyte Frame;
-
     public sbyte f;
-
     public bool IsStop;
-
     public MyVector mst = new MyVector();
-
     public static sbyte TYPE_EFFECT_END = 0;
-
     public static sbyte TYPE_EFFECT_STARTSKILL = 1;
-
     public static sbyte TYPE_EFFECT_BUFF = 2;
-
     private int loop;
-
     public int[] arrDame;
-
     public sbyte leavelPaint;
-
     public short x;
-
     public short y;
-
     public bool isLoadData;
-
     public short idEff;
-
     public bool canremove;
-
     public bool canActorMove;
-
     public bool canPaintActor;
-
     public bool canActorFight;
-
     public static sbyte ACTOR_NORMAL = 0;
-
     public static sbyte ACTOR_CAN_NOT_MOVE = 1;
-
     public static sbyte ACTOR_CAN_NOT_PAINT = 2;
-
     public sbyte typeupdate;
-
     public sbyte[] indexSplash = new sbyte[4];
-
     public const sbyte NORMAL = 0;
-
     public const sbyte REMOVE_BY_FRAME = 1;
-
     public const sbyte REMOVE_BY_TIME = 2;
-
     public const sbyte NO_REMOVE = 3;
-
     private bool isHorse;
-
     public bool isAddEffect;
-
     public bool isHead;
-
     public sbyte[] ActionStand;
-
     public sbyte[] ActionMove;
-
     public sbyte[] ActionJum;
-
     public sbyte[] ActionFall;
-
     public sbyte[] FrameChar;
-
     public sbyte[] Dx_Char;
-
     public sbyte[] Dy_Char;
-
     public sbyte nHorseFrame;
-
     public sbyte dxHorse;
-
     public sbyte dyHorse;
-
     private MyVector v1 = new MyVector();
-
     private MyVector v2 = new MyVector();
-
     private MyVector v3 = new MyVector();
-
     private MyVector v4 = new MyVector();
-
     private MyVector v5 = new MyVector();
-
     private MyVector v6 = new MyVector();
-
     private MyVector v7 = new MyVector();
-
     public MyVector vecmySkil = new MyVector();
-
     public long timelive;
-
     public long timeWait;
-
     public int miliSecondWait;
-
     public bool wantDetroy;
-
     public bool wait;
-
     public int fw;
-
     public int fh;
-
     public DataSkillEff()
     {
     }
@@ -176,6 +114,7 @@ public class DataSkillEff
                 {
                     array = effectData.data;
                 }
+
                 if (effectData == null)
                 {
                     effectData = new EffectData((short)(idEff + GameData.ID_START_SKILL));
@@ -184,6 +123,7 @@ public class DataSkillEff
                     effectData.timeremove = (int)(mSystem.currentTimeMillis() / 1000);
                 }
             }
+
             if (array != null && array.Length > 0)
             {
                 loadData(array);
@@ -200,6 +140,7 @@ public class DataSkillEff
         {
             return;
         }
+
         DataInputStream dataInputStream = null;
         try
         {
@@ -213,6 +154,7 @@ public class DataSkillEff
             {
                 smallImage[i] = new SmallImage(dataInputStream.readUnsignedByte(), dataInputStream.readUnsignedByte(), dataInputStream.readUnsignedByte(), dataInputStream.readUnsignedByte(), dataInputStream.readUnsignedByte());
             }
+
             int num2 = 0;
             int num3 = dataInputStream.readShort();
             for (int j = 0; j < num3; j++)
@@ -228,6 +170,7 @@ public class DataSkillEff
                         partFrame.flip = dataInputStream.readByte();
                         partFrame.onTop = dataInputStream.readByte();
                     }
+
                     if (partFrame.onTop == 0)
                     {
                         myVector.addElement(partFrame);
@@ -236,13 +179,16 @@ public class DataSkillEff
                     {
                         myVector2.addElement(partFrame);
                     }
+
                     if (num2 < Res.abs(partFrame.dy))
                     {
                         num2 = Res.abs(partFrame.dy);
                     }
                 }
+
                 listFrame.addElement(new FrameEff(myVector, myVector2));
             }
+
             fw = smallImage[0].w;
             fh = (short)num2;
             short num4 = 0;
@@ -258,36 +204,44 @@ public class DataSkillEff
                     {
                         v1.addElement(sequence[l] + string.Empty);
                     }
+
                     if (num5 == 3 && sequence[l] != -1)
                     {
                         v2.addElement(sequence[l] + string.Empty);
                     }
+
                     if (num5 == 4 && sequence[l] != -1)
                     {
                         v3.addElement(sequence[l] + string.Empty);
                     }
+
                     if (num5 == 5 && sequence[l] != -1)
                     {
                         v4.addElement(sequence[l] + string.Empty);
                     }
+
                     if (num5 == 6 && sequence[l] != -1)
                     {
                         v5.addElement(sequence[l] + string.Empty);
                     }
+
                     if (num5 == 7 && sequence[l] != -1)
                     {
                         v6.addElement(sequence[l] + string.Empty);
                     }
+
                     if (num5 == 8 && sequence[l] != -1)
                     {
                         v7.addElement(sequence[l] + string.Empty);
                     }
+
                     if (sequence[l] == -1)
                     {
                         num5++;
                     }
                 }
             }
+
             if (isHorse)
             {
                 nHorseFrame = sequence[0];
@@ -303,11 +257,13 @@ public class DataSkillEff
                 {
                     Dx_Char = new sbyte[nHorseFrame];
                 }
+
                 Dy_Char = vector2arr(v7);
                 if (Dy_Char == null || Dy_Char.Length == 0)
                 {
                     Dy_Char = new sbyte[nHorseFrame];
                 }
+
                 v1.removeAllElements();
                 v2.removeAllElements();
                 v3.removeAllElements();
@@ -316,6 +272,7 @@ public class DataSkillEff
                 v6.removeAllElements();
                 v7.removeAllElements();
             }
+
             if (flag)
             {
                 dataInputStream.readByte();
@@ -325,12 +282,14 @@ public class DataSkillEff
                 {
                     frameChar[0][m] = dataInputStream.readByte();
                 }
+
                 num4 = dataInputStream.readByte();
                 frameChar[1] = new sbyte[num4];
                 for (int n = 0; n < num4; n++)
                 {
                     frameChar[1][n] = dataInputStream.readByte();
                 }
+
                 num4 = dataInputStream.readByte();
                 frameChar[3] = new sbyte[num4];
                 for (int num6 = 0; num6 < num4; num6++)
@@ -338,6 +297,7 @@ public class DataSkillEff
                     frameChar[3][num6] = dataInputStream.readByte();
                 }
             }
+
             isLoadData = true;
             try
             {
@@ -349,6 +309,7 @@ public class DataSkillEff
             catch (Exception)
             {
             }
+
             indexSplash[0] = dataInputStream.readByte();
             indexSplash[1] = dataInputStream.readByte();
             indexSplash[2] = dataInputStream.readByte();
@@ -384,6 +345,7 @@ public class DataSkillEff
                     myVector.addElement(text);
                 }
             }
+
             for (int i = 0; i < myVector.size(); i++)
             {
                 string k = (string)myVector.elementAt(i);
@@ -403,6 +365,7 @@ public class DataSkillEff
         {
             array[i] = sbyte.Parse((string)vec.elementAt(i));
         }
+
         return array;
     }
 
@@ -443,6 +406,7 @@ public class DataSkillEff
         {
             return true;
         }
+
         loadnew(null);
         return false;
     }
@@ -453,6 +417,7 @@ public class DataSkillEff
         {
             return;
         }
+
         FrameEff frameEff = (FrameEff)listFrame.elementAt(Frame);
         try
         {
@@ -475,24 +440,29 @@ public class DataSkillEff
                     {
                         num4 = 0;
                     }
+
                     if (num5 > height)
                     {
                         num5 = 0;
                     }
+
                     if (num4 + num2 > width)
                     {
                         num2 = width - num4;
                     }
+
                     if (num5 + num3 > height)
                     {
                         num3 = height - num5;
                     }
+
                     int num6 = ((partFrame.flip == 1) ? 2 : 0);
                     if (rotale == 2 || rotale == 6)
                     {
                         num6 = ((num6 != 2) ? 2 : 0);
                         num = -(num + num2);
                     }
+
                     g.drawRegion(imgIcon.img, num4, num5, num2, num3, num6, x + num, y + partFrame.dy, 0);
                 }
             }
@@ -508,6 +478,7 @@ public class DataSkillEff
         {
             return;
         }
+
         FrameEff frameEff = (FrameEff)listFrame.elementAt(Frame);
         try
         {
@@ -530,24 +501,29 @@ public class DataSkillEff
                     {
                         num4 = 0;
                     }
+
                     if (num5 > height)
                     {
                         num5 = 0;
                     }
+
                     if (num4 + num2 > width)
                     {
                         num2 = width - num4;
                     }
+
                     if (num5 + num3 > height)
                     {
                         num3 = height - num5;
                     }
+
                     int num6 = ((partFrame.flip == 1) ? 2 : 0);
                     if (rotale == 2 || rotale == 6)
                     {
                         num6 = ((num6 != 2) ? 2 : 0);
                         num = -(num + num2);
                     }
+
                     g.drawRegion(imgIcon.img, num4, num5, num2, num3, num6, x + num, y + partFrame.dy, 0);
                 }
             }
@@ -565,6 +541,7 @@ public class DataSkillEff
             {
                 return;
             }
+
             FrameEff frameEff = (FrameEff)listFrame.elementAt(Frame);
             MyVector listPartTop = frameEff.listPartTop;
             for (int i = 0; i < listPartTop.size(); i++)
@@ -583,18 +560,22 @@ public class DataSkillEff
                     {
                         num3 = 0;
                     }
+
                     if (num4 > imgIcon.img.getHeight())
                     {
                         num4 = 0;
                     }
+
                     if (num3 + num > imgIcon.img.getWidth())
                     {
                         num = imgIcon.img.getWidth() - num3;
                     }
+
                     if (num4 + num2 > imgIcon.img.getHeight())
                     {
                         num2 = imgIcon.img.getHeight() - num4;
                     }
+
                     g.drawRegion(imgIcon.img, num3, num4, num, num2, (partFrame.flip == 1) ? 2 : 0, x + dx, y + partFrame.dy, 0);
                 }
             }
@@ -612,6 +593,7 @@ public class DataSkillEff
             {
                 return;
             }
+
             FrameEff frameEff = (FrameEff)listFrame.elementAt(Frame);
             MyVector listPartBottom = frameEff.listPartBottom;
             for (int i = 0; i < listPartBottom.size(); i++)
@@ -630,18 +612,22 @@ public class DataSkillEff
                     {
                         num3 = 0;
                     }
+
                     if (num4 > imgIcon.img.getHeight())
                     {
                         num4 = 0;
                     }
+
                     if (num3 + num > imgIcon.img.getWidth())
                     {
                         num = imgIcon.img.getWidth() - num3;
                     }
+
                     if (num4 + num2 > imgIcon.img.getHeight())
                     {
                         num2 = imgIcon.img.getHeight() - num4;
                     }
+
                     g.drawRegion(imgIcon.img, num3, num4, num, num2, (partFrame.flip == 1) ? 2 : 0, x + dx, y + partFrame.dy, 0);
                 }
             }
@@ -680,10 +666,12 @@ public class DataSkillEff
             {
                 f = (sbyte)(f + 1);
             }
+
             if (f > sequence.Length - 1)
             {
                 f = (sbyte)(sequence.Length - 1);
             }
+
             Frame = sequence[f];
         }
     }
@@ -699,6 +687,7 @@ public class DataSkillEff
         {
             return;
         }
+
         try
         {
             if (!wait)
@@ -713,8 +702,10 @@ public class DataSkillEff
                             {
                                 wantDetroy = true;
                             }
+
                             f = 0;
                         }
+
                         Frame = sequence[f];
                         break;
                     case 1:
@@ -724,6 +715,7 @@ public class DataSkillEff
                             f = 0;
                             wantDetroy = true;
                         }
+
                         Frame = sequence[f];
                         break;
                     case 2:
@@ -732,10 +724,12 @@ public class DataSkillEff
                         {
                             wantDetroy = true;
                         }
+
                         if (f > sequence.Length)
                         {
                             f = 0;
                         }
+
                         Frame = sequence[f];
                         break;
                     case 3:
@@ -745,6 +739,7 @@ public class DataSkillEff
                             f = 0;
                             setWait(true);
                         }
+
                         Frame = sequence[f];
                         break;
                 }

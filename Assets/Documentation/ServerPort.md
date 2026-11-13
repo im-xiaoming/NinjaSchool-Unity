@@ -295,3 +295,6 @@ StrategicLayer sends strict response_format json_schema through the existing Ope
 
 ## 2026-11-13 - Bot movement frames
 Headless bots now execute destinations through BotMovement/TileMotion (Char.java updateCharRun/updateCharJump/updateCharFall/setAutoJump geometry), then send ordinary PLAYER_MOVE packets via BotClient to unchanged PlayerActions.Move. Pixel sweeps and grounded jump/gravity replace arbitrary endpoint height lifts. One separate server-owned client loop uses the same world lock; world/AI ticks remain 500 ms. No bot exemption, gameplay packet change or direct PlayerState position write. Compile-only; difficult navigation routes can still stall.
+
+## 2026-11-13 - Python Brain boundary
+Gameplay/Java ports remain C# and unchanged; only AI orchestration/RAG/LLM/prose move to Tools/Brain. C# GameKnowledge.UseInfo, PlayerItems/PlayerService and the normal Controller remain the sources of gameplay facts/actions. BotClient and rules/RL stay C#. AI folders now separate Runtime, Contracts, Planning, Skills, Navigation, Memory, Learning and Integration; namespaces unchanged. BrainClient is loopback HTTP, never game protocol. Details, API, setup and test evidence: docs/REFACTORING.md and HANDOFF.md.

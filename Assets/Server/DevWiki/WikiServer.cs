@@ -20,24 +20,26 @@ namespace NsoServer.DevWiki
     {
         public const int PortTries = 10;
         private const int MaxRequestBytes = 8192;
-
         private readonly string folder;
         private readonly Func<string> buildDb;
-        private readonly string exportPath;   // optional copy of db.json on disk (for grep / offline lookup), null = none
+        private readonly string exportPath; // optional copy of db.json on disk (for grep / offline lookup), null = none
         private readonly int firstPort;
-        private readonly object buildLock = new object();
+        private readonly object buildLock = new object ();
         private volatile TcpListener listener;
         private Thread thread;
         private volatile bool running;
         private string db;
-        private System.Collections.Generic.Dictionary<string, object> dbParsed;   // db parsed once for the API
-
+        private System.Collections.Generic.Dictionary<string, object> dbParsed; // db parsed once for the API
         public WikiControl Control; // optional: read-only wiki still works without a live game
         public WikiSprites Sprites; // optional: original game images, read-only and bounded-cache
-        public Action<string> Logger = _ => { };
-        public string Url { get; private set; }   // null until the wiki thread has bound a port
-        public Action<string> Started = _ => { };  // called on the wiki thread once listening (argument: Url)
+        public Action<string> Logger = _ =>
+        {
+        };
+        public string Url { get; private set; } // null until the wiki thread has bound a port
 
+        public Action<string> Started = _ =>
+        {
+        }; // called on the wiki thread once listening (argument: Url)
         public WikiServer(string folder, int port, Func<string> buildDb, string exportPath)
         {
             this.folder = folder;
@@ -50,7 +52,12 @@ namespace NsoServer.DevWiki
         public void Start()
         {
             running = true;
-            thread = new Thread(Run) { IsBackground = true, Name = "NsoDevWiki", Priority = ThreadPriority.BelowNormal };
+            thread = new Thread(Run)
+            {
+                IsBackground = true,
+                Name = "NsoDevWiki",
+                Priority = ThreadPriority.BelowNormal
+            };
             thread.Start();
         }
 
@@ -63,7 +70,8 @@ namespace NsoServer.DevWiki
                 {
                     try
                     {
-                        if (p == firstPort) ReclaimOrphan(p);
+                        if (p == firstPort)
+                            ReclaimOrphan(p);
                         var l = new TcpListener(IPAddress.Loopback, p);
                         l.Start();
                         NotInherited(l.Server);
@@ -71,22 +79,56 @@ namespace NsoServer.DevWiki
                         listener = l;
                         Url = "http://127.0.0.1:" + p + "/";
                     }
-                    catch (SocketException) { }   // port in use: try the next one
+                    catch (SocketException)
+                    {
+                    } // port in use: try the next one
                 }
-                if (listener == null) { Logger("Dev wiki: no free port in " + firstPort + ".." + (firstPort + PortTries - 1)); return; }
-                if (!running) { Stop(); return; }   // stopped while binding
+
+                if (listener == null)
+                {
+                    Logger("Dev wiki: no free port in " + firstPort + ".." + (firstPort + PortTries - 1));
+                    return;
+                }
+
+                if (!running)
+                {
+                    Stop();
+                    return;
+                } // stopped while binding
+
                 Started(Url);
-                try { Db(true); } catch (Exception ex) { Logger("Dev wiki build error: " + ex.Message); }
+                try
+                {
+                    Db(true);
+                }
+                catch (Exception ex)
+                {
+                    Logger("Dev wiki build error: " + ex.Message);
+                }
+
                 AcceptLoop();
             }
-            catch (Exception ex) { Logger("Dev wiki stopped: " + ex.Message); }
+            catch (Exception ex)
+            {
+                Logger("Dev wiki stopped: " + ex.Message);
+            }
         }
 
         public void Stop()
         {
             running = false;
             var l = listener;
-            try { if (l != null) { Forget(l.Server.Handle); l.Stop(); } } catch { }
+            try
+            {
+                if (l != null)
+                {
+                    Forget(l.Server.Handle);
+                    l.Stop();
+                }
+            }
+            catch
+            {
+            }
         }
 
         // the database text; rebuilt on demand
@@ -105,9 +147,13 @@ namespace NsoServer.DevWiki
                             Directory.CreateDirectory(Path.GetDirectoryName(exportPath));
                             File.WriteAllText(exportPath, db, new UTF8Encoding(false));
                         }
-                        catch (Exception ex) { Logger("Dev wiki export error: " + ex.Message); }
+                        catch (Exception ex)
+                        {
+                            Logger("Dev wiki export error: " + ex.Message);
+                        }
                     }
                 }
+
                 return db;
             }
         }
@@ -117,7 +163,8 @@ namespace NsoServer.DevWiki
         {
             lock (buildLock)
             {
-                if (dbParsed == null) dbParsed = (System.Collections.Generic.Dictionary<string, object>)NsoServer.Data.Json.Parse(Db(false));
+                if (dbParsed == null)
+                    dbParsed = (System.Collections.Generic.Dictionary<string, object>)NsoServer.Data.Json.Parse(Db(false));
                 return dbParsed;
             }
         }
@@ -129,8 +176,15 @@ namespace NsoServer.DevWiki
         private static extern bool SetHandleInformation(IntPtr handle, uint mask, uint flags);
         internal static void NotInherited(Socket s)
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
-            try { SetHandleInformation(s.Handle, 1, 0); } catch { }   // best effort (HANDLE_FLAG_INHERIT = 1)
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                return;
+            try
+            {
+                SetHandleInformation(s.Handle, 1, 0);
+            }
+            catch
+            {
+            } // best effort (HANDLE_FLAG_INHERIT = 1)
         }
 
         // An Editor domain reload (scripts recompiled, Play entered/exited) can leave the previous domain's listener open
@@ -142,36 +196,59 @@ namespace NsoServer.DevWiki
         private static extern int closesocket(IntPtr s);
         [System.Runtime.InteropServices.DllImport("ws2_32.dll")]
         private static extern int getsockname(IntPtr s, byte[] name, ref int length);
-
         private static void Remember(int port, IntPtr handle)
         {
-            try { Environment.SetEnvironmentVariable(HandleVariable, port + ":" + handle.ToInt64()); } catch { }
+            try
+            {
+                Environment.SetEnvironmentVariable(HandleVariable, port + ":" + handle.ToInt64());
+            }
+            catch
+            {
+            }
         }
+
         private static void Forget(IntPtr handle)
         {
-            try { if (Environment.GetEnvironmentVariable(HandleVariable) == null) return;
-                  string v = Environment.GetEnvironmentVariable(HandleVariable);
-                  if (v.EndsWith(":" + handle.ToInt64())) Environment.SetEnvironmentVariable(HandleVariable, null); } catch { }
+            try
+            {
+                if (Environment.GetEnvironmentVariable(HandleVariable) == null)
+                    return;
+                string v = Environment.GetEnvironmentVariable(HandleVariable);
+                if (v.EndsWith(":" + handle.ToInt64()))
+                    Environment.SetEnvironmentVariable(HandleVariable, null);
+            }
+            catch
+            {
+            }
         }
+
         private static void ReclaimOrphan(int port)
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                return;
             try
             {
                 string v = Environment.GetEnvironmentVariable(HandleVariable);
-                if (string.IsNullOrEmpty(v)) return;
+                if (string.IsNullOrEmpty(v))
+                    return;
                 Environment.SetEnvironmentVariable(HandleVariable, null);
                 string[] parts = v.Split(':');
                 long h;
-                if (parts.Length != 2 || parts[0] != port.ToString() || !long.TryParse(parts[1], out h)) return;
+                if (parts.Length != 2 || parts[0] != port.ToString() || !long.TryParse(parts[1], out h))
+                    return;
                 var handle = new IntPtr(h);
                 // only a socket still bound to 127.0.0.1:port (sockaddr_in: family, port big-endian, address)
-                var addr = new byte[16]; int len = addr.Length;
-                if (getsockname(handle, addr, ref len) != 0 || len < 8) return;
-                if (((addr[2] << 8) | addr[3]) != port || addr[4] != 127) return;
+                var addr = new byte[16];
+                int len = addr.Length;
+                if (getsockname(handle, addr, ref len) != 0 || len < 8)
+                    return;
+                if (((addr[2] << 8) | addr[3]) != port || addr[4] != 127)
+                    return;
                 closesocket(handle);
             }
-            catch { }   // best effort; the next free port is used otherwise
+            catch
+            {
+            } // best effort; the next free port is used otherwise
         }
 
         private void AcceptLoop()
@@ -179,8 +256,16 @@ namespace NsoServer.DevWiki
             while (running)
             {
                 TcpClient c;
-                try { c = listener.AcceptTcpClient(); NotInherited(c.Client); }
-                catch { break; }   // listener stopped
+                try
+                {
+                    c = listener.AcceptTcpClient();
+                    NotInherited(c.Client);
+                }
+                catch
+                {
+                    break;
+                } // listener stopped
+
                 ThreadPool.QueueUserWorkItem(_ => Handle(c));
             }
         }
@@ -189,7 +274,8 @@ namespace NsoServer.DevWiki
         {
             using (c)
             {
-                c.ReceiveTimeout = 5000; c.SendTimeout = 5000;
+                c.ReceiveTimeout = 5000;
+                c.SendTimeout = 5000;
                 var stream = c.GetStream();
                 try
                 {
@@ -198,89 +284,160 @@ namespace NsoServer.DevWiki
                     while (count < buffer.Length && end < 0)
                     {
                         int read = stream.Read(buffer, count, System.Math.Min(1024, buffer.Length - count));
-                        if (read <= 0) return;
+                        if (read <= 0)
+                            return;
                         count += read;
                         for (int i = 0; i + 3 < count; i++)
-                            if (buffer[i] == 13 && buffer[i + 1] == 10 && buffer[i + 2] == 13 && buffer[i + 3] == 10) { end = i; break; }
+                            if (buffer[i] == 13 && buffer[i + 1] == 10 && buffer[i + 2] == 13 && buffer[i + 3] == 10)
+                            {
+                                end = i;
+                                break;
+                            }
                     }
-                    if (end < 0) { Send(stream, 413, "application/json", "{\"error\":\"Request headers too large\"}"); return; }
+
+                    if (end < 0)
+                    {
+                        Send(stream, 413, "application/json", "{\"error\":\"Request headers too large\"}");
+                        return;
+                    }
+
                     string[] lines = Encoding.ASCII.GetString(buffer, 0, end).Split(new[] { "\r\n" }, StringSplitOptions.None);
                     string[] first = lines[0].Split(' ');
-                    if (first.Length != 3) throw new ArgumentException("Malformed request.");
+                    if (first.Length != 3)
+                        throw new ArgumentException("Malformed request.");
                     var headers = new System.Collections.Generic.Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     for (int i = 1; i < lines.Length; i++)
                     {
                         int colon = lines[i].IndexOf(':');
-                        if (colon <= 0) throw new ArgumentException("Malformed header.");
+                        if (colon <= 0)
+                            throw new ArgumentException("Malformed header.");
                         string name = lines[i].Substring(0, colon).Trim();
-                        if (headers.ContainsKey(name)) throw new ArgumentException("Duplicate header.");
+                        if (headers.ContainsKey(name))
+                            throw new ArgumentException("Duplicate header.");
                         headers[name] = lines[i].Substring(colon + 1).Trim();
                     }
+
                     string authority = new Uri(Url).Authority, local = "localhost:" + new Uri(Url).Port;
                     string host;
                     if (!headers.TryGetValue("Host", out host) || (host != authority && host != local))
-                    { Send(stream, 403, "application/json", "{\"error\":\"Local host required\"}"); return; }
+                    {
+                        Send(stream, 403, "application/json", "{\"error\":\"Local host required\"}");
+                        return;
+                    }
+
                     string method = first[0], path = first[1], query = "";
                     int q = path.IndexOf('?');
-                    if (q >= 0) { query = path.Substring(q + 1); path = path.Substring(0, q); }
+                    if (q >= 0)
+                    {
+                        query = path.Substring(q + 1);
+                        path = path.Substring(0, q);
+                    }
+
                     if (method != "GET" && method != "POST")
-                    { Send(stream, 405, "application/json", "{\"error\":\"Method not allowed\"}"); return; }
+                    {
+                        Send(stream, 405, "application/json", "{\"error\":\"Method not allowed\"}");
+                        return;
+                    }
+
                     string body = "";
                     if (method == "POST")
                     {
                         string token, origin, contentType, length;
                         if ((path != "/control/rules" && path != "/control/combat" && path != "/control/dashboard" && path != "/control/learning") || Control == null)
-                        { Send(stream, 404, "application/json", "{\"error\":\"Unknown write route\"}"); return; }
-                        if (!headers.TryGetValue("X-Nso-Control", out token) || token != Control.Token ||
-                            (headers.TryGetValue("Origin", out origin) && origin != "http://" + authority && origin != "http://" + local))
-                        { Send(stream, 403, "application/json", "{\"error\":\"Refresh this local page before saving\"}"); return; }
+                        {
+                            Send(stream, 404, "application/json", "{\"error\":\"Unknown write route\"}");
+                            return;
+                        }
+
+                        if (!headers.TryGetValue("X-Nso-Control", out token) || token != Control.Token || (headers.TryGetValue("Origin", out origin) && origin != "http://" + authority && origin != "http://" + local))
+                        {
+                            Send(stream, 403, "application/json", "{\"error\":\"Refresh this local page before saving\"}");
+                            return;
+                        }
+
                         int size;
-                        if (headers.ContainsKey("Transfer-Encoding") || !headers.TryGetValue("Content-Length", out length) ||
-                            !int.TryParse(length, out size) || size < 1 || size > MaxRequestBytes ||
-                            !headers.TryGetValue("Content-Type", out contentType) || !contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
-                        { Send(stream, 400, "application/json", "{\"error\":\"Expected a JSON body of at most 8192 bytes\"}"); return; }
+                        if (headers.ContainsKey("Transfer-Encoding") || !headers.TryGetValue("Content-Length", out length) || !int.TryParse(length, out size) || size < 1 || size > MaxRequestBytes || !headers.TryGetValue("Content-Type", out contentType) || !contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Send(stream, 400, "application/json", "{\"error\":\"Expected a JSON body of at most 8192 bytes\"}");
+                            return;
+                        }
+
                         var bytes = new byte[size];
                         int have = System.Math.Min(size, count - end - 4);
                         Array.Copy(buffer, end + 4, bytes, 0, have);
-                        while (have < size) { int n = stream.Read(bytes, have, size - have); if (n <= 0) throw new ArgumentException("Incomplete body."); have += n; }
+                        while (have < size)
+                        {
+                            int n = stream.Read(bytes, have, size - have);
+                            if (n <= 0)
+                                throw new ArgumentException("Incomplete body.");
+                            have += n;
+                        }
+
                         body = new UTF8Encoding(false, true).GetString(bytes);
                     }
+
                     if (path.StartsWith("/control/", StringComparison.Ordinal))
                     {
                         var result = Control == null ? WikiControl.Reply(503, WikiControl.Obj("error", "Live controls require the game.")) : Control.Handle(method, path, query, body);
-                        Send(stream, result.Key, "application/json; charset=utf-8", result.Value); return;
+                        Send(stream, result.Key, "application/json; charset=utf-8", result.Value);
+                        return;
                     }
-                    if (method != "GET") { Send(stream, 405, "application/json", "{\"error\":\"Read-only route\"}"); return; }
+
+                    if (method != "GET")
+                    {
+                        Send(stream, 405, "application/json", "{\"error\":\"Read-only route\"}");
+                        return;
+                    }
+
                     if (path.StartsWith("/sprites/", StringComparison.Ordinal))
                     {
                         var asset = Sprites == null ? null : Sprites.Read(path);
-                        if (asset == null) Send(stream, 404, "text/plain", "Sprite unavailable");
-                        else Send(stream, 200, asset.ContentType, asset.Data, "public, max-age=3600");
+                        if (asset == null)
+                            Send(stream, 404, "text/plain", "Sprite unavailable");
+                        else
+                            Send(stream, 200, asset.ContentType, asset.Data, "public, max-age=3600");
                         return;
                     }
+
                     if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js" || path == "/dashboard.js" || path == "/progression.js" || path == "/sprites.js" || path == "/effects.js" || path == "/effect-usage.json" || path == "/agents.html" || path == "/agents.js")
                     {
                         string name = path == "/" ? "index.html" : path.Substring(1);
                         string file = Path.Combine(folder, name);
                         string type = name.EndsWith(".json") ? "application/json" : name.EndsWith(".css") ? "text/css" : name.EndsWith(".js") ? "text/javascript" : "text/html";
-                        if (File.Exists(file)) Send(stream, 200, type + "; charset=utf-8", File.ReadAllText(file, Encoding.UTF8));
-                        else Send(stream, 404, "text/plain", "Asset not found");
+                        if (File.Exists(file))
+                            Send(stream, 200, type + "; charset=utf-8", File.ReadAllText(file, Encoding.UTF8));
+                        else
+                            Send(stream, 404, "text/plain", "Asset not found");
                     }
-                    else if (path == "/db.json") Send(stream, 200, "application/json; charset=utf-8", Db(query.Contains("reload=1")));
+                    else if (path == "/db.json")
+                        Send(stream, 200, "application/json; charset=utf-8", Db(query.Contains("reload=1")));
                     else if (path == "/api" || path.StartsWith("/api/", StringComparison.Ordinal))
                     {
-                        if (query.Contains("reload=1")) Db(true);
+                        if (query.Contains("reload=1"))
+                            Db(true);
                         var result = WikiApi.Handle(Parsed(), path, query);
                         Send(stream, result.Key, "application/json; charset=utf-8", result.Value);
                     }
-                    else Send(stream, 404, "application/json", "{\"error\":\"Not found\"}");
+                    else
+                        Send(stream, 404, "application/json", "{\"error\":\"Not found\"}");
                 }
-                catch (ArgumentException ex) { var r = WikiControl.Reply(400, WikiControl.Obj("error", ex.Message)); Send(stream, r.Key, "application/json", r.Value); }
+                catch (ArgumentException ex)
+                {
+                    var r = WikiControl.Reply(400, WikiControl.Obj("error", ex.Message));
+                    Send(stream, r.Key, "application/json", r.Value);
+                }
                 // Browsers open spare (pre-)connections and leave them idle; the 5 s read timeout then fires, or the
                 // browser drops the socket. Neither is an error worth a Console warning.
-                catch (IOException) { }
-                catch (ObjectDisposedException) { }
-                catch (Exception ex) { Logger("Dev wiki request error: " + ex.Message); }
+                catch (IOException)
+                {
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                catch (Exception ex)
+                {
+                    Logger("Dev wiki request error: " + ex.Message);
+                }
             }
         }
 
@@ -292,8 +449,7 @@ namespace NsoServer.DevWiki
         private static void Send(Stream s, int status, string type, byte[] data, string cacheControl)
         {
             string reason = status == 200 ? "OK" : status == 404 ? "Not Found" : status == 400 ? "Bad Request" : status == 405 ? "Method Not Allowed" : status == 403 ? "Forbidden" : status == 409 ? "Conflict" : status == 413 ? "Payload Too Large" : status == 503 ? "Service Unavailable" : "Error";
-            string head = "HTTP/1.1 " + status + " " + reason + "\r\nContent-Type: " + type + "\r\nContent-Length: " + data.Length +
-                          "\r\nCache-Control: " + cacheControl + "\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\nConnection: close\r\n\r\n";
+            string head = "HTTP/1.1 " + status + " " + reason + "\r\nContent-Type: " + type + "\r\nContent-Length: " + data.Length + "\r\nCache-Control: " + cacheControl + "\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\nConnection: close\r\n\r\n";
             byte[] h = Encoding.ASCII.GetBytes(head);
             s.Write(h, 0, h.Length);
             s.Write(data, 0, data.Length);

@@ -2,5 +2,5 @@
 public static class DevOptions
 {
     public static bool ShowFps = true;
-    public static bool ShowInfo = true;     // the "Map / Time / Site" lines
+    public static bool ShowInfo = true; // the "Map / Time / Site" lines
 }

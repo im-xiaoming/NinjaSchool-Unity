@@ -1,439 +1,439 @@
 public class Menu
 {
-	public bool showMenu;
-
-	public MyVector menuItems;
-
-	public int menuSelectedItem;
-
-	public static int[] menuTemY;
-
-	public int menuX;
-
-	public int menuY;
-
-	public int menuW;
-
-	public int menuH;
-
-	public int w;
-
-	public static int cmtoX;
-
-	public static int cmx;
+    public bool showMenu;
+    public MyVector menuItems;
+    public int menuSelectedItem;
+    public static int[] menuTemY;
+    public int menuX;
+    public int menuY;
+    public int menuW;
+    public int menuH;
+    public int w;
+    public static int cmtoX;
+    public static int cmx;
     private int[] paintY;
     private int paintScrollX;
     private double paintOpenedAt = double.NegativeInfinity;
     public void CapturePaintState()
     {
         paintScrollX = cmx;
-        if (menuTemY == null) return;
-        if (paintY == null || paintY.Length != menuTemY.Length) paintY = new int[menuTemY.Length];
+        if (menuTemY == null)
+            return;
+        if (paintY == null || paintY.Length != menuTemY.Length)
+            paintY = new int[menuTemY.Length];
         System.Array.Copy(menuTemY, paintY, menuTemY.Length);
     }
+
     public float PaintRowY(int index)
     {
         float position = Interp.EffectPosition(paintY[index], menuTemY[index]);
-        if (!NsoGameControl.SmoothEffects || NsoGameControl.MenuOpenSeconds <= 0f) return position;
+        if (!NsoGameControl.SmoothEffects || NsoGameControl.MenuOpenSeconds <= 0f)
+            return position;
         // Original Menu.updateMenu snaps recently reopened menus. Keep a short render-time opening
         // without slowing its longer staggered animation or moving its input hit boxes while selectable.
         float t = UnityEngine.Mathf.Clamp01((float)((UnityEngine.Time.unscaledTimeAsDouble - paintOpenedAt) / NsoGameControl.MenuOpenSeconds));
         return UnityEngine.Mathf.Max(position, UnityEngine.Mathf.Lerp(GameCanvas.h, menuY, t * t * (3f - 2f * t)));
     }
 
-	public static int cmdy;
+    public static int cmdy;
+    public static int cmvy;
+    public static int cmxLim;
+    public static int xc;
+    private bool wantUpdateList;
+    private Command left = new Command(mResources.SELECT, 0);
+    private Command right = ((!GameCanvas.isTouch) ? new Command(mResources.CLOSE, 0, Paint.CmdRightX, Paint.CmdY) : null);
+    private Command center;
+    public bool disableClose;
+    private int pa;
+    private bool trans;
+    private bool touch;
+    private bool close;
+    public int tDelay;
+    public bool showbyServer;
+    private int pointerDownTime;
+    private int pointerDownFirstX;
+    private int[] pointerDownLastX = new int[3];
+    public bool pointerIsDowning;
+    public bool isDownWhenRunning;
+    private int waitToPerform;
+    private int cmRun;
+    public sbyte wait;
+    private int cmvx;
+    private int cmdx;
+    private bool isClose;
+    public bool[] isNotClose;
+    public long timeStart;
+    public void startWithoutCloseButton(MyVector menuItems, int pos)
+    {
+        startAt(menuItems, pos);
+        disableClose = true;
+    }
 
-	public static int cmvy;
+    public void startAt(MyVector menuItems, int pos)
+    {
+        if (showMenu)
+        {
+            return;
+        }
 
-	public static int cmxLim;
+        showbyServer = false;
+        isClose = false;
+        touch = false;
+        close = false;
+        isNotClose = new bool[menuItems.size()];
+        for (int i = 0; i < isNotClose.Length; i++)
+        {
+            isNotClose[i] = false;
+        }
 
-	public static int xc;
+        disableClose = false;
+        ChatPopup.currentMultilineChatPopup = null;
+        InfoDlg.hide();
+        tDelay = 0;
+        if (menuItems.size() == 0)
+        {
+            return;
+        }
 
-	private bool wantUpdateList;
+        this.menuItems = menuItems;
+        menuW = 60;
+        menuH = 60;
+        for (int j = 0; j < menuItems.size(); j++)
+        {
+            Command command = (Command)menuItems.elementAt(j);
+            int width = mFont.tahoma_7_yellow.getWidth(command.caption);
+            if (width > menuW - 8)
+            {
+                command.subCaption = mFont.tahoma_7_yellow.splitFontArray(command.caption, menuW - 8);
+            }
+        }
 
-	private Command left = new Command(mResources.SELECT, 0);
+        menuTemY = new int[menuItems.size()];
+        menuX = (GameCanvas.w - menuItems.size() * menuW) / 2;
+        if (menuX < 1)
+        {
+            menuX = 1;
+        }
 
-	private Command right = ((!GameCanvas.isTouch) ? new Command(mResources.CLOSE, 0, Paint.CmdRightX, Paint.CmdY) : null);
+        // the row of buttons sits a gap above the bottom of the screen ("NSO UI Layout" > Npc Menu > Bottom Gap)
+        menuY = GameCanvas.h - menuH - NsoUiLayout.Menu.bottomGap;
+        for (int k = 0; k < menuTemY.Length; k++)
+        {
+            menuTemY[k] = GameCanvas.h;
+        }
 
-	private Command center;
+        showMenu = true;
+        menuSelectedItem = 0;
+        cmxLim = this.menuItems.size() * menuW - GameCanvas.w;
+        if (cmxLim < 0)
+        {
+            cmxLim = 0;
+        }
 
-	public bool disableClose;
-
-	private int pa;
-
-	private bool trans;
-
-	private bool touch;
-
-	private bool close;
-
-	public int tDelay;
-
-	public bool showbyServer;
-
-	private int pointerDownTime;
-
-	private int pointerDownFirstX;
-
-	private int[] pointerDownLastX = new int[3];
-
-	public bool pointerIsDowning;
-
-	public bool isDownWhenRunning;
-
-	private int waitToPerform;
-
-	private int cmRun;
-
-	public sbyte wait;
-
-	private int cmvx;
-
-	private int cmdx;
-
-	private bool isClose;
-
-	public bool[] isNotClose;
-
-	public long timeStart;
-
-	public void startWithoutCloseButton(MyVector menuItems, int pos)
-	{
-		startAt(menuItems, pos);
-		disableClose = true;
-	}
-
-	public void startAt(MyVector menuItems, int pos)
-	{
-		if (showMenu)
-		{
-			return;
-		}
-		showbyServer = false;
-		isClose = false;
-		touch = false;
-		close = false;
-		isNotClose = new bool[menuItems.size()];
-		for (int i = 0; i < isNotClose.Length; i++)
-		{
-			isNotClose[i] = false;
-		}
-		disableClose = false;
-		ChatPopup.currentMultilineChatPopup = null;
-		InfoDlg.hide();
-		tDelay = 0;
-		if (menuItems.size() == 0)
-		{
-			return;
-		}
-		this.menuItems = menuItems;
-		menuW = 60;
-		menuH = 60;
-		for (int j = 0; j < menuItems.size(); j++)
-		{
-			Command command = (Command)menuItems.elementAt(j);
-			int width = mFont.tahoma_7_yellow.getWidth(command.caption);
-			if (width > menuW - 8)
-			{
-				command.subCaption = mFont.tahoma_7_yellow.splitFontArray(command.caption, menuW - 8);
-			}
-		}
-		menuTemY = new int[menuItems.size()];
-		menuX = (GameCanvas.w - menuItems.size() * menuW) / 2;
-		if (menuX < 1)
-		{
-			menuX = 1;
-		}
-		// the row of buttons sits a gap above the bottom of the screen ("NSO UI Layout" > Npc Menu > Bottom Gap)
-		menuY = GameCanvas.h - menuH - NsoUiLayout.Menu.bottomGap;
-		for (int k = 0; k < menuTemY.Length; k++)
-		{
-			menuTemY[k] = GameCanvas.h;
-		}
-		showMenu = true;
-		menuSelectedItem = 0;
-		cmxLim = this.menuItems.size() * menuW - GameCanvas.w;
-		if (cmxLim < 0)
-		{
-			cmxLim = 0;
-		}
-		cmtoX = 0;
-		cmx = 0;
+        cmtoX = 0;
+        cmx = 0;
         CapturePaintState(); // new menu must not reuse old geometry
         paintOpenedAt = UnityEngine.Time.unscaledTimeAsDouble;
-		xc = 50;
-		w = menuItems.size() * menuW - 1;
-		if (w > GameCanvas.w - 2)
-		{
-			w = GameCanvas.w - 2;
-		}
-		if (GameCanvas.isTouch && !Main.isPC)
-		{
-			menuSelectedItem = -1;
-		}
-		mScreen.keyTouch = -1;
-	}
+        xc = 50;
+        w = menuItems.size() * menuW - 1;
+        if (w > GameCanvas.w - 2)
+        {
+            w = GameCanvas.w - 2;
+        }
 
-	public void updateMenuKey()
-	{
-		if (!showMenu)
-		{
-			return;
-		}
-		if (wait > 0)
-		{
-			wait = (sbyte)(wait - 1);
-		}
-		if (isScrolling())
-		{
-			return;
-		}
-		bool flag = false;
-		// keyPressedz[18] / [19] = A / D keys: they move through the menu like Left / Right
-		if (GameCanvas.keyPressedz[(!Main.isPC) ? 2 : 21] || GameCanvas.keyPressedz[(!Main.isPC) ? 4 : 23] || GameCanvas.keyPressedz[18])
-		{
-			flag = true;
-			menuSelectedItem--;
-			if (menuSelectedItem < 0)
-			{
-				menuSelectedItem = menuItems.size() - 1;
-			}
-		}
-		else if (GameCanvas.keyPressedz[(!Main.isPC) ? 8 : 22] || GameCanvas.keyPressedz[(!Main.isPC) ? 6 : 24] || GameCanvas.keyPressedz[19])
-		{
-			flag = true;
-			menuSelectedItem++;
-			if (menuSelectedItem > menuItems.size() - 1)
-			{
-				menuSelectedItem = 0;
-			}
-		}
-		else if (GameCanvas.keyPressedz[5])
-		{
-			if (center != null)
-			{
-				if (center.idAction > 0)
-				{
-					if (center.actionListener == GameScr.gI())
-					{
-						GameScr.gI().actionPerform(center.idAction, center.p);
-					}
-					else
-					{
-						perform(center.idAction, center.p);
-					}
-				}
-			}
-			else
-			{
-				waitToPerform = 2;
-			}
-		}
-		else if (GameCanvas.keyPressedz[12])
-		{
-			if (isScrolling())
-			{
-				return;
-			}
-			if (left.idAction > 0)
-			{
-				perform(left.idAction, left.p);
-			}
-			else
-			{
-				waitToPerform = 2;
-			}
-		}
-		else if (!disableClose && (GameCanvas.keyPressedz[13] || mScreen.getCmdPointerLast(right)))
-		{
-			if (isScrolling())
-			{
-				return;
-			}
-			if (!close)
-			{
-				close = true;
-			}
-			isClose = true;
-		}
-		if (flag)
-		{
-			cmtoX = menuSelectedItem * menuW + menuW - GameCanvas.w / 2;
-			if (cmtoX > cmxLim)
-			{
-				cmtoX = cmxLim;
-			}
-			if (cmtoX < 0)
-			{
-				cmtoX = 0;
-			}
-			if (menuSelectedItem == menuItems.size() - 1 || menuSelectedItem == 0)
-			{
-				cmx = cmtoX;
-			}
-		}
-		if (wait <= 0 && !disableClose && GameCanvas.isPointerJustRelease && !GameCanvas.isPointer(menuX, menuY, w, menuH) && !pointerIsDowning)
-		{
-			if (!isScrolling())
-			{
-				pointerDownTime = (pointerDownFirstX = 0);
-				pointerIsDowning = false;
-				isClose = true;
-				close = true;
-				if (showbyServer)
-				{
-					Service.gI().menu(1, Char.getMyChar().npcFocus.template.npcTemplateId, GameCanvas.menu.menuSelectedItem, 0);
-					showbyServer = false;
-				}
-			}
-			return;
-		}
-		if (GameCanvas.isPointerDown)
-		{
-			if (!pointerIsDowning && GameCanvas.isPointer(menuX, menuY, w, menuH))
-			{
-				for (int i = 0; i < pointerDownLastX.Length; i++)
-				{
-					pointerDownLastX[0] = GameCanvas.px;
-				}
-				pointerDownFirstX = GameCanvas.px;
-				pointerIsDowning = true;
-				isDownWhenRunning = cmRun != 0;
-				cmRun = 0;
-			}
-			else if (pointerIsDowning)
-			{
-				pointerDownTime++;
-				if (pointerDownTime > 5 && pointerDownFirstX == GameCanvas.px && !isDownWhenRunning)
-				{
-					pointerDownFirstX = -1000;
-					menuSelectedItem = (cmtoX + GameCanvas.px - menuX) / menuW;
-				}
-				int num = GameCanvas.px - pointerDownLastX[0];
-				if (num != 0 && menuSelectedItem != -1)
-				{
-					menuSelectedItem = -1;
-				}
-				for (int num2 = pointerDownLastX.Length - 1; num2 > 0; num2--)
-				{
-					pointerDownLastX[num2] = pointerDownLastX[num2 - 1];
-				}
-				pointerDownLastX[0] = GameCanvas.px;
-				cmtoX -= num;
-				if (cmtoX < 0)
-				{
-					cmtoX = 0;
-				}
-				if (cmtoX > cmxLim)
-				{
-					cmtoX = cmxLim;
-				}
-				if (cmx < 0 || cmx > cmxLim)
-				{
-					num /= 2;
-				}
-				cmx -= num;
-				if (cmx < -(GameCanvas.h / 3))
-				{
-					wantUpdateList = true;
-				}
-				else
-				{
-					wantUpdateList = false;
-				}
-			}
-		}
-		if (GameCanvas.isPointerJustRelease && pointerIsDowning)
-		{
-			int i2 = GameCanvas.px - pointerDownLastX[0];
-			GameCanvas.isPointerJustRelease = false;
-			if (Res.abs(i2) < 20 && Res.abs(GameCanvas.px - pointerDownFirstX) < 20 && !isDownWhenRunning)
-			{
-				cmRun = 0;
-				cmtoX = cmx;
-				pointerDownFirstX = -1000;
-				menuSelectedItem = (cmtoX + GameCanvas.px - menuX) / menuW;
-				pointerDownTime = 0;
-				waitToPerform = 10;
-			}
-			else if (menuSelectedItem != -1 && pointerDownTime > 5)
-			{
-				pointerDownTime = 0;
-				waitToPerform = 1;
-			}
-			else if (menuSelectedItem == -1 && !isDownWhenRunning)
-			{
-				if (cmx < 0)
-				{
-					cmtoX = 0;
-				}
-				else if (cmx > cmxLim)
-				{
-					cmtoX = cmxLim;
-				}
-				else
-				{
-					int num3 = GameCanvas.px - pointerDownLastX[0] + (pointerDownLastX[0] - pointerDownLastX[1]) + (pointerDownLastX[1] - pointerDownLastX[2]);
-					num3 = ((num3 > 10) ? 10 : ((num3 < -10) ? (-10) : 0));
-					cmRun = -num3 * 100;
-				}
-			}
-			pointerIsDowning = false;
-			pointerDownTime = 0;
-			GameCanvas.isPointerJustRelease = false;
-		}
-		GameCanvas.clearKeyPressed();
-		GameCanvas.clearKeyHold();
-	}
+        if (GameCanvas.isTouch && !Main.isPC)
+        {
+            menuSelectedItem = -1;
+        }
 
-	public void moveCamera()
-	{
-		if (cmRun != 0 && !pointerIsDowning)
-		{
-			cmtoX += cmRun / 100;
-			if (cmtoX < 0)
-			{
-				cmtoX = 0;
-			}
-			else if (cmtoX > cmxLim)
-			{
-				cmtoX = cmxLim;
-			}
-			else
-			{
-				cmx = cmtoX;
-			}
-			cmRun = cmRun * 9 / 10;
-			if (cmRun < 100 && cmRun > -100)
-			{
-				cmRun = 0;
-			}
-		}
-		if (cmx != cmtoX && !pointerIsDowning)
-		{
-			cmvx = cmtoX - cmx << 2;
-			cmdx += cmvx;
-			cmx += cmdx >> 4;
-			cmdx &= 15;
-		}
-	}
+        mScreen.keyTouch = -1;
+    }
 
-	public void paintMenu(mGraphics g)
-	{
-		g.translate(-g.getTranslateX(), -g.getTranslateY());
-		g.translate(-cmx, 0);
-		for (int i = 0; i < menuItems.size(); i++)
-		{
+    public void updateMenuKey()
+    {
+        if (!showMenu)
+        {
+            return;
+        }
+
+        if (wait > 0)
+        {
+            wait = (sbyte)(wait - 1);
+        }
+
+        if (isScrolling())
+        {
+            return;
+        }
+
+        bool flag = false;
+        // keyPressedz[18] / [19] = A / D keys: they move through the menu like Left / Right
+        if (GameCanvas.keyPressedz[(!Main.isPC) ? 2 : 21] || GameCanvas.keyPressedz[(!Main.isPC) ? 4 : 23] || GameCanvas.keyPressedz[18])
+        {
+            flag = true;
+            menuSelectedItem--;
+            if (menuSelectedItem < 0)
+            {
+                menuSelectedItem = menuItems.size() - 1;
+            }
+        }
+        else if (GameCanvas.keyPressedz[(!Main.isPC) ? 8 : 22] || GameCanvas.keyPressedz[(!Main.isPC) ? 6 : 24] || GameCanvas.keyPressedz[19])
+        {
+            flag = true;
+            menuSelectedItem++;
+            if (menuSelectedItem > menuItems.size() - 1)
+            {
+                menuSelectedItem = 0;
+            }
+        }
+        else if (GameCanvas.keyPressedz[5])
+        {
+            if (center != null)
+            {
+                if (center.idAction > 0)
+                {
+                    if (center.actionListener == GameScr.gI())
+                    {
+                        GameScr.gI().actionPerform(center.idAction, center.p);
+                    }
+                    else
+                    {
+                        perform(center.idAction, center.p);
+                    }
+                }
+            }
+            else
+            {
+                waitToPerform = 2;
+            }
+        }
+        else if (GameCanvas.keyPressedz[12])
+        {
+            if (isScrolling())
+            {
+                return;
+            }
+
+            if (left.idAction > 0)
+            {
+                perform(left.idAction, left.p);
+            }
+            else
+            {
+                waitToPerform = 2;
+            }
+        }
+        else if (!disableClose && (GameCanvas.keyPressedz[13] || mScreen.getCmdPointerLast(right)))
+        {
+            if (isScrolling())
+            {
+                return;
+            }
+
+            if (!close)
+            {
+                close = true;
+            }
+
+            isClose = true;
+        }
+
+        if (flag)
+        {
+            cmtoX = menuSelectedItem * menuW + menuW - GameCanvas.w / 2;
+            if (cmtoX > cmxLim)
+            {
+                cmtoX = cmxLim;
+            }
+
+            if (cmtoX < 0)
+            {
+                cmtoX = 0;
+            }
+
+            if (menuSelectedItem == menuItems.size() - 1 || menuSelectedItem == 0)
+            {
+                cmx = cmtoX;
+            }
+        }
+
+        if (wait <= 0 && !disableClose && GameCanvas.isPointerJustRelease && !GameCanvas.isPointer(menuX, menuY, w, menuH) && !pointerIsDowning)
+        {
+            if (!isScrolling())
+            {
+                pointerDownTime = (pointerDownFirstX = 0);
+                pointerIsDowning = false;
+                isClose = true;
+                close = true;
+                if (showbyServer)
+                {
+                    Service.gI().menu(1, Char.getMyChar().npcFocus.template.npcTemplateId, GameCanvas.menu.menuSelectedItem, 0);
+                    showbyServer = false;
+                }
+            }
+
+            return;
+        }
+
+        if (GameCanvas.isPointerDown)
+        {
+            if (!pointerIsDowning && GameCanvas.isPointer(menuX, menuY, w, menuH))
+            {
+                for (int i = 0; i < pointerDownLastX.Length; i++)
+                {
+                    pointerDownLastX[0] = GameCanvas.px;
+                }
+
+                pointerDownFirstX = GameCanvas.px;
+                pointerIsDowning = true;
+                isDownWhenRunning = cmRun != 0;
+                cmRun = 0;
+            }
+            else if (pointerIsDowning)
+            {
+                pointerDownTime++;
+                if (pointerDownTime > 5 && pointerDownFirstX == GameCanvas.px && !isDownWhenRunning)
+                {
+                    pointerDownFirstX = -1000;
+                    menuSelectedItem = (cmtoX + GameCanvas.px - menuX) / menuW;
+                }
+
+                int num = GameCanvas.px - pointerDownLastX[0];
+                if (num != 0 && menuSelectedItem != -1)
+                {
+                    menuSelectedItem = -1;
+                }
+
+                for (int num2 = pointerDownLastX.Length - 1; num2 > 0; num2--)
+                {
+                    pointerDownLastX[num2] = pointerDownLastX[num2 - 1];
+                }
+
+                pointerDownLastX[0] = GameCanvas.px;
+                cmtoX -= num;
+                if (cmtoX < 0)
+                {
+                    cmtoX = 0;
+                }
+
+                if (cmtoX > cmxLim)
+                {
+                    cmtoX = cmxLim;
+                }
+
+                if (cmx < 0 || cmx > cmxLim)
+                {
+                    num /= 2;
+                }
+
+                cmx -= num;
+                if (cmx < -(GameCanvas.h / 3))
+                {
+                    wantUpdateList = true;
+                }
+                else
+                {
+                    wantUpdateList = false;
+                }
+            }
+        }
+
+        if (GameCanvas.isPointerJustRelease && pointerIsDowning)
+        {
+            int i2 = GameCanvas.px - pointerDownLastX[0];
+            GameCanvas.isPointerJustRelease = false;
+            if (Res.abs(i2) < 20 && Res.abs(GameCanvas.px - pointerDownFirstX) < 20 && !isDownWhenRunning)
+            {
+                cmRun = 0;
+                cmtoX = cmx;
+                pointerDownFirstX = -1000;
+                menuSelectedItem = (cmtoX + GameCanvas.px - menuX) / menuW;
+                pointerDownTime = 0;
+                waitToPerform = 10;
+            }
+            else if (menuSelectedItem != -1 && pointerDownTime > 5)
+            {
+                pointerDownTime = 0;
+                waitToPerform = 1;
+            }
+            else if (menuSelectedItem == -1 && !isDownWhenRunning)
+            {
+                if (cmx < 0)
+                {
+                    cmtoX = 0;
+                }
+                else if (cmx > cmxLim)
+                {
+                    cmtoX = cmxLim;
+                }
+                else
+                {
+                    int num3 = GameCanvas.px - pointerDownLastX[0] + (pointerDownLastX[0] - pointerDownLastX[1]) + (pointerDownLastX[1] - pointerDownLastX[2]);
+                    num3 = ((num3 > 10) ? 10 : ((num3 < -10) ? (-10) : 0));
+                    cmRun = -num3 * 100;
+                }
+            }
+
+            pointerIsDowning = false;
+            pointerDownTime = 0;
+            GameCanvas.isPointerJustRelease = false;
+        }
+
+        GameCanvas.clearKeyPressed();
+        GameCanvas.clearKeyHold();
+    }
+
+    public void moveCamera()
+    {
+        if (cmRun != 0 && !pointerIsDowning)
+        {
+            cmtoX += cmRun / 100;
+            if (cmtoX < 0)
+            {
+                cmtoX = 0;
+            }
+            else if (cmtoX > cmxLim)
+            {
+                cmtoX = cmxLim;
+            }
+            else
+            {
+                cmx = cmtoX;
+            }
+
+            cmRun = cmRun * 9 / 10;
+            if (cmRun < 100 && cmRun > -100)
+            {
+                cmRun = 0;
+            }
+        }
+
+        if (cmx != cmtoX && !pointerIsDowning)
+        {
+            cmvx = cmtoX - cmx << 2;
+            cmdx += cmvx;
+            cmx += cmdx >> 4;
+            cmdx &= 15;
+        }
+    }
+
+    public void paintMenu(mGraphics g)
+    {
+        g.translate(-g.getTranslateX(), -g.getTranslateY());
+        g.translate(-cmx, 0);
+        for (int i = 0; i < menuItems.size(); i++)
+        {
             using (g.Offset(cmx - Interp.EffectPosition(paintScrollX, cmx), PaintRowY(i) - menuTemY[i]))
             {
-				if (i == menuSelectedItem)
-				{
-					g.drawImage(GameScr.imgMenu2, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
-				}
-				else
-				{
-					g.drawImage(GameScr.imgMenu1, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
-				}
+                if (i == menuSelectedItem)
+                {
+                    g.drawImage(GameScr.imgMenu2, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
+                }
+                else
+                {
+                    g.drawImage(GameScr.imgMenu1, menuX + i * menuW - 1, menuTemY[i] + 1, mGraphics.TOP | mGraphics.LEFT);
+                }
+
                 Command item = (Command)menuItems.elementAt(i);
                 string[] lines = item.subCaption;
                 int lineCount = lines == null ? 1 : lines.Length;
@@ -446,155 +446,176 @@ public class Menu
                     for (int j = 0; j < lineCount; j++)
                         mFont.tahoma_7_yellow.drawString(g, lines == null ? item.caption : lines[j], menuX + i * menuW + menuW / 2 - 2, num + j * 14, 2);
                 }
-                finally { TextCalib.Clear(); }
+                finally
+                {
+                    TextCalib.Clear();
+                }
             }
-		}
-		g.translate(-g.getTranslateX(), -g.getTranslateY());
-		Command command = ((!disableClose) ? right : null);
-		if (!GameCanvas.isTouch)
-		{
-			if (right != null) { right.x = Paint.CmdRightX; right.y = Paint.CmdY; }   // follow "NSO UI Layout" live
-			GameCanvas.paintz.paintCmdBar(g, left, center, command);
-		}
-		else
-		{
-			GameCanvas.paintz.paintCmdBar(g, null, center, command);
-		}
-	}
+        }
 
-	public void doCloseMenu()
-	{
-		isClose = false;
-		showMenu = false;
-		if (showbyServer)
-		{
-			Service.gI().menu(1, Char.getMyChar().npcFocus.template.npcTemplateId, GameCanvas.menu.menuSelectedItem, 0);
-			showbyServer = false;
-		}
-		InfoDlg.hide();
-		if (close)
-		{
-			GameScr.isMessageMenu = false;
-			if (Char.getMyChar().npcFocus != null && Char.getMyChar().npcFocus.chatPopup != null)
-			{
-				Char.getMyChar().npcFocus.chatPopup = null;
-			}
-		}
-		else if (touch && menuSelectedItem >= 0)
-		{
-			((Command)menuItems.elementAt(menuSelectedItem))?.performAction();
-		}
-	}
+        g.translate(-g.getTranslateX(), -g.getTranslateY());
+        Command command = ((!disableClose) ? right : null);
+        if (!GameCanvas.isTouch)
+        {
+            if (right != null)
+            {
+                right.x = Paint.CmdRightX;
+                right.y = Paint.CmdY;
+            } // follow "NSO UI Layout" live
 
-	public bool isScrolling()
-	{
+            GameCanvas.paintz.paintCmdBar(g, left, center, command);
+        }
+        else
+        {
+            GameCanvas.paintz.paintCmdBar(g, null, center, command);
+        }
+    }
+
+    public void doCloseMenu()
+    {
+        isClose = false;
+        showMenu = false;
+        if (showbyServer)
+        {
+            Service.gI().menu(1, Char.getMyChar().npcFocus.template.npcTemplateId, GameCanvas.menu.menuSelectedItem, 0);
+            showbyServer = false;
+        }
+
+        InfoDlg.hide();
+        if (close)
+        {
+            GameScr.isMessageMenu = false;
+            if (Char.getMyChar().npcFocus != null && Char.getMyChar().npcFocus.chatPopup != null)
+            {
+                Char.getMyChar().npcFocus.chatPopup = null;
+            }
+        }
+        else if (touch && menuSelectedItem >= 0)
+        {
+            ((Command)menuItems.elementAt(menuSelectedItem))?.performAction();
+        }
+    }
+
+    public bool isScrolling()
+    {
         if (NsoGameControl.SmoothEffects && UnityEngine.Time.unscaledTimeAsDouble - paintOpenedAt < NsoGameControl.MenuOpenSeconds)
             return true; // do not activate invisible target-position buttons while the popup is opening
-		if ((!isClose && menuTemY[menuTemY.Length - 1] > menuY) || (isClose && menuTemY[menuTemY.Length - 1] < GameCanvas.h))
-		{
-			return true;
-		}
-		return false;
-	}
+        if ((!isClose && menuTemY[menuTemY.Length - 1] > menuY) || (isClose && menuTemY[menuTemY.Length - 1] < GameCanvas.h))
+        {
+            return true;
+        }
 
-	public void updateMenu()
-	{
-		moveCamera();
-		// follow "Npc Menu > Bottom Gap" live (Settings > Giao diện): buttons that already arrived move with the row
-		int liveY = GameCanvas.h - menuH - NsoUiLayout.Menu.bottomGap;
-		if (!isClose && menuTemY != null && liveY != menuY)
-		{
-			for (int k = 0; k < menuTemY.Length; k++)
-			{
-				if (menuTemY[k] <= menuY) menuTemY[k] = liveY;
-			}
-			menuY = liveY;
-		}
-		if (!isClose)
-		{
-			tDelay++;
-			for (int i = 0; i < menuTemY.Length; i++)
-			{
-				if (menuTemY[i] <= menuY)
-				{
-					continue;
-				}
-				if ((mSystem.currentTimeMillis() - timeStart) / 1000 > 5)
-				{
-					int num = menuTemY[i] - menuY >> 1;
-					if (num < 1)
-					{
-						num = 1;
-					}
-					if (tDelay > i)
-					{
-						menuTemY[i] -= num;
-					}
-				}
-				else
-				{
-					menuTemY[i] = menuY;
-				}
-			}
-			if (menuTemY[menuTemY.Length - 1] <= menuY)
-			{
-				tDelay = 0;
-			}
-		}
-		else
-		{
-			tDelay++;
-			for (int j = 0; j < menuTemY.Length; j++)
-			{
-				if (menuTemY[j] < GameCanvas.h)
-				{
-					menuTemY[j] = GameCanvas.h;
-					timeStart = mSystem.currentTimeMillis();
-				}
-			}
-			if (menuTemY[menuTemY.Length - 1] >= GameCanvas.h)
-			{
-				tDelay = 0;
-				doCloseMenu();
-			}
-		}
-		if (xc != 0)
-		{
-			xc >>= 1;
-			if (xc < 0)
-			{
-				xc = 0;
-			}
-		}
-		if (isScrolling() || waitToPerform <= 0)
-		{
-			return;
-		}
-		waitToPerform--;
-		if (waitToPerform == 0)
-		{
-			if (!isNotClose[menuSelectedItem])
-			{
-				isClose = true;
-				touch = true;
-			}
-			else
-			{
-				performSelect();
-			}
-		}
-	}
+        return false;
+    }
 
-	public void perform(int idAction, object p)
-	{
-	}
+    public void updateMenu()
+    {
+        moveCamera();
+        // follow "Npc Menu > Bottom Gap" live (Settings > Giao diện): buttons that already arrived move with the row
+        int liveY = GameCanvas.h - menuH - NsoUiLayout.Menu.bottomGap;
+        if (!isClose && menuTemY != null && liveY != menuY)
+        {
+            for (int k = 0; k < menuTemY.Length; k++)
+            {
+                if (menuTemY[k] <= menuY)
+                    menuTemY[k] = liveY;
+            }
 
-	public void performSelect()
-	{
-		InfoDlg.hide();
-		if (menuSelectedItem >= 0)
-		{
-			((Command)menuItems.elementAt(menuSelectedItem))?.performAction();
-		}
-	}
+            menuY = liveY;
+        }
+
+        if (!isClose)
+        {
+            tDelay++;
+            for (int i = 0; i < menuTemY.Length; i++)
+            {
+                if (menuTemY[i] <= menuY)
+                {
+                    continue;
+                }
+
+                if ((mSystem.currentTimeMillis() - timeStart) / 1000 > 5)
+                {
+                    int num = menuTemY[i] - menuY >> 1;
+                    if (num < 1)
+                    {
+                        num = 1;
+                    }
+
+                    if (tDelay > i)
+                    {
+                        menuTemY[i] -= num;
+                    }
+                }
+                else
+                {
+                    menuTemY[i] = menuY;
+                }
+            }
+
+            if (menuTemY[menuTemY.Length - 1] <= menuY)
+            {
+                tDelay = 0;
+            }
+        }
+        else
+        {
+            tDelay++;
+            for (int j = 0; j < menuTemY.Length; j++)
+            {
+                if (menuTemY[j] < GameCanvas.h)
+                {
+                    menuTemY[j] = GameCanvas.h;
+                    timeStart = mSystem.currentTimeMillis();
+                }
+            }
+
+            if (menuTemY[menuTemY.Length - 1] >= GameCanvas.h)
+            {
+                tDelay = 0;
+                doCloseMenu();
+            }
+        }
+
+        if (xc != 0)
+        {
+            xc >>= 1;
+            if (xc < 0)
+            {
+                xc = 0;
+            }
+        }
+
+        if (isScrolling() || waitToPerform <= 0)
+        {
+            return;
+        }
+
+        waitToPerform--;
+        if (waitToPerform == 0)
+        {
+            if (!isNotClose[menuSelectedItem])
+            {
+                isClose = true;
+                touch = true;
+            }
+            else
+            {
+                performSelect();
+            }
+        }
+    }
+
+    public void perform(int idAction, object p)
+    {
+    }
+
+    public void performSelect()
+    {
+        InfoDlg.hide();
+        if (menuSelectedItem >= 0)
+        {
+            ((Command)menuItems.elementAt(menuSelectedItem))?.performAction();
+        }
+    }
 }

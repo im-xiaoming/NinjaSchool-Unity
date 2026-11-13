@@ -1,6 +1,6 @@
 # PROJECT_STATUS.md
 
-Last updated: 2026-11-11 (handoff after the quest/combat port, the dev wiki and the menu-music fix).
+Last updated: 2026-11-13 (botbrain refactor and Python Brain; latest checkpoint below).
 The active project is `C:\My project`. `C:\NSO_OFFLINE` holds the earlier history; its status tables predate the work below.
 
 ## Goal
@@ -381,3 +381,7 @@ LLM schema-constrained replies and packet-cadence remote character presentation 
 Implemented a headless movement executor instead of applying the planner's endpoint directly. Rules and RL share BotClient -> BotMovement -> normal Controller move validation. Terrain is swept at pixel resolution; jumping uses grounded launch/gravity and cannot lift the bot six tiles instantly. Small client frames run separately from unchanged 500 ms gameplay/decision ticks. Compiled only; user gameplay verification is pending. Difficult routes can still stall rather than bypass terrain.
 
 - 2026-11-13: AI bots report their position at the client cadence (250 ms, smooth for watching players), rules restock potions before fighting, RL trainer uses a 256x256 network with more data and epochs, agents.html trimmed. Tested by movecheck/rulecheck/check_contracts and a Unity compile; not seen in Play mode.
+
+## 2026-11-13 - Botbrain modularization and Python Brain
+Implemented the approved code-first refactor from eac5538a on botbrain. AI is grouped into Runtime, Contracts, Planning, Skills, Navigation, Memory, Learning and Integration; existing namespaces/gameplay authority remain. Client GameScr/Char/Controller/Service and AI managers now use responsibility-based partial files; original fields/initializers and Unity GUIDs are preserved. Python Tools/Brain owns LLM/RAG/context/summary/document rendering through a loopback FastAPI API. C# retains rules/RL, navigation, gameplay-derived facts, saves and plan validation. Optional pure C# runtime JSON settings supersede Inspector values, with legacy fallback and a non-overwriting export action. See docs/REFACTORING.md.
+Validation so far: all 11 isolated server regression groups passed, plus pendingcheck/knowledgecheck/promptcheck; Brain 20 tests plus real C#/Python HTTP/process tests passed; six old prompts and all 1,885 knowledge documents match; original-member audit passed 8,778 members; seven short CUDA RL contracts passed using a scratch host. Ordinary tests/evaluation explicitly disable RAG. Unity was refreshed after the user authorized normal Stop: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. No new Play or real-service gameplay validation was initiated. No save was manually edited; normal Stop saved progress through the existing game flow.

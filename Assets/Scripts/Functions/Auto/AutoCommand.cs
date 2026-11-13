@@ -1,17 +1,18 @@
 ﻿using System.Threading;
 using UnityEngine;
+
 namespace Functions.Auto
 {
     public class AutoCommand : IActionListener
     {
         private static AutoCommand select;
-
         public static AutoCommand gI()
         {
             if (select == null)
             {
                 select = new AutoCommand();
             }
+
             return select;
         }
 
@@ -31,8 +32,10 @@ namespace Functions.Auto
                         text += mob.getTemplate().name;
                     }
                 }
+
                 GameCanvas.menu.startAt(myVector, 1);
             }
+
             switch (idAction)
             {
                 case 2:
@@ -45,22 +48,24 @@ namespace Functions.Auto
                     Handle.Abort();
                     return;
                 case 5:
+                {
+                    string text2 = " ";
+                    MyVector myVector2 = new MyVector();
+                    for (int j = 0; j < GameScr.vNpc.size(); j++)
                     {
-                        string text2 = " ";
-                        MyVector myVector2 = new MyVector();
-                        for (int j = 0; j < GameScr.vNpc.size(); j++)
+                        Npc npc = (Npc)GameScr.vNpc.elementAt(j);
+                        if (!text2.Contains(npc.template.name))
                         {
-                            Npc npc = (Npc)GameScr.vNpc.elementAt(j);
-                            if (!text2.Contains(npc.template.name))
-                            {
-                                myVector2.addElement(new Command(npc.template.name, gI(), 6, npc));
-                                text2 += npc.template.name;
-                            }
+                            myVector2.addElement(new Command(npc.template.name, gI(), 6, npc));
+                            text2 += npc.template.name;
                         }
-                        GameCanvas.menu.startAt(myVector2, 0);
-                        break;
                     }
+
+                    GameCanvas.menu.startAt(myVector2, 0);
+                    break;
+                }
             }
+
             Npc npc2;
             if (idAction == 6 && (npc2 = (Npc)p) != null)
             {
@@ -68,11 +73,12 @@ namespace Functions.Auto
                 {
                     Char.Move(npc2.cx, npc2.cy);
                 }
+
                 Service.gI().openMenu(npc2.template.npcTemplateId);
             }
+
             switch (idAction)
             {
-
                 case 8:
                     GameScr.GiuLV = !GameScr.GiuLV;
                     Handle.Paint("Giữ Level: " + (GameScr.GiuLV ? "Bật" : "Tắt"));
@@ -209,7 +215,6 @@ namespace Functions.Auto
                     GameScr.gI().right = GameScr.gI().cmdCloseAll;
                     GameScr.indexMenu = 0;
                     GameScr.isPaintItemDell = true;
-
                     GameScr.setPopupSize(175, 200);
                     return;
                 case 1100074:
@@ -217,6 +222,7 @@ namespace Functions.Auto
                     Handle.ATNVHN();
                     return;
             }
+
             switch (idAction)
             {
                 case 39:
@@ -280,8 +286,10 @@ namespace Functions.Auto
                 {
                     myVector.addElement(new Command("Auto NV", gI(), 1100074, 0));
                 }
+
                 myVector.addElement(new Command("Tàn Sát", gI(), 1, 0));
             }
+
             //myVector.addElement(new Command("AUTO Tà thú", gI(), 54, 0));
             myVector.addElement(new Command("NPC", gI(), 5, 0));
             myVector.addElement(new Command(GameScr.HutVatPham ? "Hút VP" : " Nhặt Xa", gI(), 51, 0));
@@ -302,7 +310,6 @@ namespace Functions.Auto
             //myVector.addElement(new Command("Đánh chuyển khu", gI(), 61, 0));
             myVector.addElement(new Command("Tự động", gI(), 61, 0));
             //myVector.addElement(new Command("Khác", gI(), 14, 0));
-
             GameCanvas.menu.startAt(myVector, 11);
         }
 

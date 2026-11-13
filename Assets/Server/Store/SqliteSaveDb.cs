@@ -15,10 +15,9 @@ namespace NsoServer.Store
     public sealed class SqliteSaveDb : IDisposable
     {
         public const int SchemaVersion = 1;
-        private static readonly object InitLock = new object();
+        private static readonly object InitLock = new object ();
         private static bool initialized;
         private readonly SqliteConnection conn;
-
         public string FilePath { get; private set; }
 
         public SqliteSaveDb(string file)
@@ -26,10 +25,20 @@ namespace NsoServer.Store
             lock (InitLock)
             {
                 // Microsoft.Data.Sqlite.Core does not pick a native provider by itself
-                if (!initialized) { SQLitePCL.Batteries_V2.Init(); initialized = true; }
+                if (!initialized)
+                {
+                    SQLitePCL.Batteries_V2.Init();
+                    initialized = true;
+                }
             }
+
             FilePath = file;
-            var cs = new SqliteConnectionStringBuilder { DataSource = file, Mode = SqliteOpenMode.ReadWriteCreate, Pooling = false };
+            var cs = new SqliteConnectionStringBuilder
+            {
+                DataSource = file,
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Pooling = false
+            };
             conn = new SqliteConnection(cs.ToString());
             conn.Open();
             Exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;");
@@ -49,13 +58,24 @@ INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', '" + SchemaVer
 
         private void Exec(string sql)
         {
-            using (var c = conn.CreateCommand()) { c.CommandText = sql; c.ExecuteNonQuery(); }
+            using (var c = conn.CreateCommand())
+            {
+                c.CommandText = sql;
+                c.ExecuteNonQuery();
+            }
         }
 
         /// <summary>True when the database has no account yet (a new file: the TSV files may be imported).</summary>
         public bool IsEmpty
         {
-            get { using (var c = conn.CreateCommand()) { c.CommandText = "SELECT COUNT(*) FROM users"; return Convert.ToInt64(c.ExecuteScalar()) == 0; } }
+            get
+            {
+                using (var c = conn.CreateCommand())
+                {
+                    c.CommandText = "SELECT COUNT(*) FROM users";
+                    return Convert.ToInt64(c.ExecuteScalar()) == 0;
+                }
+            }
         }
 
         public void Load(List<UserRecord> users, List<PlayerRecord> players)
@@ -67,18 +87,13 @@ INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', '" + SchemaVer
                     while (r.Read())
                         users.Add(new UserRecord { Id = r.GetInt32(0), Username = r.GetString(1), Salt = r.GetString(2), PasswordHash = r.GetString(3) });
             }
+
             using (var c = conn.CreateCommand())
             {
                 c.CommandText = "SELECT id, user_id, name, gender, head, class_id, exp, weapon, body, leg, last_logout, map_id, x, y, task_id, data FROM players ORDER BY id";
                 using (var r = c.ExecuteReader())
                     while (r.Read())
-                        players.Add(new PlayerRecord
-                        {
-                            Id = r.GetInt32(0), UserId = r.GetInt32(1), Name = r.GetString(2), Gender = (sbyte)r.GetInt32(3), Head = (short)r.GetInt32(4),
-                            ClassId = (sbyte)r.GetInt32(5), Exp = r.GetInt64(6), Weapon = (short)r.GetInt32(7), Body = (short)r.GetInt32(8),
-                            Leg = (short)r.GetInt32(9), LastLogout = r.GetInt64(10), MapId = r.GetInt32(11), X = r.GetInt32(12), Y = r.GetInt32(13),
-                            TaskId = r.GetInt32(14), Data = r.GetString(15)
-                        });
+                        players.Add(new PlayerRecord { Id = r.GetInt32(0), UserId = r.GetInt32(1), Name = r.GetString(2), Gender = (sbyte)r.GetInt32(3), Head = (short)r.GetInt32(4), ClassId = (sbyte)r.GetInt32(5), Exp = r.GetInt64(6), Weapon = (short)r.GetInt32(7), Body = (short)r.GetInt32(8), Leg = (short)r.GetInt32(9), LastLogout = r.GetInt64(10), MapId = r.GetInt32(11), X = r.GetInt32(12), Y = r.GetInt32(13), TaskId = r.GetInt32(14), Data = r.GetString(15) });
             }
         }
 
@@ -99,10 +114,14 @@ ON CONFLICT(id) DO UPDATE SET username = excluded.username, salt = excluded.salt
                     var h = c.Parameters.Add("$h", SqliteType.Text);
                     foreach (var x in users)
                     {
-                        id.Value = x.Id; u.Value = x.Username ?? ""; s.Value = x.Salt ?? ""; h.Value = x.PasswordHash ?? "";
+                        id.Value = x.Id;
+                        u.Value = x.Username ?? "";
+                        s.Value = x.Salt ?? "";
+                        h.Value = x.PasswordHash ?? "";
                         c.ExecuteNonQuery();
                     }
                 }
+
                 using (var c = conn.CreateCommand())
                 {
                     c.Transaction = tx;
@@ -112,19 +131,50 @@ ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, name = excluded.name, 
   class_id = excluded.class_id, exp = excluded.exp, weapon = excluded.weapon, body = excluded.body, leg = excluded.leg,
   last_logout = excluded.last_logout, map_id = excluded.map_id, x = excluded.x, y = excluded.y, task_id = excluded.task_id, data = excluded.data";
                     var p = new Dictionary<string, SqliteParameter>();
-                    foreach (var n in new[] { "$id", "$uid", "$g", "$head", "$cls", "$exp", "$w", "$b", "$l", "$lo", "$map", "$x", "$y", "$task" })
+                    foreach (var n in new[]
+                    {
+                        "$id",
+                        "$uid",
+                        "$g",
+                        "$head",
+                        "$cls",
+                        "$exp",
+                        "$w",
+                        "$b",
+                        "$l",
+                        "$lo",
+                        "$map",
+                        "$x",
+                        "$y",
+                        "$task"
+                    }
+
+                    )
                         p[n] = c.Parameters.Add(n, SqliteType.Integer);
                     p["$name"] = c.Parameters.Add("$name", SqliteType.Text);
                     p["$data"] = c.Parameters.Add("$data", SqliteType.Text);
                     foreach (var x in players)
                     {
-                        p["$id"].Value = x.Id; p["$uid"].Value = x.UserId; p["$name"].Value = x.Name ?? ""; p["$g"].Value = (int)x.Gender;
-                        p["$head"].Value = (int)x.Head; p["$cls"].Value = (int)x.ClassId; p["$exp"].Value = x.Exp; p["$w"].Value = (int)x.Weapon;
-                        p["$b"].Value = (int)x.Body; p["$l"].Value = (int)x.Leg; p["$lo"].Value = x.LastLogout; p["$map"].Value = x.MapId;
-                        p["$x"].Value = x.X; p["$y"].Value = x.Y; p["$task"].Value = x.TaskId; p["$data"].Value = x.Data ?? "{}";
+                        p["$id"].Value = x.Id;
+                        p["$uid"].Value = x.UserId;
+                        p["$name"].Value = x.Name ?? "";
+                        p["$g"].Value = (int)x.Gender;
+                        p["$head"].Value = (int)x.Head;
+                        p["$cls"].Value = (int)x.ClassId;
+                        p["$exp"].Value = x.Exp;
+                        p["$w"].Value = (int)x.Weapon;
+                        p["$b"].Value = (int)x.Body;
+                        p["$l"].Value = (int)x.Leg;
+                        p["$lo"].Value = x.LastLogout;
+                        p["$map"].Value = x.MapId;
+                        p["$x"].Value = x.X;
+                        p["$y"].Value = x.Y;
+                        p["$task"].Value = x.TaskId;
+                        p["$data"].Value = x.Data ?? "{}";
                         c.ExecuteNonQuery();
                     }
                 }
+
                 tx.Commit();
             }
         }
@@ -155,7 +205,14 @@ ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, name = excluded.name, 
 
         public void Dispose()
         {
-            try { Exec("PRAGMA wal_checkpoint(TRUNCATE);"); } catch (Exception) { }
+            try
+            {
+                Exec("PRAGMA wal_checkpoint(TRUNCATE);");
+            }
+            catch (Exception)
+            {
+            }
+
             conn.Dispose();
         }
     }

@@ -3,7 +3,6 @@ using System.Collections;
 public class MyVector
 {
     private ArrayList a;
-
     public MyVector()
     {
         a = new ArrayList();
@@ -25,6 +24,7 @@ public class MyVector
         {
             return true;
         }
+
         return false;
     }
 
@@ -34,6 +34,7 @@ public class MyVector
         {
             return 0;
         }
+
         return a.Count;
     }
 
@@ -43,6 +44,7 @@ public class MyVector
         {
             return a[index];
         }
+
         return null;
     }
 

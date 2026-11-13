@@ -5,6 +5,4 @@ public class ReLogin
     {
         this.session_ME = session_ME;
     }
-
-
 }

@@ -1,4 +1,4 @@
 public interface IKbAction
 {
-	void perform(string text);
+    void perform(string text);
 }

@@ -3,7 +3,7 @@ using NsoServer.World;
 
 namespace NsoServer.Net
 {
-    using Math = System.Math;   // the client has its own global Math class
+    using Math = System.Math; // the client has its own global Math class
     using Zone = NsoServer.World.Zone;
 
     /// <summary>
@@ -18,20 +18,23 @@ namespace NsoServer.Net
         /// <summary>Zone.join: tell the zone about the newcomer and the newcomer about the zone.</summary>
         public static void Joined(PlayerState me)
         {
-            if (me == null || me.Zone == null || me.Session == null) return;
+            if (me == null || me.Zone == null || me.Session == null)
+                return;
             var info = CharInfo(me);
             foreach (PlayerState p in me.Zone.Players)
             {
-                if (p == me || p.Session == null) continue;
+                if (p == me || p.Session == null)
+                    continue;
                 p.Session.Send(info);
                 me.Session.Send(CharInfo(p));
             }
         }
 
-        /// <summary>Zone.out: the character leaves <paramref name="zone"/> (map change, logout).</summary>
+        /// <summary>Zone.out: the character leaves <paramref name = "zone"/> (map change, logout).</summary>
         public static void Left(PlayerState me, Zone zone)
         {
-            if (me == null || zone == null || me.Record == null) return;
+            if (me == null || zone == null || me.Record == null)
+                return;
             var rm = new Message(Cmd.PLAYER_REMOVE);
             rm.Writer.WriteInt(me.Record.Id);
             ToOthers(me, zone, rm);
@@ -40,7 +43,8 @@ namespace NsoServer.Net
         /// <summary>Zone.move: the new position for everyone else in the zone.</summary>
         public static void Moved(PlayerState me)
         {
-            if (me == null || me.Zone == null || me.Zone.Players.Count < 2) return;
+            if (me == null || me.Zone == null || me.Zone.Players.Count < 2)
+                return;
             var m = new Message(Cmd.PLAYER_MOVE);
             m.Writer.WriteInt(me.Record.Id);
             m.Writer.WriteShort(me.X);
@@ -51,7 +55,8 @@ namespace NsoServer.Net
         /// <summary>MapService.waitToDie seen by the others: the character lies on the ground.</summary>
         public static void Died(PlayerState me)
         {
-            if (me == null || me.Zone == null || me.Zone.Players.Count < 2) return;
+            if (me == null || me.Zone == null || me.Zone.Players.Count < 2)
+                return;
             var m = new Message(Cmd.PLAYER_DIE);
             m.Writer.WriteInt(me.Record.Id);
             m.Writer.WriteByte(me.TypePk);
@@ -63,7 +68,8 @@ namespace NsoServer.Net
         /// <summary>Revived on the spot: the others redraw the character standing (remove + add).</summary>
         public static void Revived(PlayerState me)
         {
-            if (me == null || me.Zone == null || me.Zone.Players.Count < 2) return;
+            if (me == null || me.Zone == null || me.Zone.Players.Count < 2)
+                return;
             Left(me, me.Zone);
             var info = CharInfo(me);
             ToOthers(me, me.Zone, info);
@@ -72,9 +78,11 @@ namespace NsoServer.Net
         /// <summary>MapService.chat (CHAT_MAP): a speech bubble over the character for the others in the zone.</summary>
         public static void Say(PlayerState me, string text)
         {
-            if (me == null || me.Zone == null || string.IsNullOrEmpty(text)) return;
+            if (me == null || me.Zone == null || string.IsNullOrEmpty(text))
+                return;
             text = text.Replace('\n', ' ').Trim();
-            if (text.Length > 80) text = text.Substring(0, 80);
+            if (text.Length > 80)
+                text = text.Substring(0, 80);
             var m = new Message(Cmd.CHAT_MAP);
             m.Writer.WriteInt(me.Record.Id);
             m.Writer.WriteUTF(text);
@@ -84,7 +92,8 @@ namespace NsoServer.Net
         private static void ToOthers(PlayerState me, Zone zone, Message m)
         {
             foreach (PlayerState p in zone.Players)
-                if (p != me && p.Session != null) p.Session.Send(m);
+                if (p != me && p.Session != null)
+                    p.Session.Send(m);
         }
 
         /// <summary>AbsService.playerAdd + Char.charInfo: who the character is and how it looks
@@ -97,21 +106,32 @@ namespace NsoServer.Net
             if (world != null && p.Inventory != null)
                 foreach (var item in p.Inventory.Equipment)
                 {
-                    if (item == null) continue;
+                    if (item == null)
+                        continue;
                     var t = world.FindItem(item.Id);
-                    if (t == null) continue;
+                    if (t == null)
+                        continue;
                     switch (t.Type)
                     {
-                        case 0: head = t.Part; break;
-                        case 1: weapon = t.Fashion >= 0 ? (short)-1 : t.Part; break;
-                        case 2: body = t.Part; break;
-                        case 6: leg = t.Part; break;
+                        case 0:
+                            head = t.Part;
+                            break;
+                        case 1:
+                            weapon = t.Fashion >= 0 ? (short)-1 : t.Part;
+                            break;
+                        case 2:
+                            body = t.Part;
+                            break;
+                        case 6:
+                            leg = t.Part;
+                            break;
                     }
                 }
+
             var m = new Message(Cmd.PLAYER_ADD);
             var w = m.Writer;
             w.WriteInt(rec.Id);
-            w.WriteUTF("");                // no clan
+            w.WriteUTF(""); // no clan
             w.WriteBoolean(p.IsInvisible);
             w.WriteByte(p.TypePk);
             w.WriteByte(rec.ClassId);
@@ -124,19 +144,20 @@ namespace NsoServer.Net
             w.WriteShort(weapon);
             w.WriteShort(body);
             w.WriteShort(leg);
-            w.WriteByte(-1);               // mobMe: no pets offline
+            w.WriteByte(-1); // mobMe: no pets offline
             w.WriteShort(p.X);
             w.WriteShort(p.Y);
-            w.WriteShort(0);               // eff5buffhp
-            w.WriteShort(0);               // eff5buffmp
-            w.WriteByte(0);                // effects (not shown to others offline)
-            w.WriteBoolean(true);          // isHuman
-            w.WriteBoolean(false);         // isNhanBan
+            w.WriteShort(0); // eff5buffhp
+            w.WriteShort(0); // eff5buffmp
+            w.WriteByte(0); // effects (not shown to others offline)
+            w.WriteBoolean(true); // isHuman
+            w.WriteBoolean(false); // isNhanBan
             w.WriteShort(head);
             w.WriteShort(weapon);
             w.WriteShort(body);
             w.WriteShort(leg);
-            for (int i = 0; i < 10; i++) w.WriteShort(-1);   // fashion
+            for (int i = 0; i < 10; i++)
+                w.WriteShort(-1); // fashion
             return m;
         }
     }

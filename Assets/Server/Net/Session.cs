@@ -10,27 +10,30 @@ namespace NsoServer.Net
     {
         private const int MaxMessageSize = 1024 * 1024;
         private static readonly Random Rng = new Random();
-
         private readonly Stream stream;
-        private readonly object sendLock = new object();
+        private readonly object sendLock = new object ();
         private byte[] key;
         private int curR, curW;
         private volatile bool keyComplete;
-
         public readonly int Id;
         public int ZoomLevel = 1; // client art scale (1..4) from the client-info message, picks Img/*/<zoom> folders
         public readonly GameServer Server;
         public readonly Controller Controller;
         public volatile bool Connected = true;
-
         /// <summary>Offline AI player (NsoServer.Ai): the account it signs in with, null for a real client.
         /// A bot session has no stream: the bot calls Controller.OnMessage with the same messages a client sends, and
         /// replies are dropped (the bot reads the server state directly, as a player reads the screen).</summary>
         public readonly string BotAccount;
-        public bool IsBot { get { return BotAccount != null; } }
+        public bool IsBot
+        {
+            get
+            {
+                return BotAccount != null;
+            }
+        }
+
         /// <summary>Bot sessions only: the last dialog / server message text the "screen" showed (for the AI and its log).</summary>
         public string LastNotice = "";
-
         public Session(GameServer server, Stream stream, int id)
         {
             Server = server;
@@ -39,7 +42,7 @@ namespace NsoServer.Net
             Controller = new Controller(this);
         }
 
-        /// <summary>A bot session (offline AI player) signed in as <paramref name="botAccount"/>.</summary>
+        /// <summary>A bot session (offline AI player) signed in as <paramref name = "botAccount"/>.</summary>
         public Session(GameServer server, int id, string botAccount)
         {
             Server = server;
@@ -51,7 +54,11 @@ namespace NsoServer.Net
 
         public void Start()
         {
-            var t = new Thread(ReadLoop) { IsBackground = true, Name = "reader-" + Id };
+            var t = new Thread(ReadLoop)
+            {
+                IsBackground = true,
+                Name = "reader-" + Id
+            };
             t.Start();
         }
 
@@ -62,19 +69,28 @@ namespace NsoServer.Net
                 while (Connected)
                 {
                     var m = ReadMessage();
-                    if (m == null) break;
-                    if (!keyComplete) SendKey();
-                    else Controller.OnMessage(m);
+                    if (m == null)
+                        break;
+                    if (!keyComplete)
+                        SendKey();
+                    else
+                        Controller.OnMessage(m);
                 }
             }
-            catch (Exception ex) { if (Connected) Server.Log("Client " + Id + " read error: " + ex); }
+            catch (Exception ex)
+            {
+                if (Connected)
+                    Server.Log("Client " + Id + " read error: " + ex);
+            }
+
             Close();
         }
 
         private Message ReadMessage()
         {
             int c = stream.ReadByte();
-            if (c < 0) return null;
+            if (c < 0)
+                return null;
             sbyte cmd = (sbyte)c;
             int size;
             if (keyComplete)
@@ -87,38 +103,46 @@ namespace NsoServer.Net
             {
                 size = (ReadRaw() << 8) | ReadRaw();
             }
-            if (size > MaxMessageSize) throw new IOException("Data too big");
+
+            if (size > MaxMessageSize)
+                throw new IOException("Data too big");
             var data = new byte[size];
             int got = 0;
             while (got < size)
             {
                 int n = stream.Read(data, got, size - got);
-                if (n <= 0) return null;
+                if (n <= 0)
+                    return null;
                 got += n;
             }
+
             if (keyComplete)
-                for (int i = 0; i < data.Length; i++) data[i] = ReadKey(data[i]);
+                for (int i = 0; i < data.Length; i++)
+                    data[i] = ReadKey(data[i]);
             return new Message(cmd, data);
         }
 
         private int ReadRaw()
         {
             int v = stream.ReadByte();
-            if (v < 0) throw new EndOfStreamException();
+            if (v < 0)
+                throw new EndOfStreamException();
             return v;
         }
 
         private byte ReadKey(byte b)
         {
             byte r = (byte)(key[curR] ^ b);
-            if (++curR >= key.Length) curR = 0;
+            if (++curR >= key.Length)
+                curR = 0;
             return r;
         }
 
         private byte WriteKey(byte b)
         {
             byte r = (byte)(key[curW] ^ b);
-            if (++curW >= key.Length) curW = 0;
+            if (++curW >= key.Length)
+                curW = 0;
             return r;
         }
 
@@ -128,7 +152,8 @@ namespace NsoServer.Net
             var ms = new Message(Cmd.GET_SESSION_ID);
             ms.Writer.WriteByte(key.Length);
             ms.Writer.WriteByte(key[0]);
-            for (int i = 1; i < key.Length; i++) ms.Writer.WriteByte(key[i] ^ key[i - 1]);
+            for (int i = 1; i < key.Length; i++)
+                ms.Writer.WriteByte(key[i] ^ key[i - 1]);
             var data = ms.GetData();
             lock (sendLock)
             {
@@ -144,12 +169,18 @@ namespace NsoServer.Net
 
         public void Send(Message m)
         {
-            if (!Connected || !keyComplete) return;
-            if (IsBot) { BotNotice(m); return; }
+            if (!Connected || !keyComplete)
+                return;
+            if (IsBot)
+            {
+                BotNotice(m);
+                return;
+            }
+
             try
             {
                 var data = m.GetData();
-                PlayerLog.Out(this, m.Command, data);   // offline debug log of every server reply
+                PlayerLog.Out(this, m.Command, data); // offline debug log of every server reply
                 int num = data.Length;
                 lock (sendLock)
                 {
@@ -169,38 +200,64 @@ namespace NsoServer.Net
                         buf.WriteByte(WriteKey((byte)(num >> 8)));
                         buf.WriteByte(WriteKey((byte)num));
                     }
-                    for (int i = 0; i < num; i++) data[i] = WriteKey(data[i]);
+
+                    for (int i = 0; i < num; i++)
+                        data[i] = WriteKey(data[i]);
                     buf.Write(data, 0, num);
                     buf.WriteTo(stream);
                     stream.Flush();
                 }
             }
-            catch (Exception) { Close(); }
+            catch (Exception)
+            {
+                Close();
+            }
         }
 
         // the texts a player would read on screen: dialogs, server messages, NPC lines (bot log + AI memory)
         private void BotNotice(Message m)
         {
             sbyte c = m.Command;
-            if (c != PlayerService.SERVER_DIALOG && c != PlayerService.SERVER_MESSAGE && c != PlayerService.OPEN_UI_SAY && c != PlayerService.ALERT_MESSAGE) return;
+            if (c != PlayerService.SERVER_DIALOG && c != PlayerService.SERVER_MESSAGE && c != PlayerService.OPEN_UI_SAY && c != PlayerService.ALERT_MESSAGE)
+                return;
             try
             {
                 var r = new JavaReader(m.GetData());
-                if (c == PlayerService.OPEN_UI_SAY) r.ReadShort();
+                if (c == PlayerService.OPEN_UI_SAY)
+                    r.ReadShort();
                 string text = r.ReadUTF();
-                if (c == PlayerService.ALERT_MESSAGE && r.Remaining > 0) text += ": " + r.ReadUTF();
+                if (c == PlayerService.ALERT_MESSAGE && r.Remaining > 0)
+                    text += ": " + r.ReadUTF();
                 LastNotice = text;
                 PlayerLog.BotLine(this, "MSG", text);
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
         }
 
         public void Close()
         {
-            if (!Connected) return;
+            if (!Connected)
+                return;
             Connected = false;
-            try { Controller.OnDisconnected(); } catch (Exception) { }
-            try { if (stream != null) stream.Close(); } catch (Exception) { }
+            try
+            {
+                Controller.OnDisconnected();
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                if (stream != null)
+                    stream.Close();
+            }
+            catch (Exception)
+            {
+            }
+
             Server.Remove(this);
         }
     }

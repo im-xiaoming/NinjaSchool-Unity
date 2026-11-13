@@ -1,58 +1,34 @@
 ﻿using System;
+
 namespace Functions.Auto
 {
     public abstract class Auto
     {
         public class Actions
         {
-
             public static bool isBuff;
-
             public static bool TanSatMapTrong = true;
-
-
             public static bool AttackParty;
-
-
-
-
-
-
-            // Offline change (user request, permanent): reMap, ChuyenMapHetBoss, isDieMP, isTinhAnh and isThuLinh
-            // were removed from the game. Their default behaviour is kept: return to the auto map,
-            // change map when no boss is left, attack elites (tinh anh) and bosses (thủ lĩnh).
+        // Offline change (user request, permanent): reMap, ChuyenMapHetBoss, isDieMP, isTinhAnh and isThuLinh
+        // were removed from the game. Their default behaviour is kept: return to the auto map,
+        // change map when no boss is left, attack elites (tinh anh) and bosses (thủ lĩnh).
         }
 
         public int xMob;
-
         public int yMob;
-
         public int jdField_c_of_type_Int;
-
         public int jdField_d_of_type_Int;
-
         public static MyVector Quai;
-
         public static MyVector Nguoi;
-
         public Auto T;
-
         public long timeWaitHS;
-
         public static bool isHoiSinh;
-
         public int mapID;
-
         public int zoneID;
-
         public long timecall;
-
         public long timeUseHp;
-
         protected event EventHandler e;
-
         public abstract void Run();
-
         protected void UseAuto()
         {
             Char myChar = Char.getMyChar();
@@ -69,6 +45,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             if (Char.isAFood && myChar.statusMe != 14 && myChar.statusMe != 5 && myChar.cHP > 0)
             {
                 if (myChar.vEff.size() == 0)
@@ -91,6 +68,7 @@ namespace Functions.Auto
                         {
                             continue;
                         }
+
                         for (int l = 0; l < myChar.arrItemBag.Length; l++)
                         {
                             Item item3 = myChar.arrItemBag[l];
@@ -103,6 +81,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             if (Char.isAMP && myChar.cMP < myChar.cMaxMP * Char.aMpValue / 100 && myChar.statusMe != 14 && myChar.statusMe != 5 && myChar.cHP > 0)
             {
                 GameScr.gI().doUseMP();
@@ -115,6 +94,7 @@ namespace Functions.Auto
             {
                 return @char.statusMe == 5;
             }
+
             return true;
         }
 
@@ -124,6 +104,7 @@ namespace Functions.Auto
             {
                 return;
             }
+
             int paramInt = paramMob.xFirst;
             int paramInt2 = paramMob.yFirst;
             Char myChar = Char.getMyChar();
@@ -168,6 +149,7 @@ namespace Functions.Auto
                     paramInt2 = 600;
                 }
             }
+
             if (Char.b(paramInt, paramInt2))
             {
                 xMob = jdField_c_of_type_Int;
@@ -199,6 +181,7 @@ namespace Functions.Auto
                     return mob;
                 }
             }
+
             EndMob();
             return null;
         }
@@ -214,6 +197,7 @@ namespace Functions.Auto
                     return mob;
                 }
             }
+
             for (int j = 0; j < GameScr.vMob.size(); j++)
             {
                 Mob mob2 = (Mob)GameScr.vMob.elementAt(j);
@@ -223,6 +207,7 @@ namespace Functions.Auto
                     return mob2;
                 }
             }
+
             EndMob();
             return null;
         }
@@ -244,15 +229,18 @@ namespace Functions.Auto
             {
                 mob = mobMobFirst(jdField_c_of_type_Int, jdField_d_of_type_Int, templateId);
             }
+
             if (mob == null)
             {
                 mob = Fight(templateId, mobID);
             }
+
             if (mob != null && (mob.hp <= 0 || mob.status == 1 || mob.status == 0 || mob.levelBoss == 3 || (mobID != -1 && mobID != mob.mobId) || (templateId != -1 && templateId != mob.templateId)))
             {
                 mob = null;
                 Char.getMyChar().mobFocus = null;
             }
+
             Q(mob);
             Check(templateId, mobID);
             Skill myskill = myChar.myskill;
@@ -265,6 +253,7 @@ namespace Functions.Auto
             {
                 return;
             }
+
             for (int i = 0; i < GameScr.vMob.size(); i++)
             {
                 if (Quai.size() + Nguoi.size() < myskill.maxFight)
@@ -276,6 +265,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             for (int j = 0; j < GameScr.vCharInMap.size(); j++)
             {
                 if (Quai.size() + Nguoi.size() < myskill.maxFight)
@@ -287,15 +277,18 @@ namespace Functions.Auto
                     }
                 }
             }
+
             if (myskill == null || myskill.isCooldown(100L))
             {
                 return;
             }
+
             if (myChar.cMP < myskill.manaUse)
             {
                 Handle.Die();
                 return;
             }
+
             Service.gI().selectSkill(myskill.template.id);
             if (myskill.template.type == 2)
             {
@@ -305,6 +298,7 @@ namespace Functions.Auto
             {
                 Service.gI().sendPlayerAttack(Quai, Nguoi, 1);
             }
+
             myskill.Paint();
         }
 
@@ -332,6 +326,7 @@ namespace Functions.Auto
                     {
                         return;
                     }
+
                     isHoiSinh = true;
                 }
                 else if (!Actions.AttackParty && containFan())
@@ -342,6 +337,7 @@ namespace Functions.Auto
                     return;
                 }
             }
+
             if (GameScr.HoiSinhLuong && Char.getMyChar().cHP <= 0 && Char.getMyChar().luong > 1)
             {
                 Service.gI().wakeUpFromDead();
@@ -350,6 +346,7 @@ namespace Functions.Auto
             {
                 Service.gI().returnTownFromDead();
             }
+
             TileMap.LockMap(5000);
             Handle.Sleep(300);
         }
@@ -364,6 +361,7 @@ namespace Functions.Auto
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -376,6 +374,7 @@ namespace Functions.Auto
                 {
                     Handle.w = mSystem.currentTimeMillis();
                 }
+
                 if (mSystem.currentTimeMillis() - Handle.w >= (long)GameScr.gI().zones.Length * 1000L && Handle.s.size() > 0)
                 {
                     Handle.s.removeElementAt(new Random().Next(0, Handle.s.size() - 1));
@@ -393,19 +392,20 @@ namespace Functions.Auto
             {
                 return;
             }
+
             Npc npc = Char.FindNpc(13);
             if (npc == null)
             {
                 return;
             }
+
             if (Math.abs(Char.getMyChar().cx - npc.cx) > 22 || Math.abs(Char.getMyChar().cy - npc.cy) > 22)
             {
                 Char.Move(npc.cx, npc.cy);
             }
+
             Service.gI().openUIZone();
-
             TileMap.LockMap(2000);
-
             if (!GameScr.isPaintZone)
             {
                 return;
@@ -416,6 +416,7 @@ namespace Functions.Auto
                 Handle.s.removeAllElements();
                 return;
             }
+
             MyVector myVector = new MyVector();
             for (int i = 0; i < GameScr.gI().zones.Length; i++)
             {
@@ -429,15 +430,18 @@ namespace Functions.Auto
                         break;
                     }
                 }
+
                 if (i == TileMap.zoneID || (Handle.s.size() > 0 && flag) || num >= 20)
                 {
                     continue;
                 }
+
                 if (myVector.size() <= 0)
                 {
                     myVector.addElement(i);
                     continue;
                 }
+
                 for (int k = 0; k < myVector.size(); k++)
                 {
                     if (num < (int)myVector.elementAt(k))
@@ -447,6 +451,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             if (myVector.size() > 0)
             {
                 Service.gI().requestChangeZone((int)myVector.elementAt(0), -1);
@@ -454,18 +459,15 @@ namespace Functions.Auto
                 {
                     TileMap.LockMap(2000);
                 }
+
                 if (TileMap.zoneID == (int)myVector.elementAt(0))
                 {
                     zoneID = (int)myVector.elementAt(0);
-
                     Handle.s.addElement((int)myVector.elementAt(0));
                     Handle.timeChangeZone = mSystem.currentTimeMillis();
-
                 }
-
             }
         }
-
 
         protected void Go(int mapID, int zone = -1, int cx = -1, int cy = -1)
         {
@@ -473,10 +475,12 @@ namespace Functions.Auto
             {
                 this.mapID = TileMap.mapID;
             }
+
             if (zone <= -2)
             {
                 zoneID = TileMap.zoneID;
             }
+
             if (TileMap.mapID != mapID && mapID >= 0 && mapID <= 159)
             {
                 try
@@ -491,6 +495,7 @@ namespace Functions.Auto
                     return;
                 }
             }
+
             if (zone == -1)
             {
                 RandomZone();
@@ -509,15 +514,18 @@ namespace Functions.Auto
             {
                 return;
             }
+
             Npc npc = Char.FindNpc(13);
             if (npc == null)
             {
                 return;
             }
+
             if (Math.abs(Char.getMyChar().cx - npc.cx) > 22 || Math.abs(Char.getMyChar().cy - npc.cy) > 22)
             {
                 Char.Move(npc.cx, npc.cy);
             }
+
             Service.gI().openUIZone();
             TileMap.LockMap(2000);
             if (GameScr.isPaintZone)
@@ -527,20 +535,20 @@ namespace Functions.Auto
                 {
                     TileMap.LockMap(1000);
                 }
+
                 if (TileMap.zoneID == zoneID)
                 {
                     this.zoneID = zoneID;
-
                     Handle.timeChangeZone = mSystem.currentTimeMillis();
-
                 }
-
             }
         }
+
         protected static bool checkChar()
         {
             return Char.getMyChar().cHP <= 0 || Char.getMyChar().statusMe == 14 || Char.getMyChar().statusMe == 5;
         }
+
         public void Update()
         {
             mapID = -1;
@@ -560,6 +568,7 @@ namespace Functions.Auto
                     break;
                 }
             }
+
             if (!flag)
             {
                 if (TileMap.mapID == 114)
@@ -567,15 +576,16 @@ namespace Functions.Auto
                     mapID = 115;
                     return;
                 }
+
                 if (TileMap.mapID == 115)
                 {
                     mapID = 116;
                     return;
                 }
+
                 RandomZone();
                 Handle.Sleep(500);
             }
-
         }
 
         public void PickItemNv()
@@ -589,6 +599,7 @@ namespace Functions.Auto
                     {
                         Char.Move(itemMap.x, itemMap.y);
                     }
+
                     Service.gI().pickItem(itemMap.itemMapID);
                     Handle.Sleep(1000);
                     break;
@@ -608,6 +619,7 @@ namespace Functions.Auto
                         Char.Move(itemMap.x, itemMap.y);
                         Char.getMyChar().itemFocus = itemMap;
                     }
+
                     Service.gI().pickItem(itemMap.itemMapID);
                     ItemMap.s();
                     break;
@@ -622,6 +634,7 @@ namespace Functions.Auto
             {
                 return;
             }
+
             try
             {
                 if (mSystem.currentTimeMillis() - thoigian > 1000)
@@ -629,12 +642,10 @@ namespace Functions.Auto
                     for (int i = 0; i < GameScr.vItemMap.size(); i++)
                     {
                         ItemMap itemMap = (ItemMap)GameScr.vItemMap.elementAt(i);
-
                         if (itemMap.template.id == itemID)
                         {
                             Service.gI().pickItem(itemMap.itemMapID);
                             thoigian = mSystem.currentTimeMillis();
-
                         }
                     }
                 }
@@ -643,6 +654,7 @@ namespace Functions.Auto
             {
             }
         }
+
         public void PickHpMp()
         {
             for (int i = 0; i < GameScr.vItemMap.size(); i++)
@@ -655,6 +667,7 @@ namespace Functions.Auto
                         Char.Move(itemMap.x, itemMap.y);
                         Char.getMyChar().itemFocus = itemMap;
                     }
+
                     Service.gI().pickItem(itemMap.itemMapID);
                     ItemMap.s();
                     break;
@@ -674,6 +687,7 @@ namespace Functions.Auto
                         Char.Move(itemMap.x, itemMap.y);
                         Char.getMyChar().itemFocus = itemMap;
                     }
+
                     Service.gI().pickItem(itemMap.itemMapID);
                     ItemMap.s();
                     break;

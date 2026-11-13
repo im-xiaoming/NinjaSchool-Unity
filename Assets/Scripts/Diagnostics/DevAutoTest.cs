@@ -13,7 +13,8 @@ public class DevAutoTest : MonoBehaviour
     {
         string[] args = Environment.GetCommandLineArgs();
         int i = Array.IndexOf(args, "-autotest");
-        if (i < 0 || i + 1 >= args.Length) return;
+        if (i < 0 || i + 1 >= args.Length)
+            return;
         GameObject go = new GameObject("DevAutoTest");
         DontDestroyOnLoad(go);
         go.AddComponent<DevAutoTest>().StartCoroutine(go.GetComponent<DevAutoTest>().Run(args[i + 1]));
@@ -24,7 +25,8 @@ public class DevAutoTest : MonoBehaviour
         foreach (string raw in File.ReadAllLines(file))
         {
             string line = raw.Trim();
-            if (line.Length == 0 || line[0] == '#') continue;
+            if (line.Length == 0 || line[0] == '#')
+                continue;
             string[] p = line.Split(' ');
             Debug.Log("[AutoTest] " + line);
             switch (p[0])
@@ -49,16 +51,18 @@ public class DevAutoTest : MonoBehaviour
                     break;
                 case "calib":
                     TextCalib.Open = true;
-                    NsoSettingsMenu.OpenTextOffsets();   // the test drives the text-offset tool
+                    NsoSettingsMenu.OpenTextOffsets(); // the test drives the text-offset tool
                     break;
                 case "shot":
                     yield return new WaitForEndOfFrame();
-                    if (File.Exists(p[1])) File.Delete(p[1]);
+                    if (File.Exists(p[1]))
+                        File.Delete(p[1]);
                     ScreenCapture.CaptureScreenshot(p[1]);
                     yield return new WaitForSecondsRealtime(0.5f);
                     break;
             }
         }
+
         Debug.Log("[AutoTest] done");
     }
 }

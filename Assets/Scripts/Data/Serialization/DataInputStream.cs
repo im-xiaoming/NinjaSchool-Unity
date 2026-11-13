@@ -3,155 +3,153 @@ using UnityEngine;
 
 public class DataInputStream
 {
-	public myReader r;
+    public myReader r;
+    private const int INTERVAL = 5;
+    private const int MAXTIME = 500;
+    public static DataInputStream istemp;
+    private static int status;
+    private static string filenametemp;
+    public DataInputStream(string filename)
+    {
+        TextAsset textAsset = (TextAsset)Resources.Load(filename, typeof(TextAsset));
+        r = new myReader(ArrayCast.cast(textAsset.bytes));
+    }
 
-	private const int INTERVAL = 5;
+    public DataInputStream(sbyte[] data)
+    {
+        r = new myReader(data);
+    }
 
-	private const int MAXTIME = 500;
+    public static void update()
+    {
+        if (status == 2)
+        {
+            status = 1;
+            istemp = __getResourceAsStream(filenametemp);
+            status = 0;
+        }
+    }
 
-	public static DataInputStream istemp;
+    public static DataInputStream getResourceAsStream(string filename)
+    {
+        return __getResourceAsStream(filename);
+    }
 
-	private static int status;
+    private static DataInputStream _getResourceAsStream(string filename)
+    {
+        if (status != 0)
+        {
+            for (int i = 0; i < 500; i++)
+            {
+                Thread.Sleep(5);
+                if (status == 0)
+                {
+                    break;
+                }
+            }
 
-	private static string filenametemp;
+            if (status != 0)
+            {
+                Debug.LogError("CANNOT GET INPUTSTREAM " + filename + " WHEN GETTING " + filenametemp);
+                return null;
+            }
+        }
 
-	public DataInputStream(string filename)
-	{
-		TextAsset textAsset = (TextAsset)Resources.Load(filename, typeof(TextAsset));
-		r = new myReader(ArrayCast.cast(textAsset.bytes));
-	}
+        istemp = null;
+        filenametemp = filename;
+        status = 2;
+        int j;
+        for (j = 0; j < 500; j++)
+        {
+            Thread.Sleep(5);
+            if (status == 0)
+            {
+                break;
+            }
+        }
 
-	public DataInputStream(sbyte[] data)
-	{
-		r = new myReader(data);
-	}
+        if (j == 500)
+        {
+            Debug.LogError("TOO LONG FOR CREATE INPUTSTREAM " + filename);
+            status = 0;
+            return null;
+        }
 
-	public static void update()
-	{
-		if (status == 2)
-		{
-			status = 1;
-			istemp = __getResourceAsStream(filenametemp);
-			status = 0;
-		}
-	}
+        return istemp;
+    }
 
-	public static DataInputStream getResourceAsStream(string filename)
-	{
-		return __getResourceAsStream(filename);
-	}
+    private static DataInputStream __getResourceAsStream(string filename)
+    {
+        return new DataInputStream(filename);
+    }
 
-	private static DataInputStream _getResourceAsStream(string filename)
-	{
-		if (status != 0)
-		{
-			for (int i = 0; i < 500; i++)
-			{
-				Thread.Sleep(5);
-				if (status == 0)
-				{
-					break;
-				}
-			}
-			if (status != 0)
-			{
-				Debug.LogError("CANNOT GET INPUTSTREAM " + filename + " WHEN GETTING " + filenametemp);
-				return null;
-			}
-		}
-		istemp = null;
-		filenametemp = filename;
-		status = 2;
-		int j;
-		for (j = 0; j < 500; j++)
-		{
-			Thread.Sleep(5);
-			if (status == 0)
-			{
-				break;
-			}
-		}
-		if (j == 500)
-		{
-			Debug.LogError("TOO LONG FOR CREATE INPUTSTREAM " + filename);
-			status = 0;
-			return null;
-		}
-		return istemp;
-	}
+    public short readShort()
+    {
+        return r.readShort();
+    }
 
-	private static DataInputStream __getResourceAsStream(string filename)
-	{
-		return new DataInputStream(filename);
-	}
+    public int readInt()
+    {
+        return r.readInt();
+    }
 
-	public short readShort()
-	{
-		return r.readShort();
-	}
+    public int read()
+    {
+        return r.readUnsignedByte();
+    }
 
-	public int readInt()
-	{
-		return r.readInt();
-	}
+    public void read(ref sbyte[] data)
+    {
+        r.read(ref data);
+    }
 
-	public int read()
-	{
-		return r.readUnsignedByte();
-	}
+    public void close()
+    {
+        r.Close();
+    }
 
-	public void read(ref sbyte[] data)
-	{
-		r.read(ref data);
-	}
+    public void Close()
+    {
+        r.Close();
+    }
 
-	public void close()
-	{
-		r.Close();
-	}
+    public string readUTF()
+    {
+        return r.readUTF();
+    }
 
-	public void Close()
-	{
-		r.Close();
-	}
+    public sbyte readByte()
+    {
+        return r.readByte();
+    }
 
-	public string readUTF()
-	{
-		return r.readUTF();
-	}
+    public long readLong()
+    {
+        return r.readLong();
+    }
 
-	public sbyte readByte()
-	{
-		return r.readByte();
-	}
+    public bool readBoolean()
+    {
+        return r.readBoolean();
+    }
 
-	public long readLong()
-	{
-		return r.readLong();
-	}
+    public int readUnsignedByte()
+    {
+        return (byte)r.readByte();
+    }
 
-	public bool readBoolean()
-	{
-		return r.readBoolean();
-	}
+    public int readUnsignedShort()
+    {
+        return r.readUnsignedShort();
+    }
 
-	public int readUnsignedByte()
-	{
-		return (byte)r.readByte();
-	}
+    public void readFully(ref sbyte[] data)
+    {
+        r.read(ref data);
+    }
 
-	public int readUnsignedShort()
-	{
-		return r.readUnsignedShort();
-	}
-
-	public void readFully(ref sbyte[] data)
-	{
-		r.read(ref data);
-	}
-
-	public int available()
-	{
-		return r.available();
-	}
+    public int available()
+    {
+        return r.available();
+    }
 }

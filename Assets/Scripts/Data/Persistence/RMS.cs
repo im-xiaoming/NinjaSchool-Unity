@@ -6,22 +6,20 @@ using UnityEngine;
 public class RMS
 {
     public static int status;
-
     public static sbyte[] data;
-
     public static string filename;
-
     private const int INTERVAL = 5;
-
     private const int MAXTIME = 500;
     public static void SaveRMSBool(string NameSave, bool Value)
     {
         saveRMSInt(NameSave, Handle.ToInt32(Value));
     }
+
     public static bool loadRMSBool(string NameSave)
     {
         return Handle.ToBoolean(loadRMSInt(NameSave));
     }
+
     public static void saveRMSImage(string idImage, sbyte[] data)
     {
         if (Thread.CurrentThread.Name == Main.mainThreadName)
@@ -52,6 +50,7 @@ public class RMS
         {
             return __loadRMS(filename);
         }
+
         return _loadRMS(filename);
     }
 
@@ -62,6 +61,7 @@ public class RMS
         {
             return null;
         }
+
         DataInputStream dataInputStream = new DataInputStream(array);
         try
         {
@@ -73,6 +73,7 @@ public class RMS
         {
             Out.println(ex.StackTrace);
         }
+
         return null;
     }
 
@@ -90,6 +91,7 @@ public class RMS
                 array[i] = (byte)(var[i] + 256);
             }
         }
+
         return array;
     }
 
@@ -115,6 +117,7 @@ public class RMS
             Debug.LogError("Cannot save RMS " + filename + " because current is saving " + RMS.filename);
             return;
         }
+
         RMS.filename = filename;
         RMS.data = data;
         status = 2;
@@ -127,6 +130,7 @@ public class RMS
                 break;
             }
         }
+
         if (i == 500)
         {
             Debug.LogError("TOO LONG TO SAVE RMS " + filename);
@@ -140,6 +144,7 @@ public class RMS
             Debug.LogError("Cannot load RMS " + filename + " because current is loading " + RMS.filename);
             return null;
         }
+
         RMS.filename = filename;
         data = null;
         status = 3;
@@ -152,10 +157,12 @@ public class RMS
                 break;
             }
         }
+
         if (i == 500)
         {
             Debug.LogError("TOO LONG TO LOAD RMS " + filename);
         }
+
         return data;
     }
 
@@ -211,10 +218,12 @@ public class RMS
             Debug.LogError("PARSE RMS STRING FAIL " + ex.StackTrace);
             return null;
         }
+
         if (array.Length == 0)
         {
             return null;
         }
+
         return ArrayCast.cast(array);
     }
 
@@ -238,6 +247,7 @@ public class RMS
         {
             array[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
         }
+
         return array;
     }
 

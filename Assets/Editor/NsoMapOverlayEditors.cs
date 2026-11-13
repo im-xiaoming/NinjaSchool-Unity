@@ -17,6 +17,7 @@ class NsoMapObjectEditor : Editor
             EditorGUILayout.HelpBox("No NSO Map Overlay in the scene: add the NsoMapOverlayBridge component to an object.", MessageType.Warning);
             return;
         }
+
         using (new EditorGUI.DisabledScope(Application.isPlaying))
         {
             EditorGUILayout.BeginHorizontal();
@@ -31,6 +32,7 @@ class NsoMapObjectEditor : Editor
                     PrefabUtility.RecordPrefabInstancePropertyModifications(o);
                 }
             }
+
             if (GUILayout.Button("Apply Logical Position"))
             {
                 foreach (Object t in targets)
@@ -41,8 +43,10 @@ class NsoMapObjectEditor : Editor
                     PrefabUtility.RecordPrefabInstancePropertyModifications(o.transform);
                 }
             }
+
             EditorGUILayout.EndHorizontal();
         }
+
         if (Application.isPlaying)
             EditorGUILayout.HelpBox("While playing, the overlay moves this object with the game camera. Placement buttons work outside Play mode.", MessageType.Info);
     }
@@ -68,9 +72,11 @@ class NsoMapOverlayBridgeEditor : Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("cameraScroll"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("zoom"));
         }
+
         serializedObject.ApplyModifiedProperties();
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Registered objects", NsoMapOverlayBridge.Objects.Count.ToString());
-        if (Application.isPlaying) Repaint();   // live runtime fields
+        if (Application.isPlaying)
+            Repaint(); // live runtime fields
     }
 }

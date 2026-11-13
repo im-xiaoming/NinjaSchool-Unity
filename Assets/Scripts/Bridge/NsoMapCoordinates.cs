@@ -23,10 +23,11 @@ namespace NsoBridge
         public static bool ScreenToWorld(Camera cam, NsoMapSnapshot s, Vector2 screen, float distance, out Vector3 world)
         {
             world = Vector3.zero;
-            if (cam == null || s.ScreenWidth <= 0 || s.ScreenHeight <= 0) return false;
+            if (cam == null || s.ScreenWidth <= 0 || s.ScreenHeight <= 0)
+                return false;
             Rect r = cam.pixelRect;
             float px = r.x + screen.x * r.width / s.ScreenWidth;
-            float py = r.y + r.height - screen.y * r.height / s.ScreenHeight;   // texture Y down, camera Y up
+            float py = r.y + r.height - screen.y * r.height / s.ScreenHeight; // texture Y down, camera Y up
             world = cam.ScreenToWorldPoint(new Vector3(px, py, distance));
             return true;
         }
@@ -34,7 +35,8 @@ namespace NsoBridge
         public static bool WorldToScreen(Camera cam, NsoMapSnapshot s, Vector3 world, out Vector2 screen)
         {
             screen = Vector2.zero;
-            if (cam == null || s.ScreenWidth <= 0 || s.ScreenHeight <= 0) return false;
+            if (cam == null || s.ScreenWidth <= 0 || s.ScreenHeight <= 0)
+                return false;
             Rect r = cam.pixelRect;
             Vector3 p = cam.WorldToScreenPoint(world);
             screen = new Vector2((p.x - r.x) * s.ScreenWidth / r.width, (r.y + r.height - p.y) * s.ScreenHeight / r.height);
@@ -49,7 +51,8 @@ namespace NsoBridge
         // World size of one logical map pixel at 'distance' (0 when the inputs are unusable).
         public static float WorldPerMapPixel(Camera cam, NsoMapSnapshot s, float distance)
         {
-            if (cam == null || s.ScreenHeight <= 0) return 0f;
+            if (cam == null || s.ScreenHeight <= 0)
+                return 0f;
             float viewHeight = cam.orthographic ? cam.orthographicSize * 2f : 2f * distance * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
             return viewHeight / s.ScreenHeight * Mathf.Max(1, s.Zoom);
         }

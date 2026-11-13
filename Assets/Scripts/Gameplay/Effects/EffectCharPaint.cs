@@ -1,6 +1,5 @@
 public class EffectCharPaint
 {
-	public int idEf;
-
-	public EffectInfoPaint[] arrEfInfo;
+    public int idEf;
+    public EffectInfoPaint[] arrEfInfo;
 }

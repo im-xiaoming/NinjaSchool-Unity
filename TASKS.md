@@ -475,3 +475,15 @@ Final compile-only validation (2026-11-13, action rewards): Unity current Consol
 - [x] Wiki port not inherited by the RL trainer.
 - [x] LLM leads the plan (configurable).
 - [ ] Unity compile check after Play mode; watch bots climb in Play mode; check Vách Ichidai reachability.
+
+## 2026-11-13 - Approved botbrain refactor
+- [~] Organize AI runtime/contracts/planning/skills/navigation/memory/learning/integration; preserve gameplay code and Java references.
+- [~] Split large client/AI classes into partial files; whitespace-only formatting verified with Roslyn and original-member audit.
+- [~] Move LLM/RAG/summary/document rendering to a separate uv-managed Python FastAPI service; preserve prompts, Qdrant identity, ownership and fallback.
+- [~] Add pure runtime JSON configuration and thin legacy Unity adapters, including safe export.
+- [x] Isolated regression: 11 C# groups; 15 Brain tests and real HTTP/automatic-external process lifecycle; 1,885 document parity; seven CUDA synthetic RL contracts.
+- [x] User-authorized normal Stop, actual Unity refresh/compile and final Console check: compilationFailed=false, consoleErrors=0, consoleWarnings=0; Editor left stopped.
+- [ ] User checks Play visuals, F6 preferences, existing Inspector fallback/exported JSON, bots/LLM/RAG and service reconnect; no long evaluation or release packaging claimed.
+- Next commands and module map: docs/REFACTORING.md.
+
+- [x] Final formatter check is idempotent; Git whitespace check passes. Default suite parity is 18 PASS / 2 existing login FAIL in both baseline and refactor. See docs/refactor-validation.json.

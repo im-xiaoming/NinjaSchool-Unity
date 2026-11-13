@@ -1,7 +1,12 @@
 // Offline build: the only account/server is local to the game.
 public static class LocalLogin
 {
-    public enum StartMode { Continue, NewGame }
+    public enum StartMode
+    {
+        Continue,
+        NewGame
+    }
+
     public static StartMode NextStartMode = StartMode.Continue;
     public const string Host = "127.0.0.1";
     public const int Port = 14444;
@@ -9,10 +14,10 @@ public static class LocalLogin
     public const string Password = "local";
     public static bool IsLoggingIn;
     public static Image imgTitle;
-
     public static void Begin()
     {
-        if (Session_ME.gI().isConnected()) Session_ME.gI().close();
+        if (Session_ME.gI().isConnected())
+            Session_ME.gI().close();
         GameMidlet.IP = Host;
         GameMidlet.PORT = Port;
         GameMidlet.serverLogin = 0;

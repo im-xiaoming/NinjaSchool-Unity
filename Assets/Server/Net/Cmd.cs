@@ -16,7 +16,7 @@ namespace NsoServer.Net
         public const sbyte PLAYER_MOVE = 1;
         public const sbyte PLAYER_REMOVE = 2;
         public const sbyte PLAYER_ADD = 3;
-        public const sbyte CHAT_MAP = -23;   // MapService.chat: int char id, UTF text (speech bubble)
+        public const sbyte CHAT_MAP = -23; // MapService.chat: int char id, UTF text (speech bubble)
         public const sbyte PLAYER_ATTACK_PLAYER = 61;
         public const sbyte HAVE_ATTACK_PLAYER = 62;
         public const sbyte ZONE_CHANGE = 28;
@@ -34,16 +34,13 @@ namespace NsoServer.Net
         public const sbyte NOT_MAP = -28;
         public const sbyte GET_SESSION_ID = -27;
         public const sbyte SERVER_DIALOG = -26;
-
         // under NOT_LOGIN
         public const sbyte LOGIN = -127;
         public const sbyte CLIENT_INFO = -125;
-
         // under SUB_COMMAND
         public const sbyte ME_LOAD_ALL = -127;
         public const sbyte ME_LOAD_THU_NUOI = -69;
         public const sbyte LOAD_RMS = -65;
-
         // under NOT_MAP
         public const sbyte ME_LOAD_ACTIVE = -106;
         public const sbyte SELECT_PLAYER = -126;

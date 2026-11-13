@@ -1,40 +1,26 @@
 ﻿using System.Threading;
 using UnityEngine;
+
 namespace Functions.Auto
 {
     public class AutoTask : Auto
     {
         public int LessOrEqualsTask;
-
         public int Phai;
         public bool Level10;
-
         public static object objTask;
-
         public static bool isTask;
-
         public static int saveTD;
-
         public long bagsort;
-
         public long boxsort;
-
         public int useThucAn;
-
         public long timeuptn;
-
         public static object objSleep;
-
         public int taskId => Char.getMyChar().ctaskId;
-
         public int mapId => GameScr.gI().getTaskMapId();
-
         public int Npcid => GameScr.gI().getTaskNpcId();
-
         public int index => Char.getMyChar().taskMaint.index;
-
         public bool mainnull => Char.getMyChar().taskMaint == null;
-
         public Char me => Char.getMyChar();
 
         private static int[] w;
@@ -44,16 +30,12 @@ namespace Functions.Auto
         private static int[] aa;
         private static int[] ab;
         private static int[] ac;
-
-
         public override void Run()
         {
-
             if (Auto.isDie(Char.getMyChar()))
             {
                 Hoisinh(isWait: true);
                 Sleep(500);
-
             }
             else
             {
@@ -68,6 +50,7 @@ namespace Functions.Auto
             {
                 return "Auto nhiệm vụ: " + (Level10 ? "10" : "20:");
             }
+
             return "Auto nhiệm vụ: 20  < or = " + LessOrEqualsTask;
         }
 
@@ -77,14 +60,78 @@ namespace Functions.Auto
             this.LessOrEqualsTask = LessOrEqualsTask;
             this.Level10 = isLevel10;
             this.Phai = phai;
-            w = new int[] { 0, 1, 1, 72, 72, 27, 27 };
-            x = new int[] { 0, 9, 9, 10, 10, 11, 11 };
-            y = new int[] { 0, 0, 1, 0, 1, 0, 1 };
-            z = new int[] { 0, 94, 114, 99, 109, 105, 119 };
-            aa = new int[] { -1, 40, 49, 58, 67, 76, 85 };
-            ab = new int[] { -1, 41, 50, 59, 68, 77, 86 };
-            ac = new int[] { -1, 42, 51, 60, 69, 78, 87 };
+            w = new int[]
+            {
+                0,
+                1,
+                1,
+                72,
+                72,
+                27,
+                27
+            };
+            x = new int[]
+            {
+                0,
+                9,
+                9,
+                10,
+                10,
+                11,
+                11
+            };
+            y = new int[]
+            {
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1
+            };
+            z = new int[]
+            {
+                0,
+                94,
+                114,
+                99,
+                109,
+                105,
+                119
+            };
+            aa = new int[]
+            {
+                -1,
+                40,
+                49,
+                58,
+                67,
+                76,
+                85
+            };
+            ab = new int[]
+            {
+                -1,
+                41,
+                50,
+                59,
+                68,
+                77,
+                86
+            };
+            ac = new int[]
+            {
+                -1,
+                42,
+                51,
+                60,
+                69,
+                78,
+                87
+            };
         }
+
         public bool checkDoneAS10()
         {
             return Char.getMyChar().ctaskId >= 9;
@@ -97,8 +144,8 @@ namespace Functions.Auto
 
         public void checkTask()
         {
-
         }
+
         public void Auto10()
         {
             Task taskMain = Char.getMyChar().taskMaint;
@@ -108,6 +155,7 @@ namespace Functions.Auto
                 Handle.Abort();
                 return;
             }
+
             if (taskMain == null)
             {
                 if (TileMap.mapID != mapId)
@@ -115,11 +163,13 @@ namespace Functions.Auto
                     Go(mapId);
                     return;
                 }
+
                 Pick(Npcid, 0, optionId: 0);
                 Service.gI().getTask(Npcid, 0, 0);
                 Lock(2000);
                 return;
             }
+
             if (taskMain.index >= taskMain.counts.Length - 1)
             {
                 if (TileMap.mapID != mapId)
@@ -137,7 +187,6 @@ namespace Functions.Auto
             switch (taskMain.taskId)
             {
                 case 0:
-
                     for (int i = 0; i < Npc.arrNpcTemplate[Npcid].menu.Length; i++)
                     {
                         string text = Npc.arrNpcTemplate[Npcid].menu[i][0];
@@ -158,35 +207,35 @@ namespace Functions.Auto
                         Lock(1000);
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
-
                         Service.gI().getTask(Npcid, 0, 0);
                         Lock(1000);
                         return;
                     }
+
                     if (taskMain.index == 2)
                     {
-
                         Service.gI().getTask(Npcid, 1, 0);
                         Lock(1000);
                         return;
                     }
+
                     if (taskMain.index == 3)
                     {
-
-
                         Service.gI().getTask(Npcid, 2, 0);
                         Lock(1000);
                         return;
                     }
+
                     if (taskMain.index == 4)
                     {
-
                         Service.gI().getTask(Npcid, 0, 0);
                         Lock(1000);
                         return;
                     }
+
                     return;
                 case 2:
                     if (taskMain.index == 0)
@@ -195,17 +244,18 @@ namespace Functions.Auto
                         {
                             Service.gI().useItem(ItemBagItemId(194).indexUI);
                             Lock(1000);
-
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
                         Attack(0, -1);
                         return;
                     }
-                    return;
 
+                    return;
                 case 3:
                     if (taskMain.index == 0)
                     {
@@ -215,6 +265,7 @@ namespace Functions.Auto
                         Clock.LockBuy(2000);
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
                         if (ItemBagItemId(23) != null)
@@ -226,8 +277,10 @@ namespace Functions.Auto
                         {
                             S(2);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 2)
                     {
                         if (TileMap.mapID != mapId)
@@ -238,8 +291,10 @@ namespace Functions.Auto
                         {
                             Attack(1, -1);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 3)
                     {
                         if (TileMap.mapID != mapId)
@@ -250,8 +305,10 @@ namespace Functions.Auto
                         {
                             Attack(2, -1);
                         }
+
                         return;
                     }
+
                     return;
                 case 4:
                     if (taskMain.index == 0)
@@ -264,8 +321,10 @@ namespace Functions.Auto
                         {
                             Attack(1, -1);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
                         if (TileMap.mapID != mapId)
@@ -273,10 +332,12 @@ namespace Functions.Auto
                             Go(mapId);
                             return;
                         }
+
                         PickItemNv();
                         Attack(3, -1);
                         return;
                     }
+
                     if (taskMain.index == 2)
                     {
                         if (TileMap.mapID != mapId)
@@ -284,10 +345,12 @@ namespace Functions.Auto
                             Go(mapId);
                             return;
                         }
+
                         PickItemNv();
                         Attack(4, -1);
                         return;
                     }
+
                     return;
                 case 5:
                     if (taskMain.index == 0)
@@ -300,8 +363,10 @@ namespace Functions.Auto
                         {
                             Attack(1, -1);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
                         if (TileMap.mapID != 20)
@@ -309,6 +374,7 @@ namespace Functions.Auto
                             Go(20);
                             return;
                         }
+
                         PickItemNv();
                         Attack(54, -1);
                         return;
@@ -326,32 +392,40 @@ namespace Functions.Auto
                         {
                             Attack(1, -1);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
                         if (TileMap.mapID != mapId)
                         {
                             Go(mapId);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 2)
                     {
                         if (TileMap.mapID != mapId)
                         {
                             Go(mapId);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 3)
                     {
                         if (TileMap.mapID != mapId)
                         {
                             Go(mapId);
                         }
+
                         return;
                     }
+
                     return;
                 case 7:
                     if (taskMain.index == 0)
@@ -364,8 +438,10 @@ namespace Functions.Auto
                         {
                             Attack(-1, -1);
                         }
+
                         return;
                     }
+
                     if (taskMain.index == 1)
                     {
                         if (TileMap.mapID != mapId)
@@ -373,13 +449,14 @@ namespace Functions.Auto
                             Go(mapId);
                             return;
                         }
+
                         Pick(Npcid, 0, 0);
                         Service.gI().getTask(Npcid, 1, 0);
                         return;
                     }
+
                     if (taskMain.index == 2)
                     {
-
                         if (TileMap.mapID != mapId)
                         {
                             Go(mapId);
@@ -389,6 +466,7 @@ namespace Functions.Auto
                         Service.gI().getTask(Npcid, 0, 0);
                         return;
                     }
+
                     if (taskMain.index == 3)
                     {
                         if (TileMap.mapID != mapId)
@@ -398,9 +476,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 1, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 4)
                     {
                         if (TileMap.mapID != mapId)
@@ -410,9 +488,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 1, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 5)
                     {
                         if (TileMap.mapID != mapId)
@@ -422,9 +500,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 2, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 6)
                     {
                         if (TileMap.mapID != mapId)
@@ -432,11 +510,12 @@ namespace Functions.Auto
                             Go(mapId);
                             return;
                         }
+
                         Pick(Npcid, 0, 0);
                         Service.gI().getTask(Npcid, 2, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 7)
                     {
                         if (TileMap.mapID != mapId)
@@ -446,9 +525,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 0, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 8)
                     {
                         if (TileMap.mapID != mapId)
@@ -458,9 +537,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 2, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 9)
                     {
                         if (TileMap.mapID != mapId)
@@ -470,9 +549,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 2, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 10)
                     {
                         if (TileMap.mapID != mapId)
@@ -482,9 +561,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 1, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 11)
                     {
                         if (TileMap.mapID != mapId)
@@ -494,9 +573,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 0, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 12)
                     {
                         if (TileMap.mapID != mapId)
@@ -506,9 +585,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 1, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 13)
                     {
                         if (TileMap.mapID != mapId)
@@ -518,9 +597,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 2, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 14)
                     {
                         if (TileMap.mapID != mapId)
@@ -530,9 +609,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 2, 0);
-
                         return;
                     }
+
                     if (taskMain.index == 15)
                     {
                         if (TileMap.mapID != mapId)
@@ -542,9 +621,9 @@ namespace Functions.Auto
                         }
 
                         Service.gI().getTask(Npcid, 1, 0);
-
                         return;
                     }
+
                     return;
                 case 8:
                     if (taskMain.index == 0)
@@ -557,13 +636,16 @@ namespace Functions.Auto
                         {
                             Attack(-1, -1);
                         }
+
                         return;
                     }
+
                     if (TileMap.mapID != mapId)
                     {
                         Go(mapId);
                         return;
                     }
+
                     for (int i = 0; i < Npc.arrNpcTemplate[Npcid].menu.Length; i++)
                     {
                         string text = Npc.arrNpcTemplate[Npcid].menu[i][0];
@@ -593,12 +675,14 @@ namespace Functions.Auto
                     Handle.Abort();
                     return;
                 }
+
                 if (checkDoneAS20())
                 {
                     Handle.Paint("Xong!!");
                     Handle.Abort();
                     return;
                 }
+
                 if (Char.getMyChar().nClass.classId == 0)
                 {
                     if (Char.getMyChar().clevel < 10)
@@ -608,20 +692,18 @@ namespace Functions.Auto
                             Go(26);
                             return;
                         }
+
                         Attack(-1, -1);
                     }
                     else
                     {
-
                         Vo();
                     }
 
                     return;
                 }
 
-
                 Task taskMain = Char.getMyChar().taskMaint;
-
                 if (taskMain == null)
                 {
                     if (TileMap.mapID != mapId)
@@ -629,12 +711,14 @@ namespace Functions.Auto
                         Go(mapId);
                         return;
                     }
+
                     Debug.Log("Npcid " + Npcid + " Fase " + 0);
                     Pick(Npcid, 0);
                     Service.gI().getTask(Npcid, 0, 0);
                     Lock(2000);
                     return;
                 }
+
                 if (taskMain.index >= taskMain.counts.Length - 1)
                 {
                     if (TileMap.mapID != mapId)
@@ -651,21 +735,18 @@ namespace Functions.Auto
 
                 switch (taskMain.taskId)
                 {
-
                     case 9:
                         if (taskMain.index == 0)
                         {
                             SVC();
                             return;
                         }
+
                         if (taskMain.index == 2)
                         {
                             upPotential();
                             return;
                         }
-
-
-
 
                         return;
                     case 10:
@@ -680,6 +761,7 @@ namespace Functions.Auto
                             Attack(5, -1);
                             return;
                         }
+
                         if (taskMain.index == 1)
                         {
                             if (TileMap.mapID != 4)
@@ -703,13 +785,13 @@ namespace Functions.Auto
                             Attack(7, -1);
                             return;
                         }
+
                         return;
                     case 11:
                         if (taskMain.index == 0)
                         {
                             if (TileMap.mapID == 28)
                             {
-
                                 this.Attack(-1, 1);
                                 return;
                             }
@@ -717,15 +799,16 @@ namespace Functions.Auto
                             this.Go(28, -1, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 1)
                         {
                             Debug.Log("Index " + taskMain.index + " Fase " + 1);
                             if (TileMap.mapID != 27)
                             {
                                 Go(27);
-
                                 return;
                             }
+
                             int num = 0;
                             Service.gI().requestFriend();
                             Sleep(1000);
@@ -744,20 +827,22 @@ namespace Functions.Auto
                                     {
                                         break;
                                     }
+
                                     Service.gI().addFriend(@char.cName);
                                     Sleep(500);
                                 }
                             }
+
                             Debug.Log("Index " + taskMain.index + " Fase " + 3);
                             return;
                         }
+
                         return;
                     case 12:
                         if (taskMain.index == 0)
                         {
                             if (TileMap.mapID == 28)
                             {
-
                                 this.Attack(-1, 1);
                                 return;
                             }
@@ -765,13 +850,25 @@ namespace Functions.Auto
                             this.Go(28, -1, -1, -1);
                             return;
                         }
+
                         bool var14 = false;
                         int var5 = -1;
                         Item var11 = null;
                         if (taskMain.index == 1)
                         {
                             var14 = true;
-                            var5 = (new int[] { 194, 94, 114, 99, 109, 105, 119 })[Char.getMyChar().nClass.classId];
+                            var5 = (new int[]
+                            {
+                                194,
+                                94,
+                                114,
+                                99,
+                                109,
+                                105,
+                                119
+                            }
+
+                            )[Char.getMyChar().nClass.classId];
                             if ((var11 = Char.getMyChar().arrItemBody[1]) == null)
                             {
                                 var14 = false;
@@ -798,6 +895,7 @@ namespace Functions.Auto
                                 var11 = Char.checkItem2(var5);
                             }
                         }
+
                         if (var11 == null)
                         {
                             if (TileMap.mapID == 4)
@@ -810,6 +908,7 @@ namespace Functions.Auto
                             this.Go(4, -1, -1, -1);
                             return;
                         }
+
                         int var3 = 0;
                         int var16 = 0;
                         if (var11.isTypeClothe())
@@ -827,12 +926,12 @@ namespace Functions.Auto
                             var3 = (byte)(GameScr.upWeapon[var11.upgrade] / 2);
                             var16 = GameScr.coinUpWeapons[var11.upgrade];
                         }
+
                         if (var3 << 1 > Char.checkStone() || var16 << 1 > Char.getMyChar().yen)
                         {
                             if (TileMap.mapID == 46)
                             {
                                 this.PickItem(1);
-
                                 this.Attack(-1, -1);
                                 return;
                             }
@@ -840,11 +939,13 @@ namespace Functions.Auto
                             this.Go(46, -1, -1, -1);
                             return;
                         }
+
                         if (TileMap.mapID != 22)
                         {
                             this.Go(22, -2, -1, -1);
                             return;
                         }
+
                         if (var14)
                         {
                             Service.gI().itemBodyToBag((int)var11.indexUI);
@@ -875,11 +976,12 @@ namespace Functions.Auto
                             do
                             {
                                 Sleep(3000);
-
                                 Service.gI().upgradeItem(var11, GameScr.arrItemUpGrade, false);
                                 Lock();
-                            } while (GameScr.arrItemUpGrade[0] != null);
+                            }
+                            while (GameScr.arrItemUpGrade[0] != null);
                         }
+
                         GameScr.itemUpGrade = null;
                         Service.gI().useItem(var11.indexUI);
                         if (var11.upgrade > var7)
@@ -890,13 +992,10 @@ namespace Functions.Auto
 
                         return;
                     case 13:
-
-
                         if (taskMain.index == 0)
                         {
                             if (TileMap.mapID == 4)
                             {
-
                                 this.Attack(-1, -1);
                                 return;
                             }
@@ -904,6 +1003,7 @@ namespace Functions.Auto
                             this.Go(4, -1, -1, -1);
                             return;
                         }
+
                         int mapvar5 = taskMain.index == 1 ? 56 : (taskMain.index == 2 ? 0 : 73);
                         if (TileMap.mapID != mapvar5)
                         {
@@ -921,12 +1021,12 @@ namespace Functions.Auto
                                 return;
                             }
 
-
                             Pick(Npcid, 0, 0);
                             Service.gI().getTask(Npcid, 0, 0);
                             TileMap.LockMap();
                             return;
                         }
+
                         if (Char.getMyChar().cHP < Char.getMyChar().cMaxHP / 2 && Char.getMyChar().cHP > 0)
                         {
                             Char.getMyChar().useItemType(16);
@@ -936,6 +1036,7 @@ namespace Functions.Auto
                         {
                             Char.getMyChar().useItemType(17);
                         }
+
                         Char var13;
                         if (GameScr.vCharInMap.size() > 0 && (var13 = (Char)GameScr.vCharInMap.elementAt(0)) != null)
                         {
@@ -957,6 +1058,7 @@ namespace Functions.Auto
                             {
                                 Service.gI().sendPlayerAttack(Quai, Nguoi, 1);
                             }
+
                             if (mSystem.currentTimeMillis() - var15.lastTimeUseThisSkill >= (long)var15.coolDown)
                             {
                                 var15.lastTimeUseThisSkill = mSystem.currentTimeMillis();
@@ -965,6 +1067,7 @@ namespace Functions.Auto
                                 return;
                             }
                         }
+
                         return;
                     case 14:
                         if (Char.getMyChar().clevel >= 15 && (var11 = Char.checkItem2(ab[Char.getMyChar().nClass.classId])) != null)
@@ -973,6 +1076,7 @@ namespace Functions.Auto
                             Service.gI().useItem(var11.indexUI);
                             Handle.Sleep(1000);
                         }
+
                         if (taskMain.index == 0)
                         {
                             if (TileMap.mapID == 29)
@@ -985,9 +1089,9 @@ namespace Functions.Auto
                             this.Go(29, -1, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 1)
                         {
-
                             if (TileMap.mapID == 29 && zoneID == TileMap.zoneID)
                             {
                                 ItemMap var12 = null;
@@ -1008,7 +1112,6 @@ namespace Functions.Auto
                                 if (var12 == null)
                                 {
                                     zoneID = (TileMap.zoneID + 1) % 30;
-
                                     return;
                                 }
 
@@ -1017,10 +1120,11 @@ namespace Functions.Auto
                                 var12.isWait = true;
                                 return;
                             }
-                            this.Go(29, zoneID, -1, -1);
 
+                            this.Go(29, zoneID, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 2)
                         {
                             if (TileMap.mapID == 40)
@@ -1033,6 +1137,7 @@ namespace Functions.Auto
                             this.Go(40, -1, -1, -1);
                             return;
                         }
+
                         return;
                     case 15:
                         if (taskMain.index == 0)
@@ -1082,7 +1187,6 @@ namespace Functions.Auto
                         {
                             if (TileMap.mapID == 63)
                             {
-
                                 this.Attack(23, -1);
                                 return;
                             }
@@ -1095,20 +1199,19 @@ namespace Functions.Auto
                         {
                             if (TileMap.mapID == 47)
                             {
-
                                 this.Attack(24, -1);
                                 return;
                             }
 
                             this.Go(47, -1, -1, -1);
                         }
+
                         return;
                     case 17:
                         if (taskMain.index == 0)
                         {
                             if (TileMap.mapID == 33)
                             {
-
                                 this.Attack(-1, -1);
                                 return;
                             }
@@ -1116,6 +1219,7 @@ namespace Functions.Auto
                             this.Go(33, -1, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 1)
                         {
                             if (TileMap.mapID == 33)
@@ -1128,20 +1232,23 @@ namespace Functions.Auto
                                         this.Pick(jaian.template.npcTemplateId, 0);
                                         return;
                                     }
+
                                     GameScr.isTudanh = true;
                                     if (Char.getMyChar().cx > 59)
                                     {
                                         Char.Move(Char.getMyChar().cx - 36, Char.getMyChar().cy);
                                     }
+
                                     Sleep(3000);
                                 }
+
                                 return;
                             }
 
                             this.Go(33, -1, -1, -1);
-
                             return;
                         }
+
                         GameScr.isTudanh = false;
                         return;
                     case 18:
@@ -1149,7 +1256,6 @@ namespace Functions.Auto
                         {
                             if (TileMap.mapID == 50)
                             {
-
                                 this.Attack(-1, -1);
                                 return;
                             }
@@ -1157,11 +1263,11 @@ namespace Functions.Auto
                             this.Go(50, -1, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 1)
                         {
                             if (TileMap.mapID == 50)
                             {
-
                                 this.Attack(26, -1);
                                 PickItemNv();
                                 return;
@@ -1170,11 +1276,11 @@ namespace Functions.Auto
                             this.Go(50, -1, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 2)
                         {
                             if (TileMap.mapID == 11)
                             {
-
                                 this.Attack(27, -1);
                                 PickItemNv();
                                 return;
@@ -1183,13 +1289,13 @@ namespace Functions.Auto
                             this.Go(11, -1, -1, -1);
                             return;
                         }
+
                         return;
                     case 19:
                         if (taskMain.index == 0)
                         {
                             if (TileMap.mapID == 49)
                             {
-
                                 this.Attack(-1, -1);
                                 return;
                             }
@@ -1197,6 +1303,7 @@ namespace Functions.Auto
                             this.Go(49, -1, -1, -1);
                             return;
                         }
+
                         if (taskMain.index == 1)
                         {
                             if (TileMap.mapID == 63)
@@ -1207,20 +1314,22 @@ namespace Functions.Auto
                                 {
                                     Char.Move(1878, 336);
                                 }
+
                                 Item itm = Char.checkItem2(219);
                                 if (itm != null)
                                 {
                                     Service.gI().useItem(itm.indexUI);
                                     Sleep(3000);
                                 }
+
                                 return;
                             }
 
                             this.Go(63, -1, -1, -1);
                         }
+
                         return;
                     case 20:
-
                         return;
                 }
             }
@@ -1234,13 +1343,8 @@ namespace Functions.Auto
             }
             else if (!Level10)
             {
-
-                Auto20()
-;
+                Auto20();
             }
-
-
-
         }
 
         public static void Lock(int milisSeconds = 2000)
@@ -1250,6 +1354,7 @@ namespace Functions.Auto
             {
                 Monitor.Wait(objTask, milisSeconds);
             }
+
             Sleep(200);
         }
 
@@ -1261,14 +1366,15 @@ namespace Functions.Auto
                 {
                     Monitor.PulseAll(objTask);
                 }
+
                 isTask = false;
             }
         }
 
         static AutoTask()
         {
-            objTask = new object();
-            objSleep = new object();
+            objTask = new object ();
+            objSleep = new object ();
         }
 
         public void Pick(int npcId, int menuId, int optionId = 0)
@@ -1278,7 +1384,6 @@ namespace Functions.Auto
             {
                 Char.Move(npc.cx, npc.cy);
                 Service.gI().menu(-1, npcId, menuId, optionId);
-
             }
         }
 
@@ -1292,6 +1397,7 @@ namespace Functions.Auto
                     return item;
                 }
             }
+
             return null;
         }
 
@@ -1305,6 +1411,7 @@ namespace Functions.Auto
                     return item;
                 }
             }
+
             return null;
         }
 
@@ -1318,6 +1425,7 @@ namespace Functions.Auto
                     return item;
                 }
             }
+
             return null;
         }
 
@@ -1351,6 +1459,7 @@ namespace Functions.Auto
             {
                 return;
             }
+
             for (int i = 0; i < GameScr.arrItemGroceryLock.Length; i++)
             {
                 Item item = GameScr.arrItemGroceryLock[i];
@@ -1370,26 +1479,32 @@ namespace Functions.Auto
             {
                 return 1;
             }
+
             if (clevel >= 10 && clevel < 20)
             {
                 return 10;
             }
+
             if (clevel >= 20 && clevel < 30)
             {
                 return 20;
             }
+
             if (clevel >= 30 && clevel < 40)
             {
                 return 30;
             }
+
             if (clevel >= 40 && clevel < 50)
             {
                 return 40;
             }
+
             if (clevel >= 50 && clevel < 130)
             {
                 return 50;
             }
+
             return 1;
         }
 
@@ -1401,16 +1516,16 @@ namespace Functions.Auto
                 Sleep();
                 return;
             }
-            int mapId = w[this.Phai];
 
+            int mapId = w[this.Phai];
             if (TileMap.mapID != mapId)
             {
                 this.Go(mapId, -1, -1, -1);
                 return;
             }
+
             Pick(x[this.Phai], 1, y[this.Phai]);
             Pick(5, 1, 1);
-
         }
 
         public void SVC()
@@ -1432,6 +1547,7 @@ namespace Functions.Auto
                 {
                     UI(4);
                 }
+
                 if (ItemBoxItemId(idSVC()) != null)
                 {
                     Service.gI().itemBoxToBag(ItemBoxItemId(idSVC()).indexUI);
@@ -1447,10 +1563,12 @@ namespace Functions.Auto
                 Go(27);
                 Sleep();
             }
+
             if (TileMap.mapID != 27)
             {
                 TileMap.LockMap(2000);
             }
+
             Pick(5, 1);
             Sleep();
             saveTD = 27;
@@ -1462,26 +1580,32 @@ namespace Functions.Auto
             {
                 return 23;
             }
+
             if (ThucAn() == 10)
             {
                 return 24;
             }
+
             if (ThucAn() == 20)
             {
                 return 25;
             }
+
             if (ThucAn() == 30)
             {
                 return 26;
             }
+
             if (ThucAn() == 40)
             {
                 return 27;
             }
+
             if (ThucAn() == 50)
             {
                 return 29;
             }
+
             return 23;
         }
 
@@ -1493,6 +1617,7 @@ namespace Functions.Auto
                 UI(9);
                 return;
             }
+
             for (int i = 0; i < GameScr.arrItemGroceryLock.Length; i++)
             {
                 Item item = GameScr.arrItemGroceryLock[i];
@@ -1507,6 +1632,7 @@ namespace Functions.Auto
                     {
                         Clock.LockBuy(2000);
                     }
+
                     break;
                 }
             }
@@ -1533,6 +1659,7 @@ namespace Functions.Auto
                     {
                         UI(4);
                     }
+
                     if (ItemBoxItemId(Idvukhi()) != null)
                     {
                         Service.gI().itemBoxToBag(ItemBoxItemId(Idvukhi()).indexUI);
@@ -1559,6 +1686,7 @@ namespace Functions.Auto
                     {
                         UI(4);
                     }
+
                     if (ItemBoxItemId(Idvukhi()) != null)
                     {
                         Service.gI().itemBoxToBag(ItemBoxItemId(Idvukhi()).indexUI);
@@ -1585,6 +1713,7 @@ namespace Functions.Auto
                     {
                         UI(4);
                     }
+
                     if (ItemBoxItemId(Idvukhi()) != null)
                     {
                         Service.gI().itemBoxToBag(ItemBoxItemId(Idvukhi()).indexUI);
@@ -1611,6 +1740,7 @@ namespace Functions.Auto
                     {
                         UI(4);
                     }
+
                     if (ItemBoxItemId(Idvukhi()) != null)
                     {
                         Service.gI().itemBoxToBag(ItemBoxItemId(Idvukhi()).indexUI);
@@ -1637,6 +1767,7 @@ namespace Functions.Auto
                     {
                         UI(4);
                     }
+
                     if (ItemBoxItemId(Idvukhi()) != null)
                     {
                         Service.gI().itemBoxToBag(ItemBoxItemId(Idvukhi()).indexUI);
@@ -1650,6 +1781,7 @@ namespace Functions.Auto
                 {
                     return;
                 }
+
                 Item item6 = ItemBagItemId(119);
                 if (item6 != null)
                 {
@@ -1667,6 +1799,7 @@ namespace Functions.Auto
                     {
                         UI(4);
                     }
+
                     if (ItemBoxItemId(119) != null)
                     {
                         Service.gI().itemBoxToBag(ItemBoxItemId(119).indexUI);
@@ -1682,6 +1815,7 @@ namespace Functions.Auto
             {
                 return TileMap.mapID == 27;
             }
+
             return true;
         }
 
@@ -1691,17 +1825,20 @@ namespace Functions.Auto
             {
                 return;
             }
+
             if (ItemBagItemId(194) != null)
             {
                 Service.gI().useItem(ItemBagItemId(194).indexUI);
                 Sleep();
                 return;
             }
+
             if (!Char.getMyChar().isLang())
             {
                 Handle.Die();
                 Sleep(500);
             }
+
             if (Char.FindNpc(5) != null)
             {
                 Pick(5, -1);
@@ -1709,6 +1846,7 @@ namespace Functions.Auto
                 {
                     UI(4);
                 }
+
                 if (ItemBoxItemId(194) != null)
                 {
                     Service.gI().itemBoxToBag(ItemBoxItemId(194).indexUI);
@@ -1723,6 +1861,7 @@ namespace Functions.Auto
             {
                 return;
             }
+
             if (Char.getMyChar().nClass.classId == 1)
             {
                 if (Char.getMyChar().clevel <= 10)
@@ -1793,6 +1932,7 @@ namespace Functions.Auto
                 {
                     return;
                 }
+
                 if (Char.getMyChar().clevel <= 10)
                 {
                     if (Char.getMyChar().pPoint > 0)
@@ -1836,31 +1976,37 @@ namespace Functions.Auto
                     flag = true;
                 }
             }
+
             if (!flag && ItemBagItemId(idThucAn()) != null)
             {
                 Service.gI().useItem(ItemBagItemId(idThucAn()).indexUI);
             }
+
             if (mSystem.currentTimeMillis() - bagsort >= 10000)
             {
                 Service.gI().bagSort();
                 bagsort = mSystem.currentTimeMillis();
             }
+
             if (mSystem.currentTimeMillis() - boxsort >= 10000 && me.arrItemBox != null)
             {
                 Service.gI().boxSort();
                 boxsort = mSystem.currentTimeMillis();
             }
+
             if ((taskId > 2 && taskId < 8) || (taskId == 2 && !mainnull && index > 0) || (taskId == 8 && !mainnull && index <= 1))
             {
                 UseKiemGo();
             }
+
             if (taskId >= 9 && !GameScr.isPaintUpGrade)
             {
                 VuKhi();
             }
+
             Char.isAFood = true;
             Char.aFoodValue = ThucAn();
-            //upPotential();
+        //upPotential();
         }
 
         public int EffidThucAn()
@@ -1869,26 +2015,32 @@ namespace Functions.Auto
             {
                 return 0;
             }
+
             if (ThucAn() == 10)
             {
                 return 1;
             }
+
             if (ThucAn() == 20)
             {
                 return 2;
             }
+
             if (ThucAn() == 30)
             {
                 return 3;
             }
+
             if (ThucAn() == 40)
             {
                 return 4;
             }
+
             if (ThucAn() == 50)
             {
                 return 28;
             }
+
             return 0;
         }
 
@@ -1918,9 +2070,11 @@ namespace Functions.Auto
                     Handle.Die();
                     return;
                 }
+
                 Mua(idThucAn(), 2);
                 Sleep();
             }
+
             Default();
             Start();
         }
@@ -1948,6 +2102,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             return false;
         }
 
@@ -1966,6 +2121,7 @@ namespace Functions.Auto
                     }
                 }
             }
+
             return false;
         }
 
@@ -1981,22 +2137,27 @@ namespace Functions.Auto
             {
                 return 119;
             }
+
             if (me.nClass.classId == 4)
             {
                 return 109;
             }
+
             if (me.nClass.classId == 1)
             {
                 return 94;
             }
+
             if (me.nClass.classId == 2)
             {
                 return 65;
             }
+
             if (me.nClass.classId == 3)
             {
                 return 99;
             }
+
             return 194;
         }
 
@@ -2006,18 +2167,22 @@ namespace Functions.Auto
             {
                 return 67;
             }
+
             if (Char.getMyChar().nClass.classId == 1)
             {
                 return 40;
             }
+
             if (Char.getMyChar().nClass.classId == 6)
             {
                 return 85;
             }
+
             if (Char.getMyChar().nClass.classId == 3)
             {
                 return 58;
             }
+
             return 0;
         }
     }

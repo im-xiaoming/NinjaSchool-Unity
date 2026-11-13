@@ -4,311 +4,157 @@ using UnityEngine;
 public class GameCanvas : IActionListener
 {
     public static Image testCapcha = null;
-
     public static bool lowGraphic = false;
-
     public static bool isMoveNumberPad = true;
-
     public static bool isLoading;
-
     public static bool isChangMapKey;
-
     public static bool isGPRS = true;
-
     public static bool isBallEffect = false;
-
     public static bool isTouch = true;
-
     public static bool isTouchControl;
-
     public static bool isTouchControlSmallScreen;
-
     public static bool isTouchControlLargeScreen;
-
     public static GameCanvas instance;
-
     public static Readmsg readMessenge;
-
     public static bool bRun;
-
     public static bool[] keyPressedz = new bool[33];
-
     public static bool[] keyReleasedz = new bool[33];
-
     public static bool[] keyHold = new bool[33];
-
     public static bool isPointerDown;
-
     public static bool isPointerClick;
-
     public static bool isPointerJustRelease;
-
     public static int px;
-
     public static int py;
-
     public static int pxFirst;
-
     public static int pyFirst;
-
     public static int pxLast;
-
     public static int pyLast;
-
     public static Position[] arrPos = new Position[4];
-
     public static int gameTick;
-
     public static int taskTick;
-
     public static bool isEff1;
-
     public static bool isEff2;
-
     public static long timeTickEff1;
-
     public static long timeTickEff2;
-
     public static int w;
-
     public static int h;
-
     public static int hw;
-
     public static int hh;
-
     public static int wd3;
-
     public static int hd3;
-
     public static int w2d3;
-
     public static int h2d3;
-
     public static int w3d4;
-
     public static int h3d4;
-
     public static int wd6;
-
     public static int hd6;
-
     public static mScreen currentScreen;
-
     public static Menu menu = new Menu();
-
     public static SelectServerScr selectsvScr;
-
-
     public static LanguageScr languageScr;
-
     public static Dialog currentDialog;
-
     public static MsgDlg msgdlg;
-
     public static InputDlg inputDlg;
-
     public static Input2Dlg input2Dlg;
-
     public static MyVector currentPopup = new MyVector();
-
     public static int requestLoseCount;
-
     public static MyVector listPoint = new MyVector();
-
     public static Paint paintz;
-
     public static Position pos;
-
     public static Image[] imgBG;
-
     public static int skyColor;
-
     public static int curPos = 0;
-
     public static int timeBallEffect;
-
     public static int borderConnerW;
-
     public static int borderConnerH;
-
     public static int borderLineW;
-
     public static int borderLineH;
-
     public static int[] imgBGWidth;
-
     private mGraphics g = new mGraphics();
-
     public static bool isConnectFail;
-
     public static Image efArr;
-
     public static Image[] imghealth;
-
-
     public static int himgShuriken = 0;
-
     public static MyVector debugUpdate;
-
     public static MyVector debugPaint;
-
     public static MyVector debugSession;
-
     private static bool isShowErrorForm = false;
-
     public static bool paintBG;
-
     public static int gsskyHeight;
-
     public static int gsgreenField1Y;
-
     public static int gsgreenField2Y;
-
     public static int gshouseY;
-
     public static int gsmountainY;
-
     public static int bgLayer0y;
-
     public static int bgLayer1y;
-
     public static Image imgCloud1;
-
     public static Image imgCloud2;
-
     public static Image imgfog;
-
     public static Image imgfog1;
-
     public static Image imgfog2;
-
     public static Image imgCloud;
-
     public static Image imgSun;
-
     public static Image imgClear;
-
     public static Image[] imgBorder = new Image[5];
-
     public static int[] cloudX;
-
     public static int[] cloudY;
-
     public static int sunX;
-
     public static int sunY;
-
     public static int hImgimgBorder;
-
     public static int wImgimgBorder;
-
     public static int wImBd4;
-
     public static int hImgBd4;
-
     public static int typeBg = -1;
-
     public static int saveIDBg = -10;
-
     private static long lastTimePress = 0L;
-
     public static int keyAsciiPress;
-
     public static int timePutKeyPc;
-
     public int UP = -1;
-
     public int DOWN = -2;
-
     public int LEFT = -3;
-
     public int RIGHT = -4;
-
     private static Image imgSignal;
-
     public static MyVector flyTexts = new MyVector();
-
     public static bool isPointerJustDown = false;
-
     private int count = 1;
-
     public static int[] bgSpeed;
-
     public static int cmdBarX;
-
     public static int cmdBarY;
-
     public static int cmdBarW;
-
     public static int cmdBarH;
-
     public static int cmdBarLeftW;
-
     public static int cmdBarRightW;
-
     public static int cmdBarCenterW;
-
     public static int hpBarX;
-
     public static int hpBarY;
-
     public static int hpBarW;
-
     public static int expBarW;
-
     public static int lvPosX;
-
     public static int moneyPosX;
-
     public static int hpBarH;
-
     public static int girlHPBarY;
-
     public int timeOut;
-
     public int[] dustX;
-
     public int[] dustY;
-
     public int[] dustState;
-
     public static int[] wsX;
-
     public static int[] wsY;
-
     public static int[] wsState;
-
     public static int[] wsF;
-
     public static Image[] imgWS;
-
     public static Image imgShuriken;
-
     public static Image[][] imgDust;
-
     private bool resetToLoginScrz;
-
     public static bool isKiemduyet = false;
-
     public static bool isKiemduyet_info = false;
-
     public static Image imgPlus12;
-
     public static Image backitem;
-
     public static int secondRemain;
-
     public static int xKd = w;
-
     public static int yKd = 0;
-
     public static int wStr;
-
     public static long currT;
-
     public static long lastT;
-
     public GameCanvas()
     {
         MotherCanvas.instance.setChildCanvas(this);
@@ -321,20 +167,24 @@ public class GameCanvas : IActionListener
         {
             isTouchControl = true;
         }
+
         if (w < 320)
         {
             isTouchControlSmallScreen = true;
         }
+
         if (w >= 320)
         {
             isTouchControlLargeScreen = true;
         }
+
         msgdlg = new MsgDlg();
         if (h <= 160)
         {
             Paint.hTab = 15;
             mScreen.cmdH = 17;
         }
+
         readMessenge = new Readmsg();
         GameScr.d = ((w <= h) ? h : w) + 20;
         instance = this;
@@ -355,6 +205,7 @@ public class GameCanvas : IActionListener
             {
                 imgBorder[i] = loadImage("/hd/bd" + i + string.Empty);
             }
+
             borderConnerW = imgBorder[0].getWidth();
             borderConnerH = imgBorder[0].getHeight();
             borderLineW = imgBorder[1].getWidth();
@@ -365,10 +216,12 @@ public class GameCanvas : IActionListener
             hImgBd4 = imgBorder[4].getHeight();
             Out.println(" borderLineH " + borderLineH);
         }
+
         if (imgClear == null)
         {
             imgClear = loadImage("/er");
         }
+
         SmallImage.loadBigImage();
         listPoint = new MyVector();
         mScreen.initPos();
@@ -381,6 +234,7 @@ public class GameCanvas : IActionListener
         {
             instance = new GameCanvas();
         }
+
         return instance;
     }
 
@@ -424,6 +278,7 @@ public class GameCanvas : IActionListener
         {
             return true;
         }
+
         return false;
     }
 
@@ -442,6 +297,7 @@ public class GameCanvas : IActionListener
             {
                 isEff1 = false;
             }
+
             if (currentTimeMillis - timeTickEff2 >= 7800 && !isEff2)
             {
                 timeTickEff2 = currentTimeMillis;
@@ -451,15 +307,18 @@ public class GameCanvas : IActionListener
             {
                 isEff2 = false;
             }
+
             if (taskTick > 0)
             {
                 taskTick--;
             }
+
             gameTick++;
             if (gameTick > 10000)
             {
                 gameTick = 0;
             }
+
             debug("A", 0);
             if (currentScreen != null)
             {
@@ -475,17 +334,20 @@ public class GameCanvas : IActionListener
                     debug("D", 0);
                     menu.updateMenuKey();
                 }
+
                 debug("E", 0);
                 if (!isLoading)
                 {
                     currentScreen.update();
                 }
+
                 debug("F", 0);
                 if (!menu.showMenu)
                 {
                     currentScreen.updateKey();
                 }
             }
+
             debug("Ix", 0);
             Timer.update();
             debug("Hx", 0);
@@ -496,6 +358,7 @@ public class GameCanvas : IActionListener
                 resetToLoginScrz = false;
                 doResetToLoginScr();
             }
+
             debug("Zz", 0);
             if (isConnectFail)
             {
@@ -505,7 +368,6 @@ public class GameCanvas : IActionListener
         }
         catch (Exception e)
         {
-
         }
     }
 
@@ -558,6 +420,7 @@ public class GameCanvas : IActionListener
         {
             return;
         }
+
         for (int i = 0; i < cloudX.Length; i++)
         {
             if (gameTick % (i + 2 << 3) == 0)
@@ -579,20 +442,22 @@ public class GameCanvas : IActionListener
         {
             return false;
         }
+
         if (num >= x && num <= x + w && num2 >= y && num2 <= y + h)
         {
             return true;
         }
+
         return false;
     }
 
     public static void paintBGGameScr(mGraphics g)
     {
-
         if (GameScr.CheDoDem)
         {
             g.drawImage(GameScr.night, w / 2, h / 2, 3);
         }
+
         if (isBallEffect)
         {
             if (gameTick % 10 > 7)
@@ -603,6 +468,7 @@ public class GameCanvas : IActionListener
             {
                 g.setColor(0);
             }
+
             g.fillRect(0, 0, GameScr.gW, GameScr.gH);
         }
         else if (paintBG && !lowGraphic && imgBG != null)
@@ -618,6 +484,7 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[0], i, gsgreenField1Y, 0);
                     }
                 }
+
                 if (imgBG[1] != null)
                 {
                     for (int j = -((GameScr.cmx >> 2) % 24); j < GameScr.gW; j += 24)
@@ -625,6 +492,7 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[1], j, gsgreenField2Y, 0);
                     }
                 }
+
                 if (imgBG[3] != null)
                 {
                     for (int k = -((GameScr.cmx >> 4) % 64); k < GameScr.gW; k += 64)
@@ -632,10 +500,12 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[3], k, gsmountainY, 0);
                     }
                 }
+
                 if (imgSun != null)
                 {
                     g.drawImage(imgSun, sunX, sunY, 3);
                 }
+
                 if (imgCloud != null)
                 {
                     for (int l = 0; l < 2; l++)
@@ -643,6 +513,7 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgCloud, cloudX[l], cloudY[l], 3);
                     }
                 }
+
                 if (imgBG[2] != null)
                 {
                     for (int m = -((GameScr.cmx >> 3) % 192); m < GameScr.gW; m += 192)
@@ -657,6 +528,7 @@ public class GameCanvas : IActionListener
                 {
                     g.drawImage(imgSun, sunX, sunY, 3);
                 }
+
                 if (imgCloud != null)
                 {
                     for (int n = 0; n < cloudX.Length; n++)
@@ -664,10 +536,12 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgCloud, cloudX[n], cloudY[n], 3);
                     }
                 }
+
                 if (typeBg == 2)
                 {
                     return;
                 }
+
                 if (imgBG[3] != null)
                 {
                     for (int num = -((GameScr.cmx >> bgSpeed[3]) % imgBGWidth[3]); num < GameScr.gW; num += imgBGWidth[3])
@@ -675,6 +549,7 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[3], num, gsmountainY, 0);
                     }
                 }
+
                 if (imgBG[2] != null)
                 {
                     for (int num2 = -((GameScr.cmx >> bgSpeed[2]) % imgBGWidth[2]); num2 < GameScr.gW; num2 += imgBGWidth[2])
@@ -682,6 +557,7 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[2], num2, gshouseY, 0);
                     }
                 }
+
                 if (imgBG[1] != null)
                 {
                     for (int num3 = -((GameScr.cmx >> bgSpeed[1]) % imgBGWidth[1]); num3 < GameScr.gW; num3 += imgBGWidth[1])
@@ -689,6 +565,7 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[1], num3, bgLayer1y, 0);
                     }
                 }
+
                 if (imgBG[0] != null)
                 {
                     for (int num4 = -((GameScr.cmx >> bgSpeed[0]) % imgBGWidth[0]); num4 < GameScr.gW; num4 += imgBGWidth[0])
@@ -703,6 +580,7 @@ public class GameCanvas : IActionListener
                 {
                     return;
                 }
+
                 g.setColor(skyColor);
                 g.fillRect(0, 0, GameScr.gW, GameScr.gH);
                 if (typeBg != 8 && imgBG[3] != null)
@@ -719,6 +597,7 @@ public class GameCanvas : IActionListener
                         }
                     }
                 }
+
                 if (typeBg != 8 && typeBg != 11 && typeBg != 12 && imgBG[2] != null)
                 {
                     if (TileMap.mapID == 45)
@@ -740,6 +619,7 @@ public class GameCanvas : IActionListener
                         }
                     }
                 }
+
                 if (typeBg != 11 && typeBg != 12 && imgBG[1] != null && TileMap.mapID != 52)
                 {
                     for (int num7 = -((GameScr.cmx >> bgSpeed[1]) % imgBGWidth[1]); num7 < GameScr.gW; num7 += imgBGWidth[1])
@@ -747,11 +627,13 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[1], num7, bgLayer1y, 0);
                     }
                 }
+
                 if (TileMap.mapID == 45 || TileMap.mapID == 55)
                 {
                     g.setColor(1114112);
                     g.fillRect(0, bgLayer0y + 20, GameScr.gW, GameScr.gH);
                 }
+
                 if (imgBG[0] != null)
                 {
                     for (int num8 = -((GameScr.cmx >> bgSpeed[0]) % imgBGWidth[0]); num8 < GameScr.gW; num8 += imgBGWidth[0])
@@ -759,10 +641,12 @@ public class GameCanvas : IActionListener
                         g.drawImage(imgBG[0], num8, bgLayer0y, 0);
                     }
                 }
+
                 if (imgCloud == null)
                 {
                     return;
                 }
+
                 if (typeBg == 13 || typeBg == 15)
                 {
                     for (int num9 = 0; num9 < 2; num9++)
@@ -796,10 +680,12 @@ public class GameCanvas : IActionListener
         {
             typeBG = 0;
         }
+
         if (saveIDBg == typeBG)
         {
             return;
         }
+
         saveIDBg = typeBG;
         int num = 0;
         int num2 = 0;
@@ -808,58 +694,149 @@ public class GameCanvas : IActionListener
         switch (typeBG)
         {
             case 2:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 3:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 4:
                 num = 9;
                 num2 = 6;
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 5:
-                bgSpeed = new int[4] { 1, 1, 1, 1 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    1,
+                    1,
+                    1
+                };
                 break;
             case 6:
                 num = 12;
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 12:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 11:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 10:
-                bgSpeed = new int[4] { 1, 1, 1, 1 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    1,
+                    1,
+                    1
+                };
                 break;
             case 9:
                 num = 16;
                 num2 = 10;
                 num3 = 6;
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 8:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 7:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 13:
                 num = 60;
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 14:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 15:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
             case 16:
-                bgSpeed = new int[4] { 1, 2, 3, 4 };
+                bgSpeed = new int[4]
+                {
+                    1,
+                    2,
+                    3,
+                    4
+                };
                 break;
         }
+
         skyColor = StaticObj.SKYCOLOR[typeBg];
         try
         {
@@ -875,6 +852,7 @@ public class GameCanvas : IActionListener
                             imgBG[i] = null;
                         }
                     }
+
                     Resources.UnloadUnusedAssets();
                     GC.Collect();
                 }
@@ -882,6 +860,7 @@ public class GameCanvas : IActionListener
                 {
                     imgBG = new Image[4];
                 }
+
                 imgBGWidth = new int[4];
                 for (int j = 0; j < 4; j++)
                 {
@@ -896,11 +875,13 @@ public class GameCanvas : IActionListener
                     {
                         Out.println(ex.Message + ex.StackTrace);
                     }
+
                     if (imgBG[j] != null)
                     {
                         imgBGWidth[j] = mGraphics.getImageWidth(imgBG[j]);
                     }
                 }
+
                 if (typeBg == 10)
                 {
                     imgBG[1].texture = null;
@@ -912,6 +893,7 @@ public class GameCanvas : IActionListener
                     imgBGWidth[1] = mGraphics.getImageWidth(imgBG[1]);
                     imgBGWidth[2] = mGraphics.getImageWidth(imgBG[2]);
                 }
+
                 if (typeBg == 12)
                 {
                     imgBG[3].texture = null;
@@ -919,6 +901,7 @@ public class GameCanvas : IActionListener
                     imgBG[3] = loadImage("/bg/bg39");
                     imgBGWidth[3] = mGraphics.getImageWidth(imgBG[3]);
                 }
+
                 if (typeBg == 14)
                 {
                     if (isTouch)
@@ -932,11 +915,13 @@ public class GameCanvas : IActionListener
                         bgLayer1y = bgLayer0y - mGraphics.getImageHeight(imgBG[1]);
                     }
                 }
+
                 if (typeBg == 15 && isTouch)
                 {
                     bgLayer0y = h - mGraphics.getImageHeight(imgBG[0]);
                     bgLayer1y = bgLayer0y - mGraphics.getImageHeight(imgBG[1]) + 100;
                 }
+
                 if (typeBg == 16)
                 {
                     if (isTouch)
@@ -951,6 +936,7 @@ public class GameCanvas : IActionListener
                     }
                 }
             }
+
             if (typeBg >= 0 && typeBg <= 1)
             {
                 imgCloud = loadImage("/bg/cl0");
@@ -961,11 +947,13 @@ public class GameCanvas : IActionListener
                 imgCloud = null;
                 imgSun = null;
             }
+
             if (typeBg == 2)
             {
                 imgCloud = loadImage("/bg/cl1");
                 imgSun = loadImage("/bg/sun1");
             }
+
             if (typeBg == 7 || typeBg == 11 || typeBg == 12)
             {
                 if (TileMap.mapID == 20)
@@ -977,10 +965,12 @@ public class GameCanvas : IActionListener
                     imgCloud = loadImage("/bg/cl0");
                 }
             }
+
             if (typeBG == 13 || typeBG == 15)
             {
                 imgCloud = loadImage("/bg/cl2");
             }
+
             if (typeBg == 12)
             {
                 imgCloud1 = loadImage("/bg/may0");
@@ -994,6 +984,7 @@ public class GameCanvas : IActionListener
         {
             Out.println("BG ERR >>>>>>>>>>>>>>>>>>>>>.");
         }
+
         paintBG = false;
         if (!lowGraphic && !Main.isIpod && mGraphics.zoomLevel != 1)
         {
@@ -1002,22 +993,27 @@ public class GameCanvas : IActionListener
             {
                 gsskyHeight = GameScr.gH - (mGraphics.getImageHeight(imgBG[0]) + mGraphics.getImageHeight(imgBG[1]) + mGraphics.getImageHeight(imgBG[2])) + 11;
             }
+
             if (imgBG[0] != null)
             {
                 gsgreenField1Y = GameScr.gH - mGraphics.getImageHeight(imgBG[0]);
             }
+
             if (imgBG[1] != null)
             {
                 gsgreenField2Y = gsgreenField1Y - mGraphics.getImageHeight(imgBG[1]);
             }
+
             if (imgBG[2] != null)
             {
                 gshouseY = gsgreenField2Y - mGraphics.getImageHeight(imgBG[2]);
             }
+
             if (imgBG[3] != null)
             {
                 gsmountainY = gsgreenField2Y - mGraphics.getImageHeight(imgBG[3]) - 10;
             }
+
             if (typeBg >= 2 && typeBg <= 13)
             {
                 int num4 = (bgLayer0y = GameScr.gH - mGraphics.getImageHeight(imgBG[0]));
@@ -1025,37 +1021,44 @@ public class GameCanvas : IActionListener
                 {
                     num4 = num4 - mGraphics.getImageHeight(imgBG[1]) + num;
                 }
+
                 bgLayer1y = num4;
                 if (imgBG[3] != null)
                 {
                     num4 = num4 - mGraphics.getImageHeight(imgBG[3]) + num3;
                 }
+
                 gsmountainY = num4;
                 gsskyHeight = num4;
                 if (imgBG[2] != null)
                 {
                     gshouseY = bgLayer1y - mGraphics.getImageHeight(imgBG[2]) + num2;
                 }
+
                 if (typeBg == 2)
                 {
                     gsskyHeight = h;
                 }
             }
         }
+
         int num5 = 0;
         num5 = ((typeBg < 2 || typeBg > 12) ? (2 * GameScr.gH / 3 - gsgreenField2Y) : (2 * GameScr.gH / 3 - bgLayer1y));
         if (num5 < 0)
         {
             num5 = 0;
         }
+
         if (TileMap.mapID == 48 && TileMap.mapID == 51)
         {
             bgLayer0y += num5;
         }
+
         if (typeBg >= 2 && typeBg <= 6)
         {
             bgLayer1y += num5;
         }
+
         gsskyHeight += num5;
         gsgreenField1Y += num5;
         gsgreenField2Y += num5;
@@ -1085,21 +1088,25 @@ public class GameCanvas : IActionListener
             cloudX[4] = 2 * GameScr.gW / 3 + 25;
             cloudY[4] = gsskyHeight / 3 + 12;
         }
+
         if (!lowGraphic && !Main.isIpod && mGraphics.zoomLevel != 1)
         {
             if (typeBg == 8)
             {
                 bgLayer0y = (bgLayer1y = GameScr.gH2 - 50);
             }
+
             if (typeBg == 10 && imgBG[3] != null)
             {
                 gsmountainY = gshouseY - mGraphics.getImageHeight(imgBG[3]);
             }
+
             if (typeBg == 11 || typeBg == 12)
             {
                 gsmountainY = 0;
             }
         }
+
         Resources.UnloadUnusedAssets();
         GC.Collect();
     }
@@ -1108,11 +1115,11 @@ public class GameCanvas : IActionListener
     {
         lastTimePress = mSystem.getCurrentTimeMillis();
         // Offline: '/' (47) is text only while the chat box / terminal is open, so it cannot trigger anything else.
-        if ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 65 && keyCode <= 122) || keyCode == 10 || keyCode == 8 || keyCode == 13 || keyCode == 32 || keyCode == -8
-            || (keyCode == 47 && ChatTextField.gI().isShow))
+        if ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 65 && keyCode <= 122) || keyCode == 10 || keyCode == 8 || keyCode == 13 || keyCode == 32 || keyCode == -8 || (keyCode == 47 && ChatTextField.gI().isShow))
         {
             keyAsciiPress = keyCode;
         }
+
         mapKeyPress(keyCode);
     }
 
@@ -1134,6 +1141,7 @@ public class GameCanvas : IActionListener
             keyAsciiPress = 0;
             return;
         }
+
         currentScreen.keyPress(keyCode);
         timePutKeyPc = 100;
         switch (keyCode)
@@ -1148,6 +1156,7 @@ public class GameCanvas : IActionListener
                     keyHold[1] = true;
                     keyPressedz[1] = true;
                 }
+
                 break;
             case 51:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow)
@@ -1155,6 +1164,7 @@ public class GameCanvas : IActionListener
                     keyHold[3] = true;
                     keyPressedz[3] = true;
                 }
+
                 break;
             case 55:
                 keyHold[7] = true;
@@ -1194,6 +1204,7 @@ public class GameCanvas : IActionListener
                     keyHold[5] = true;
                     keyPressedz[5] = true;
                 }
+
                 break;
             case -1:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1206,6 +1217,7 @@ public class GameCanvas : IActionListener
                     keyHold[24] = true;
                     keyPressedz[24] = true;
                 }
+
                 break;
             case -2:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1218,6 +1230,7 @@ public class GameCanvas : IActionListener
                     keyHold[25] = true;
                     keyPressedz[25] = true;
                 }
+
                 break;
             case -3:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1230,6 +1243,7 @@ public class GameCanvas : IActionListener
                     keyHold[23] = true;
                     keyPressedz[23] = true;
                 }
+
                 break;
             case -4:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1242,6 +1256,7 @@ public class GameCanvas : IActionListener
                     keyHold[22] = true;
                     keyPressedz[22] = true;
                 }
+
                 break;
             case 50:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow && !GameScr.isPaintAuctionSale)
@@ -1249,6 +1264,7 @@ public class GameCanvas : IActionListener
                     keyHold[2] = true;
                     keyPressedz[2] = true;
                 }
+
                 break;
             case 52:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow && !GameScr.isPaintAuctionSale)
@@ -1256,6 +1272,7 @@ public class GameCanvas : IActionListener
                     keyHold[4] = true;
                     keyPressedz[4] = true;
                 }
+
                 break;
             case 54:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow && !GameScr.isPaintAuctionSale)
@@ -1263,6 +1280,7 @@ public class GameCanvas : IActionListener
                     keyHold[6] = true;
                     keyPressedz[6] = true;
                 }
+
                 break;
             case 56:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow && !GameScr.isPaintAuctionSale)
@@ -1270,6 +1288,7 @@ public class GameCanvas : IActionListener
                     keyHold[8] = true;
                     keyPressedz[8] = true;
                 }
+
                 break;
             case 53:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow && !GameScr.isPaintAuctionSale)
@@ -1277,6 +1296,7 @@ public class GameCanvas : IActionListener
                     keyHold[27] = true;
                     keyPressedz[27] = true;
                 }
+
                 break;
             case 32:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow && !GameScr.isPaintAuctionSale)
@@ -1284,6 +1304,7 @@ public class GameCanvas : IActionListener
                     keyHold[20] = true;
                     keyPressedz[20] = true;
                 }
+
                 break;
             case 113:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1296,6 +1317,7 @@ public class GameCanvas : IActionListener
                     keyHold[14] = true;
                     keyPressedz[14] = true;
                 }
+
                 break;
             case 101:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1308,6 +1330,7 @@ public class GameCanvas : IActionListener
                     keyHold[15] = true;
                     keyPressedz[15] = true;
                 }
+
                 break;
             case 119:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1320,6 +1343,7 @@ public class GameCanvas : IActionListener
                     keyHold[16] = true;
                     keyPressedz[16] = true;
                 }
+
                 break;
             case 115:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1332,6 +1356,7 @@ public class GameCanvas : IActionListener
                     keyHold[17] = true;
                     keyPressedz[17] = true;
                 }
+
                 break;
             case 97:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1344,6 +1369,7 @@ public class GameCanvas : IActionListener
                     keyHold[18] = true;
                     keyPressedz[18] = true;
                 }
+
                 break;
             case 100:
                 if (currentScreen is GameScr && Char.getMyChar().isAttack)
@@ -1356,6 +1382,7 @@ public class GameCanvas : IActionListener
                     keyHold[19] = true;
                     keyPressedz[19] = true;
                 }
+
                 break;
             case 112:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow)
@@ -1363,6 +1390,7 @@ public class GameCanvas : IActionListener
                     keyHold[21] = true;
                     keyPressedz[21] = true;
                 }
+
                 break;
             case 111:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow)
@@ -1370,6 +1398,7 @@ public class GameCanvas : IActionListener
                     keyHold[26] = true;
                     keyPressedz[26] = true;
                 }
+
                 break;
             case -8:
                 if (currentScreen == GameScr.instance && isMoveNumberPad && !ChatTextField.gI().isShow)
@@ -1377,6 +1406,7 @@ public class GameCanvas : IActionListener
                     keyHold[27] = true;
                     keyPressedz[27] = true;
                 }
+
                 break;
             case -23:
                 keyHold[29] = true;
@@ -1404,10 +1434,7 @@ public class GameCanvas : IActionListener
 
     public void mapKeyRelease(int keyCode)
     {
-        bool releasedMovement = (keyCode == -3 && keyHold[23]) || (keyCode == -4 && keyHold[22]) ||
-            (keyCode == 52 && keyHold[Key.NUM4]) || (keyCode == 54 && keyHold[Key.NUM6]) ||
-            (keyCode == 97 && Key.NUM4 == 18 && keyHold[18]) ||
-            (keyCode == 100 && Key.NUM6 == 19 && keyHold[19]);
+        bool releasedMovement = (keyCode == -3 && keyHold[23]) || (keyCode == -4 && keyHold[22]) || (keyCode == 52 && keyHold[Key.NUM4]) || (keyCode == 54 && keyHold[Key.NUM6]) || (keyCode == 97 && Key.NUM4 == 18 && keyHold[18]) || (keyCode == 100 && Key.NUM6 == 19 && keyHold[19]);
         switch (keyCode)
         {
             case 48:
@@ -1548,17 +1575,20 @@ public class GameCanvas : IActionListener
                 keyPressedz[32] = true;
                 break;
         }
+
         if (releasedMovement && currentScreen == GameScr.instance)
             Char.getMyChar().StopGroundMovementOnRelease();
     }
 
     public void pointerDragged(int x, int y)
     {
-        if (TextCalib.Open && NsoSettingsMenu.Pointer(x, y, 1)) return;
+        if (TextCalib.Open && NsoSettingsMenu.Pointer(x, y, 1))
+            return;
         if (Res.abs(x - pxLast) >= 10 || Res.abs(y - pyLast) >= 10)
         {
             isPointerClick = false;
         }
+
         px = x;
         py = y;
         curPos++;
@@ -1566,12 +1596,14 @@ public class GameCanvas : IActionListener
         {
             curPos = 0;
         }
+
         arrPos[curPos] = new Position(x, y);
     }
 
     public void pointerPressed(int x, int y)
     {
-        if (TextCalib.Open && NsoSettingsMenu.Pointer(x, y, 0)) return;
+        if (TextCalib.Open && NsoSettingsMenu.Pointer(x, y, 0))
+            return;
         isPointerJustDown = true;
         isPointerDown = true;
         isPointerClick = true;
@@ -1586,7 +1618,8 @@ public class GameCanvas : IActionListener
 
     public void pointerReleased(int x, int y)
     {
-        if (TextCalib.Open && NsoSettingsMenu.Pointer(x, y, 2)) return;
+        if (TextCalib.Open && NsoSettingsMenu.Pointer(x, y, 2))
+            return;
         isPointerDown = false;
         isPointerJustRelease = true;
         mScreen.keyTouch = -1;
@@ -1608,14 +1641,17 @@ public class GameCanvas : IActionListener
             num = px + GameScr.cmx;
             num2 = GameScr.cmy + py;
         }
+
         if (!isPointerDown && !isPointerJustRelease)
         {
             return false;
         }
+
         if (num >= x && num <= x + w && num2 >= y && num2 <= y + h)
         {
             return true;
         }
+
         return false;
     }
 
@@ -1625,10 +1661,12 @@ public class GameCanvas : IActionListener
         {
             return false;
         }
+
         if (px >= x && px <= x + w && py >= y && py <= y + h)
         {
             return true;
         }
+
         return false;
     }
 
@@ -1638,6 +1676,7 @@ public class GameCanvas : IActionListener
         {
             keyPressedz[i] = false;
         }
+
         isPointerJustRelease = false;
     }
 
@@ -1660,6 +1699,7 @@ public class GameCanvas : IActionListener
                 currentScreen.paint(g);
                 g.setClip(0, 0, w, h);
             }
+
             debug("PB", 1);
             g.translate(-g.getTranslateX(), -g.getTranslateY());
             g.setClip(0, 0, w, h);
@@ -1674,9 +1714,11 @@ public class GameCanvas : IActionListener
                 debug("PD", 1);
                 menu.paintMenu(g);
             }
+
             debug("PE", 1);
-            NsoSettingsMenu.PaintOverlay(g);            // FPS counter (Settings > Hình ảnh > Hiện FPS)
-            if (TextCalib.Open) NsoSettingsMenu.Draw(g); // F6 Settings window
+            NsoSettingsMenu.PaintOverlay(g); // FPS counter (Settings > Hình ảnh > Hiện FPS)
+            if (TextCalib.Open)
+                NsoSettingsMenu.Draw(g); // F6 Settings window
             paintKiemduyetTime(g);
         }
         catch (Exception ex)
@@ -1697,11 +1739,13 @@ public class GameCanvas : IActionListener
         {
             inputDlg.tfInput.setMaxTextLenght(500);
         }
+
         if (input2Dlg != null)
         {
             input2Dlg.tfInput.setMaxTextLenght(500);
             input2Dlg.tfInput2.setMaxTextLenght(500);
         }
+
         msgdlg.isIpad = false;
         currentDialog = null;
     }
@@ -1775,12 +1819,13 @@ public class GameCanvas : IActionListener
             Out.println(ex.Message + ex.StackTrace);
             Debug.LogError("ERROR LOAD:" + path);
         }
+
         return result;
     }
+
     public static Image loadImage2(string path)
     {
         path = Main.res + path;
-
         Image result = null;
         try
         {
@@ -1791,19 +1836,23 @@ public class GameCanvas : IActionListener
             Out.println(ex.Message + ex.StackTrace);
             Debug.LogError("ERROR LOAD:" + path);
         }
+
         return result;
     }
+
     public bool startDust(int dir, int x, int y)
     {
         if (lowGraphic || Main.isIpod || mGraphics.zoomLevel == 1)
         {
             return false;
         }
+
         int num = ((dir != 1) ? 1 : 0);
         if (dustState[num] != -1)
         {
             return false;
         }
+
         dustState[num] = 0;
         dustX[num] = x;
         dustY[num] = y;
@@ -1819,6 +1868,7 @@ public class GameCanvas : IActionListener
             {
                 imgWS[i] = loadImage("/e/w" + i + string.Empty);
             }
+
             wsX = new int[2];
             wsY = new int[2];
             wsState = new int[2];
@@ -1833,11 +1883,13 @@ public class GameCanvas : IActionListener
         {
             return false;
         }
+
         int num = ((wsState[0] != -1) ? 1 : 0);
         if (wsState[num] != -1)
         {
             return false;
         }
+
         wsState[num] = 0;
         wsX[num] = x;
         wsY[num] = y;
@@ -1850,12 +1902,14 @@ public class GameCanvas : IActionListener
         {
             return;
         }
+
         for (int i = 0; i < 2; i++)
         {
             if (wsState[i] == -1)
             {
                 continue;
             }
+
             wsY[i]--;
             if (gameTick % 2 == 0)
             {
@@ -1878,6 +1932,7 @@ public class GameCanvas : IActionListener
         {
             return;
         }
+
         for (int i = 0; i < 2; i++)
         {
             if (dustState[i] != -1)
@@ -1887,6 +1942,7 @@ public class GameCanvas : IActionListener
                 {
                     dustState[i] = -1;
                 }
+
                 if (i == 0)
                 {
                     dustX[i]--;
@@ -1895,6 +1951,7 @@ public class GameCanvas : IActionListener
                 {
                     dustX[i]++;
                 }
+
                 dustY[i]--;
             }
         }
@@ -1906,18 +1963,22 @@ public class GameCanvas : IActionListener
         {
             return false;
         }
+
         if (x > GameScr.cmx + GameScr.gW)
         {
             return false;
         }
+
         if (y < GameScr.cmy)
         {
             return false;
         }
+
         if (y > GameScr.cmy + GameScr.gH + 30)
         {
             return false;
         }
+
         return true;
     }
 
@@ -1927,6 +1988,7 @@ public class GameCanvas : IActionListener
         {
             return;
         }
+
         for (int i = 0; i < 2; i++)
         {
             if (dustState[i] != -1 && isPaint(dustX[i], dustY[i]))
@@ -1942,6 +2004,7 @@ public class GameCanvas : IActionListener
         {
             return;
         }
+
         if (imgDust == null)
         {
             imgDust = new Image[2][];
@@ -1954,6 +2017,7 @@ public class GameCanvas : IActionListener
                 }
             }
         }
+
         dustX = new int[2];
         dustY = new int[2];
         dustState = new int[2];
@@ -1977,10 +2041,12 @@ public class GameCanvas : IActionListener
         {
             return false;
         }
+
         if (px >= x && px <= x + w && py >= y && py <= y + h)
         {
             return true;
         }
+
         return false;
     }
 
@@ -2010,58 +2076,65 @@ public class GameCanvas : IActionListener
                 languageScr.switchToMe();
                 break;
             case 8887:
-                {
-                    endDlg();
-                    int charId2 = (int)p;
-                    Service.gI().addPartyAccept(charId2);
-                    break;
-                }
+            {
+                endDlg();
+                int charId2 = (int)p;
+                Service.gI().addPartyAccept(charId2);
+                break;
+            }
+
             case 8888:
-                {
-                    int charId = (int)p;
-                    Service.gI().addPartyCancel(charId);
-                    endDlg();
-                    break;
-                }
+            {
+                int charId = (int)p;
+                Service.gI().addPartyCancel(charId);
+                endDlg();
+                break;
+            }
+
             case 8889:
-                {
-                    string str = (string)p;
-                    endDlg();
-                    Service.gI().acceptPleaseParty(str);
-                    break;
-                }
+            {
+                string str = (string)p;
+                endDlg();
+                Service.gI().acceptPleaseParty(str);
+                break;
+            }
+
             case 88810:
-                {
-                    int playerMapId = (int)p;
-                    endDlg();
-                    Service.gI().acceptInviteTrade(playerMapId);
-                    break;
-                }
+            {
+                int playerMapId = (int)p;
+                endDlg();
+                Service.gI().acceptInviteTrade(playerMapId);
+                break;
+            }
+
             case 88811:
                 endDlg();
                 Service.gI().cancelInviteTrade();
                 break;
             case 88812:
-                {
-                    Char @char = (Char)p;
-                    endDlg();
-                    Service.gI().acceptInviteTest(@char.charID);
-                    break;
-                }
+            {
+                Char @char = (Char)p;
+                endDlg();
+                Service.gI().acceptInviteTest(@char.charID);
+                break;
+            }
+
             case 88813:
-                {
-                    endDlg();
-                    Item[] items2 = (Item[])p;
-                    Service.gI().crystalCollect(items2);
-                    break;
-                }
+            {
+                endDlg();
+                Item[] items2 = (Item[])p;
+                Service.gI().crystalCollect(items2);
+                break;
+            }
+
             case 88814:
-                {
-                    Item[] items = (Item[])p;
-                    endDlg();
-                    Service.gI().crystalCollectLock(items);
-                    break;
-                }
+            {
+                Item[] items = (Item[])p;
+                endDlg();
+                Service.gI().crystalCollectLock(items);
+                break;
+            }
+
             case 88815:
                 GameScr.gI().doUpgrade();
                 break;
@@ -2074,246 +2147,273 @@ public class GameCanvas : IActionListener
                 {
                     Service.gI().menu(0, 0, menu.menuSelectedItem, 0);
                 }
+
                 break;
             case 888181:
-                {
-                    short idRe = (short)p;
-                    Service.gI().SendCapcha(idRe, inputDlg.tfInput.getText());
-                    testCapcha = null;
-                    endDlg();
-                    break;
-                }
+            {
+                short idRe = (short)p;
+                Service.gI().SendCapcha(idRe, inputDlg.tfInput.getText());
+                testCapcha = null;
+                endDlg();
+                break;
+            }
+
             case 88818:
-                {
-                    short menuId3 = (short)p;
-                    Service.gI().textBoxId(menuId3, inputDlg.tfInput.getText());
-                    endDlg();
-                    break;
-                }
+            {
+                short menuId3 = (short)p;
+                Service.gI().textBoxId(menuId3, inputDlg.tfInput.getText());
+                endDlg();
+                break;
+            }
+
             case 88819:
-                {
-                    short menuId2 = (short)p;
-                    Service.gI().menuId(menuId2);
-                    GameScr.gI().doCloseAlert();
-                    break;
-                }
+            {
+                short menuId2 = (short)p;
+                Service.gI().menuId(menuId2);
+                GameScr.gI().doCloseAlert();
+                break;
+            }
+
             case 88820:
+            {
+                string[] array = (string[])p;
+                if (Char.getMyChar().npcFocus == null)
                 {
-                    string[] array = (string[])p;
-                    if (Char.getMyChar().npcFocus == null)
-                    {
-                        break;
-                    }
-                    int menuSelectedItem = menu.menuSelectedItem;
-                    if (array.Length > 1)
-                    {
-                        MyVector myVector = new MyVector();
-                        for (int i = 0; i < array.Length - 1; i++)
-                        {
-                            myVector.addElement(new Command(array[i + 1], instance, 88821, menuSelectedItem));
-                        }
-                        menu.startAt(myVector, 3);
-                    }
-                    else
-                    {
-                        ChatPopup.addChatPopup(string.Empty, 1, Char.getMyChar().npcFocus);
-                        Service.gI().menu(0, Char.getMyChar().npcFocus.template.npcTemplateId, menuSelectedItem, 0);
-                    }
                     break;
                 }
-            case 88821:
+
+                int menuSelectedItem = menu.menuSelectedItem;
+                if (array.Length > 1)
                 {
-                    int menuId = (int)p;
+                    MyVector myVector = new MyVector();
+                    for (int i = 0; i < array.Length - 1; i++)
+                    {
+                        myVector.addElement(new Command(array[i + 1], instance, 88821, menuSelectedItem));
+                    }
+
+                    menu.startAt(myVector, 3);
+                }
+                else
+                {
                     ChatPopup.addChatPopup(string.Empty, 1, Char.getMyChar().npcFocus);
-                    Service.gI().menu(0, Char.getMyChar().npcFocus.template.npcTemplateId, menuId, menu.menuSelectedItem);
-                    break;
+                    Service.gI().menu(0, Char.getMyChar().npcFocus.template.npcTemplateId, menuSelectedItem, 0);
                 }
+
+                break;
+            }
+
+            case 88821:
+            {
+                int menuId = (int)p;
+                ChatPopup.addChatPopup(string.Empty, 1, Char.getMyChar().npcFocus);
+                Service.gI().menu(0, Char.getMyChar().npcFocus.template.npcTemplateId, menuId, menu.menuSelectedItem);
+                break;
+            }
+
             case 88822:
                 ChatPopup.addChatPopup(string.Empty, 1, Char.getMyChar().npcFocus);
                 Service.gI().menu(0, Char.getMyChar().npcFocus.template.npcTemplateId, menu.menuSelectedItem, 0);
                 break;
             case 88829:
+            {
+                string text10 = inputDlg.tfInput.getText();
+                if (!text10.Equals(string.Empty))
                 {
-                    string text10 = inputDlg.tfInput.getText();
-                    if (!text10.Equals(string.Empty))
-                    {
-                        Service.gI().changeName(text10, (int)p);
-                        startWaitDlg();
-                    }
-                    break;
+                    Service.gI().changeName(text10, (int)p);
+                    startWaitDlg();
                 }
+
+                break;
+            }
+
             case 88830:
-                {
-                    int playerMapId2 = (int)p;
-                    endDlg();
-                    Service.gI().acceptInviteClan(playerMapId2);
-                    break;
-                }
+            {
+                int playerMapId2 = (int)p;
+                endDlg();
+                Service.gI().acceptInviteClan(playerMapId2);
+                break;
+            }
+
             case 88831:
-                {
-                    int playerMapId2 = (int)p;
-                    endDlg();
-                    Service.gI().acceptPleaseClan(playerMapId2);
-                    break;
-                }
+            {
+                int playerMapId2 = (int)p;
+                endDlg();
+                Service.gI().acceptPleaseClan(playerMapId2);
+                break;
+            }
+
             case 88832:
+            {
+                string text9 = inputDlg.tfInput.getText();
+                endDlg();
+                if (!text9.Equals(string.Empty))
                 {
-                    string text9 = inputDlg.tfInput.getText();
-                    endDlg();
-                    if (!text9.Equals(string.Empty))
-                    {
-                        Service.gI().changeClanAlert(text9);
-                    }
-                    break;
+                    Service.gI().changeClanAlert(text9);
                 }
+
+                break;
+            }
+
             case 88833:
+            {
+                string text8 = inputDlg.tfInput.getText();
+                endDlg();
+                if (text8.Equals(string.Empty))
                 {
-                    string text8 = inputDlg.tfInput.getText();
-                    endDlg();
-                    if (text8.Equals(string.Empty))
-                    {
-                        break;
-                    }
-                    try
-                    {
-                        int num6 = int.Parse(text8);
-                        if (Char.getMyChar().xu < num6 || num6 < 0)
-                        {
-                            InfoMe.addInfo(mResources.NOT_ENOUGH_XU, 20, mFont.tahoma_7_yellow);
-                        }
-                        else
-                        {
-                            Service.gI().inputCoinClan(num6);
-                        }
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        break;
-                    }
-                }
-            case 88834:
-                {
-                    string text7 = inputDlg.tfInput.getText();
-                    endDlg();
-                    if (text7.Equals(string.Empty))
-                    {
-                        break;
-                    }
-                    try
-                    {
-                        int num5 = int.Parse(text7);
-                        if (num5 > 0)
-                        {
-                            Service.gI().outputCoinClan(num5);
-                        }
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        break;
-                    }
-                }
-            case 88835:
-                {
-                    string target = (string)p;
-                    bool box = target.StartsWith("box:");
-                    int slot, quantity;
-                    Item[] slots = box ? Char.getMyChar().arrItemBox : Char.getMyChar().arrItemBag;
-                    currentDialog = null;
-                    if (!int.TryParse(box ? target.Substring(4) : target, out slot)
-                        || !int.TryParse(inputDlg.tfInput.getText(), out quantity)
-                        || slots == null || slot < 0 || slot >= slots.Length || slots[slot] == null
-                        || quantity < 1 || quantity >= slots[slot].quantity || quantity > short.MaxValue)
-                        startOKDlg(mResources.INVALID_NUMSPLIT);
-                    else Service.gI().inputNumSplit(slot, quantity, box);
                     break;
                 }
+
+                try
+                {
+                    int num6 = int.Parse(text8);
+                    if (Char.getMyChar().xu < num6 || num6 < 0)
+                    {
+                        InfoMe.addInfo(mResources.NOT_ENOUGH_XU, 20, mFont.tahoma_7_yellow);
+                    }
+                    else
+                    {
+                        Service.gI().inputCoinClan(num6);
+                    }
+
+                    break;
+                }
+                catch (Exception)
+                {
+                    break;
+                }
+            }
+
+            case 88834:
+            {
+                string text7 = inputDlg.tfInput.getText();
+                endDlg();
+                if (text7.Equals(string.Empty))
+                {
+                    break;
+                }
+
+                try
+                {
+                    int num5 = int.Parse(text7);
+                    if (num5 > 0)
+                    {
+                        Service.gI().outputCoinClan(num5);
+                    }
+
+                    break;
+                }
+                catch (Exception)
+                {
+                    break;
+                }
+            }
+
+            case 88835:
+            {
+                string target = (string)p;
+                bool box = target.StartsWith("box:");
+                int slot, quantity;
+                Item[] slots = box ? Char.getMyChar().arrItemBox : Char.getMyChar().arrItemBag;
+                currentDialog = null;
+                if (!int.TryParse(box ? target.Substring(4) : target, out slot) || !int.TryParse(inputDlg.tfInput.getText(), out quantity) || slots == null || slot < 0 || slot >= slots.Length || slots[slot] == null || quantity < 1 || quantity >= slots[slot].quantity || quantity > short.MaxValue)
+                    startOKDlg(mResources.INVALID_NUMSPLIT);
+                else
+                    Service.gI().inputNumSplit(slot, quantity, box);
+                break;
+            }
+
             case 88836:
                 inputDlg.tfInput.setMaxTextLenght(6);
                 inputDlg.show(mResources.INPUT_PRIVATE_PASS, new Command(mResources.ACCEPT, instance, 888361, null), TField.INPUT_TYPE_NUMERIC);
                 break;
             case 888361:
+            {
+                string text6 = inputDlg.tfInput.getText();
+                endDlg();
+                if (text6.Length < 6 || text6.Equals(string.Empty))
                 {
-                    string text6 = inputDlg.tfInput.getText();
-                    endDlg();
-                    if (text6.Length < 6 || text6.Equals(string.Empty))
-                    {
-                        startOKDlg(mResources.ALERT_PRIVATE_PASS_1);
-                        break;
-                    }
-                    try
-                    {
-                        Service.gI().activeAccProtect(int.Parse(text6));
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        startOKDlg(mResources.ALERT_PRIVATE_PASS_2);
-                        break;
-                    }
+                    startOKDlg(mResources.ALERT_PRIVATE_PASS_1);
+                    break;
                 }
+
+                try
+                {
+                    Service.gI().activeAccProtect(int.Parse(text6));
+                    break;
+                }
+                catch (Exception)
+                {
+                    startOKDlg(mResources.ALERT_PRIVATE_PASS_2);
+                    break;
+                }
+            }
+
             case 88837:
+            {
+                string text5 = inputDlg.tfInput.getText();
+                inputDlg.tfInput.setMaxTextLenght(500);
+                endDlg();
+                try
                 {
-                    string text5 = inputDlg.tfInput.getText();
-                    inputDlg.tfInput.setMaxTextLenght(500);
-                    endDlg();
-                    try
-                    {
-                        Service.gI().openLockAccProtect(int.Parse(text5.Trim()));
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        break;
-                    }
+                    Service.gI().openLockAccProtect(int.Parse(text5.Trim()));
+                    break;
                 }
+                catch (Exception)
+                {
+                    break;
+                }
+            }
+
             case 88838:
+            {
+                string text3 = input2Dlg.tfInput.getText().Trim();
+                string text4 = input2Dlg.tfInput2.getText().Trim();
+                endDlg();
+                if (text3.Length < 6 || text4.Length < 6)
                 {
-                    string text3 = input2Dlg.tfInput.getText().Trim();
-                    string text4 = input2Dlg.tfInput2.getText().Trim();
-                    endDlg();
-                    if (text3.Length < 6 || text4.Length < 6)
-                    {
-                        startOKDlg(mResources.ALERT_PRIVATE_PASS_1);
-                        break;
-                    }
-                    try
-                    {
-                        int num = int.Parse(text3);
-                        int num2 = int.Parse(text4);
-                        if (num < 99999 || num2 < 99999)
-                        {
-                            startOKDlg(mResources.ALERT_PRIVATE_PASS_3);
-                        }
-                        else
-                        {
-                            Service.gI().updateActive(num, num2);
-                        }
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        startOKDlg(mResources.ALERT_PRIVATE_PASS_2);
-                        break;
-                    }
+                    startOKDlg(mResources.ALERT_PRIVATE_PASS_1);
+                    break;
                 }
+
+                try
+                {
+                    int num = int.Parse(text3);
+                    int num2 = int.Parse(text4);
+                    if (num < 99999 || num2 < 99999)
+                    {
+                        startOKDlg(mResources.ALERT_PRIVATE_PASS_3);
+                    }
+                    else
+                    {
+                        Service.gI().updateActive(num, num2);
+                    }
+
+                    break;
+                }
+                catch (Exception)
+                {
+                    startOKDlg(mResources.ALERT_PRIVATE_PASS_2);
+                    break;
+                }
+            }
+
             case 88839:
+            {
+                string text2 = inputDlg.tfInput.getText();
+                endDlg();
+                try
                 {
-                    string text2 = inputDlg.tfInput.getText();
-                    endDlg();
-                    try
-                    {
-                        int.Parse(text2);
-                        startYesNoDlg(mResources.CANCEL_PROTECT, 888391, text2, 8882, null);
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        InfoMe.addInfo(mResources.ALERT_PRIVATE_PASS_4, 20, mFont.tahoma_7_yellow);
-                        break;
-                    }
+                    int.Parse(text2);
+                    startYesNoDlg(mResources.CANCEL_PROTECT, 888391, text2, 8882, null);
+                    break;
                 }
+                catch (Exception)
+                {
+                    InfoMe.addInfo(mResources.ALERT_PRIVATE_PASS_4, 20, mFont.tahoma_7_yellow);
+                    break;
+                }
+            }
+
             case 888391:
                 try
                 {
@@ -2326,37 +2426,42 @@ public class GameCanvas : IActionListener
                 {
                     break;
                 }
+
             case 88840:
-                {
-                    Char @char = (Char)p;
-                    endDlg();
-                    Service.gI().acceptInviteTestDun(@char.charID);
-                    break;
-                }
+            {
+                Char @char = (Char)p;
+                endDlg();
+                Service.gI().acceptInviteTestDun(@char.charID);
+                break;
+            }
+
             case 88841:
-                {
-                    Char @char = (Char)p;
-                    endDlg();
-                    Service.gI().acceptInviteTestGT(@char.charID);
-                    break;
-                }
+            {
+                Char @char = (Char)p;
+                endDlg();
+                Service.gI().acceptInviteTestGT(@char.charID);
+                break;
+            }
+
             case 88842:
                 Service.gI().acceptClanBattlefield();
                 break;
             case 88843:
+            {
+                string text = inputDlg.tfInput.getText();
+                endDlg();
+                if (text.Equals(string.Empty))
                 {
-                    string text = inputDlg.tfInput.getText();
-                    endDlg();
-                    if (text.Equals(string.Empty))
-                    {
-                        startOKDlg(mResources.INVALID_NUM);
-                    }
-                    else
-                    {
-                        Service.gI().sendClanItem(text);
-                    }
-                    break;
+                    startOKDlg(mResources.INVALID_NUM);
                 }
+                else
+                {
+                    Service.gI().sendClanItem(text);
+                }
+
+                break;
+            }
+
             case 8890:
                 endDlg();
                 Service.gI().sendUIConfirmID((int)p);

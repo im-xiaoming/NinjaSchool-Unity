@@ -12,23 +12,31 @@ public class Session_ME : ISession
     {
         private readonly ConcurrentQueue<Message> sendingMessage = new ConcurrentQueue<Message>();
         private readonly AutoResetEvent wake = new AutoResetEvent(false);
-
         public void AddMessage(Message message)
         {
             sendingMessage.Enqueue(message);
             wake.Set();
         }
 
-        public void NotifyKeyReady() { wake.Set(); }
-        public void Stop() { wake.Set(); }
+        public void NotifyKeyReady()
+        {
+            wake.Set();
+        }
+
+        public void Stop()
+        {
+            wake.Set();
+        }
 
         public void run()
         {
             while (connected)
             {
                 wake.WaitOne();
-                if (!connected) break;
-                if (!getKeyComplete) continue;
+                if (!connected)
+                    break;
+                if (!getKeyComplete)
+                    continue;
                 Message message;
                 while (connected && getKeyComplete && sendingMessage.TryDequeue(out message))
                     doSendMessage(message);
@@ -45,11 +53,11 @@ public class Session_ME : ISession
                 while (connected)
                 {
                     Message message = readMessage();
-
                     if (message == null)
                     {
                         break;
                     }
+
                     try
                     {
                         if (message.command == -27)
@@ -64,23 +72,25 @@ public class Session_ME : ISession
                     catch (Exception)
                     {
                     }
-                    //try
-                    //{
-                    //    Thread.Sleep(5);
-                    //}
-                    //catch (Exception)
-                    //{
-                    //}
+                //try
+                //{
+                //    Thread.Sleep(5);
+                //}
+                //catch (Exception)
+                //{
+                //}
                 }
             }
             catch (Exception ex3)
             {
                 mSystem.println("err run session_me:" + ex3.ToString());
             }
+
             if (!connected)
             {
                 return;
             }
+
             if (messageHandler != null)
             {
                 if (currentTimeMillis() - timeConnected > 500)
@@ -92,6 +102,7 @@ public class Session_ME : ISession
                     messageHandler.onConnectionFail();
                 }
             }
+
             if (dataStream != null)
             {
                 cleanNetwork();
@@ -103,25 +114,22 @@ public class Session_ME : ISession
             try
             {
                 StringBuilder sb = new StringBuilder();
-
                 sbyte b = message.reader().readSByte();
                 key = new sbyte[b];
                 for (int i = 0; i < b; i++)
                 {
                     key[i] = message.reader().readSByte();
-                    //Debug.Log("Key " + i + " ] " + key[i]);
+                //Debug.Log("Key " + i + " ] " + key[i]);
                 }
 
                 for (int j = 0; j < key.Length - 1; j++)
                 {
                     ref sbyte reference = ref key[j + 1];
                     reference = (sbyte)(reference ^ key[j]);
-
-
                 }
+
                 getKeyComplete = true;
                 sender.NotifyKeyReady();
-
             }
             catch (Exception e)
             {
@@ -140,6 +148,7 @@ public class Session_ME : ISession
                 {
                     b = readKey(b);
                 }
+
                 int num2;
                 if (b == -32)
                 {
@@ -148,6 +157,7 @@ public class Session_ME : ISession
                     {
                         b = readKey(b);
                     }
+
                     sbyte b2 = readKey(dis.ReadSByte());
                     sbyte b3 = readKey(dis.ReadSByte());
                     sbyte b4 = readKey(dis.ReadSByte());
@@ -166,6 +176,7 @@ public class Session_ME : ISession
                     sbyte b9 = dis.ReadSByte();
                     num2 = (b8 & 0xFF00) | (b9 & 0xFF);
                 }
+
                 sbyte[] array = new sbyte[num2];
                 int num3 = 0;
                 int num4 = 0;
@@ -182,6 +193,7 @@ public class Session_ME : ISession
                         array[i] = readKey(array[i]);
                     }
                 }
+
                 return new Message(b, array);
             }
             catch (Exception ex)
@@ -195,53 +207,32 @@ public class Session_ME : ISession
                     Debug.LogError(num + "-----------------:" + ex.ToString());
                 }
             }
+
             return null;
         }
     }
 
     protected static Session_ME instance = new Session_ME();
-
     private static Stream dataStream;
-
     private static BinaryReader dis;
-
     private static BinaryWriter dos;
-
     public static IMessageHandler messageHandler;
-
-
     public static volatile bool connected;
-
     public static volatile bool connecting;
-
     private static Sender sender = new Sender();
-
     public static Thread initThread;
-
     public static Thread collectorThread;
-
     public static Thread sendThread;
-
     public static int sendByteCount;
-
     public static int recvByteCount;
-
     private static bool getKeyComplete;
-
     public static sbyte[] key = null;
-
     private static sbyte curR;
-
     private static sbyte curW;
-
     private static int timeConnected;
-
     public static string strRecvByteCount = string.Empty;
-
     public static bool isCancel;
-
     public string host;
-
     public int port;
     public static bool autoLocin;
     public static MyVector recieveMsg = new MyVector();
@@ -249,8 +240,7 @@ public class Session_ME : ISession
     public static sbyte serverLogin;
     public Session_ME()
     {
-        lockAuto = new object();
-
+        lockAuto = new object ();
     }
 
     public static Session_ME gI()
@@ -262,9 +252,9 @@ public class Session_ME : ISession
     {
         return connected;
     }
+
     public void autoReconnect()
     {
-
         if (GameCanvas.currentScreen != GameCanvas.selectsvScr)
         {
             GameCanvas.gI().resetToLoginScr();
@@ -279,16 +269,14 @@ public class Session_ME : ISession
             isCancel = true;
             new Thread(new ThreadStart(AutoLogin)).Start();
         }
-
     }
+
     public void AutoLogin()
     {
-
         while (isCancel && GameCanvas.currentScreen != GameScr.instance)
         {
             try
             {
-
                 GameCanvas.startWaitDlgWithoutCancel();
                 this.close();
                 Thread.Sleep(5000);
@@ -300,7 +288,6 @@ public class Session_ME : ISession
                 GameCanvas.startWaitDlg(mResources.LOGGING);
                 Service.gI().selectCharToPlay(SelectCharScr.nameSelect);
                 LockAuto(5000);
-
             }
             catch (Exception var2)
             {
@@ -308,6 +295,7 @@ public class Session_ME : ISession
             }
         }
     }
+
     public static void LockAuto(int mili = 10000)
     {
         lock (lockAuto)
@@ -318,12 +306,10 @@ public class Session_ME : ISession
 
     public static void huyLock()
     {
-
         lock (lockAuto)
         {
             Monitor.PulseAll(lockAuto);
         }
-
     }
 
     public void setHandler(IMessageHandler msgHandler)
@@ -368,7 +354,8 @@ public class Session_ME : ISession
     {
         // the embedded server runs in this process: connect through its in-memory pipe (host / port are not used)
         NsoServer.GameServer server = ServerBootstrap.Server;
-        if (server == null) throw new IOException("Embedded server is not running");
+        if (server == null)
+            throw new IOException("Embedded server is not running");
         dataStream = server.Connect();
         dis = new BinaryReader(dataStream, new UTF8Encoding());
         dos = new BinaryWriter(dataStream, new UTF8Encoding());
@@ -389,11 +376,8 @@ public class Session_ME : ISession
     private static void doSendMessage(Message m)
     {
         sbyte[] data = m.getData();
-
-
         try
         {
-
             if (getKeyComplete)
             {
                 sbyte value = writeKey(m.command);
@@ -403,6 +387,7 @@ public class Session_ME : ISession
             {
                 dos.Write(m.command);
             }
+
             if (data != null)
             {
                 int num = data.Length;
@@ -430,6 +415,7 @@ public class Session_ME : ISession
                         dos.Write(value2);
                     }
                 }
+
                 sendByteCount += 5 + data.Length;
             }
             else
@@ -446,8 +432,10 @@ public class Session_ME : ISession
                 {
                     dos.Write((ushort)0);
                 }
+
                 sendByteCount += 5;
             }
+
             dos.Flush();
         }
         catch (Exception ex)
@@ -466,6 +454,7 @@ public class Session_ME : ISession
         {
             curR = (sbyte)(curR % (sbyte)key.Length);
         }
+
         return result;
     }
 
@@ -479,6 +468,7 @@ public class Session_ME : ISession
         {
             curW = (sbyte)(curW % (sbyte)key.Length);
         }
+
         return result;
     }
 
@@ -504,6 +494,7 @@ public class Session_ME : ISession
                 recieveMsg.removeElementAt(0);
                 break;
             }
+
             messageHandler.onMessage(message);
             recieveMsg.removeElementAt(0);
         }
@@ -530,16 +521,19 @@ public class Session_ME : ISession
                 dataStream.Close();
                 dataStream = null;
             }
+
             if (dos != null)
             {
                 dos.Close();
                 dos = null;
             }
+
             if (dis != null)
             {
                 dis.Close();
                 dis = null;
             }
+
             sendThread = null;
             collectorThread = null;
         }
@@ -559,6 +553,7 @@ public class Session_ME : ISession
         {
             return (byte)var;
         }
+
         return (byte)(var + 256);
     }
 
@@ -576,6 +571,7 @@ public class Session_ME : ISession
                 array[i] = (byte)(var[i] + 256);
             }
         }
+
         return array;
     }
 }

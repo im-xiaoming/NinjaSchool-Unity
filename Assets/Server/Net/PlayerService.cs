@@ -23,7 +23,6 @@ namespace NsoServer.Net
         public const sbyte ME_LOAD_CLASS = -126, ME_LOAD_SKILL = -125, ME_LOAD_HP = -122, ME_LOAD_MP = -121, PLAYER_LOAD_HP = -111;
         public const sbyte SHOW_WAIT = -74, END_WAIT = -89;
         public const sbyte POTENTIAL_UP = -109, USE_BOOK_SKILL = -102, ME_ADD_EFFECT = -101, ME_REMOVE_EFFECT = -99;
-
         public static Message Sub(sbyte sub)
         {
             var m = new Message(Cmd.SUB_COMMAND);
@@ -66,7 +65,8 @@ namespace NsoServer.Net
         public static void OpenUiMenu(PlayerState me)
         {
             var m = new Message(OPEN_UI_NEWMENU);
-            foreach (var e in me.Menus) m.Writer.WriteUTF(e.Name);
+            foreach (var e in me.Menus)
+                m.Writer.WriteUTF(e.Name);
             me.Session.Send(m);
         }
 
@@ -83,7 +83,8 @@ namespace NsoServer.Net
             m.Writer.WriteShort(npcId);
             m.Writer.WriteUTF(title);
             m.Writer.WriteByte(me.Menus.Count);
-            foreach (var e in me.Menus) m.Writer.WriteUTF(e.Name);
+            foreach (var e in me.Menus)
+                m.Writer.WriteUTF(e.Name);
             me.Session.Send(m);
         }
 
@@ -101,12 +102,16 @@ namespace NsoServer.Net
             var m = new Message(OPEN_UI_SHOP);
             m.Writer.WriteByte(type);
             m.Writer.WriteByte(items.Count);
-            for (int i = 0; i < items.Count; i++) { m.Writer.WriteByte(i); m.Writer.WriteShort(items[i].ItemId); }
+            for (int i = 0; i < items.Count; i++)
+            {
+                m.Writer.WriteByte(i);
+                m.Writer.WriteShort(items[i].ItemId);
+            }
+
             me.Session.Send(m);
         }
 
         // ---- quests ----
-
         // Service.sendTaskInfo
         public static void SendTaskInfo(PlayerState me, TaskTemplateData t)
         {
@@ -116,14 +121,23 @@ namespace NsoServer.Net
             m.Writer.WriteUTF(t.Name);
             m.Writer.WriteUTF(t.Detail);
             m.Writer.WriteByte(t.SubNames.Length);
-            foreach (var s in t.SubNames) m.Writer.WriteUTF(s);
+            foreach (var s in t.SubNames)
+                m.Writer.WriteUTF(s);
             m.Writer.WriteShort(me.Progress.TaskCount);
-            for (int i = 0; i < t.SubNames.Length; i++) m.Writer.WriteShort(i < t.Counts.Length ? t.Counts[i] : -1);
+            for (int i = 0; i < t.SubNames.Length; i++)
+                m.Writer.WriteShort(i < t.Counts.Length ? t.Counts[i] : -1);
             me.Session.Send(m);
         }
 
-        public static void TaskNext(PlayerState me) { me.Session.Send(new Message(TASK_NEXT)); }
-        public static void TaskFinish(PlayerState me) { me.Session.Send(new Message(TASK_FINISH)); }
+        public static void TaskNext(PlayerState me)
+        {
+            me.Session.Send(new Message(TASK_NEXT));
+        }
+
+        public static void TaskFinish(PlayerState me)
+        {
+            me.Session.Send(new Message(TASK_FINISH));
+        }
 
         public static void TaskCount(PlayerState me, int count)
         {
@@ -133,9 +147,15 @@ namespace NsoServer.Net
         }
 
         // ---- items and money ----
+        public static bool IsWearable(ItemTemplateData t)
+        {
+            return t != null && t.Type >= 0 && t.Type <= 15;
+        }
 
-        public static bool IsWearable(ItemTemplateData t) { return t != null && t.Type >= 0 && t.Type <= 15; }
-        private static bool HasUpgradeByte(ItemTemplateData t) { return t != null && ((t.Type >= 0 && t.Type <= 15) || t.Type == 34); }
+        private static bool HasUpgradeByte(ItemTemplateData t)
+        {
+            return t != null && ((t.Type >= 0 && t.Type <= 15) || t.Type == 34);
+        }
 
         // Service.addItem: a bag slot was filled or its quantity changed
         public static void AddItem(PlayerState me, PlayerItem item, ItemTemplateData t)
@@ -144,7 +164,8 @@ namespace NsoServer.Net
             m.Writer.WriteByte(item.Index);
             m.Writer.WriteShort(item.Id);
             m.Writer.WriteBoolean(item.IsLock);
-            if (HasUpgradeByte(t)) m.Writer.WriteByte(item.Upgrade);
+            if (HasUpgradeByte(t))
+                m.Writer.WriteByte(item.Upgrade);
             m.Writer.WriteBoolean(item.Expire > 0);
             m.Writer.WriteShort(QuantityDisplay(item, t));
             me.Session.Send(m);
@@ -173,8 +194,8 @@ namespace NsoServer.Net
             m.Writer.WriteByte(me.Speed);
             m.Writer.WriteInt(me.MaxHp);
             m.Writer.WriteInt(me.MaxMp);
-            m.Writer.WriteShort(0);   // eff5buffhp
-            m.Writer.WriteShort(0);   // eff5buffmp
+            m.Writer.WriteShort(0); // eff5buffhp
+            m.Writer.WriteShort(0); // eff5buffmp
             me.Session.Send(m);
         }
 
@@ -199,7 +220,7 @@ namespace NsoServer.Net
             var m = new Message(ITEM_BUY);
             m.Writer.WriteInt((int)System.Math.Min(int.MaxValue, me.Progress.Xu));
             m.Writer.WriteInt((int)System.Math.Min(int.MaxValue, me.Progress.Yen));
-            m.Writer.WriteInt(PlayerLuong.Get(me));   // luong
+            m.Writer.WriteInt(PlayerLuong.Get(me)); // luong
             me.Session.Send(m);
         }
 
@@ -229,14 +250,20 @@ namespace NsoServer.Net
             if (t != null && (IsWearable(t) || (t.Type >= 29 && t.Type <= 34)))
             {
                 m.Writer.WriteByte(item.System);
-                foreach (var o in me.Session.Server.World.BalanceRules.EffectiveOptions(item)) { m.Writer.WriteByte(o.Id); m.Writer.WriteInt(o.Param); }
+                foreach (var o in me.Session.Server.World.BalanceRules.EffectiveOptions(item))
+                {
+                    m.Writer.WriteByte(o.Id);
+                    m.Writer.WriteInt(o.Param);
+                }
             }
             else if (item.Id >= TaskMechanics.ItemDiaDo2 && item.Id <= TaskMechanics.ItemDiaDo4)
             {
                 byte[] img = TaskMechanics.TreasureImage(me.Session.Server.World, item.Id, me.Session.ZoomLevel);
                 m.Writer.WriteInt(img.Length);
-                foreach (byte b in img) m.Writer.WriteByte(b);
+                foreach (byte b in img)
+                    m.Writer.WriteByte(b);
             }
+
             me.Session.Send(m);
         }
 
@@ -253,15 +280,23 @@ namespace NsoServer.Net
             if (t != null && (IsWearable(t) || (t.Type >= 29 && t.Type <= 34)))
             {
                 m.Writer.WriteByte(s.Sys);
-                var preview = new PlayerItem { Id = s.ItemId };
-                for (int i = 0; i < s.OptionIds.Length; i++) preview.Options.Add(new PlayerItemOption { Id = s.OptionIds[i], Param = s.MaxParams[i] });
-                foreach (var option in me.Session.Server.World.BalanceRules.EffectiveOptions(preview)) { m.Writer.WriteByte(option.Id); m.Writer.WriteInt(option.Param); }
+                var preview = new PlayerItem
+                {
+                    Id = s.ItemId
+                };
+                for (int i = 0; i < s.OptionIds.Length; i++)
+                    preview.Options.Add(new PlayerItemOption { Id = s.OptionIds[i], Param = s.MaxParams[i] });
+                foreach (var option in me.Session.Server.World.BalanceRules.EffectiveOptions(preview))
+                {
+                    m.Writer.WriteByte(option.Id);
+                    m.Writer.WriteInt(option.Param);
+                }
             }
+
             me.Session.Send(m);
         }
 
         // ---- HP / MP / class / skills ----
-
         public static void UpdateHp(PlayerState me)
         {
             var m = Sub(ME_LOAD_HP);
@@ -282,7 +317,8 @@ namespace NsoServer.Net
             var m = Sub(PLAYER_LOAD_HP);
             m.Writer.WriteInt(me.Record.Id);
             m.Writer.WriteInt(me.Hp);
-            foreach (PlayerState p in me.Zone.Players) p.Session.Send(m);
+            foreach (PlayerState p in me.Zone.Players)
+                p.Session.Send(m);
         }
 
         // Service.loadClass
@@ -314,10 +350,13 @@ namespace NsoServer.Net
             foreach (var s in me.Progress.Skills)
             {
                 var row = world.FindSkill(s[0], s[1]);
-                if (row != null) ids.Add(row.Id);
+                if (row != null)
+                    ids.Add(row.Id);
             }
+
             m.Writer.WriteByte(ids.Count);
-            foreach (int id in ids) m.Writer.WriteShort(id);
+            foreach (int id in ids)
+                m.Writer.WriteShort(id);
             me.Session.Send(m);
         }
 
@@ -351,7 +390,8 @@ namespace NsoServer.Net
             var m = Sub(Cmd.LOAD_RMS);
             m.Writer.WriteUTF(key);
             m.Writer.WriteInt(data.Length);
-            foreach (var b in data) m.Writer.WriteSByte(b);
+            foreach (var b in data)
+                m.Writer.WriteSByte(b);
             m.Writer.WriteByte(0);
             return m;
         }
@@ -363,7 +403,8 @@ namespace NsoServer.Net
         {
             me.Session.Send(SkillShortcut("OSkill", me.Progress.OSkill));
             me.Session.Send(SkillShortcut("KSkill", me.Progress.KSkill));
-            if (me.Progress.CSkill.Length > 0) me.Session.Send(SkillShortcut("CSkill", me.Progress.CSkill));
+            if (me.Progress.CSkill.Length > 0)
+                me.Session.Send(SkillShortcut("CSkill", me.Progress.CSkill));
         }
 
         // Service.sendSkillShortcut: shortcut bars, all empty
@@ -372,13 +413,13 @@ namespace NsoServer.Net
             var m = Sub(Cmd.LOAD_RMS);
             m.Writer.WriteUTF(key);
             m.Writer.WriteInt(slots);
-            for (int i = 0; i < slots; i++) m.Writer.WriteByte(-1);
+            for (int i = 0; i < slots; i++)
+                m.Writer.WriteByte(-1);
             m.Writer.WriteByte(0);
             me.Session.Send(m);
         }
 
         // ---- effects ----
-
         // Service.addEffect
         public static void AddEffect(PlayerState me, PlayerEffect e, long now)
         {
@@ -387,7 +428,12 @@ namespace NsoServer.Net
             m.Writer.WriteInt((int)((now - e.StartAt) / 1000));
             m.Writer.WriteInt((int)(e.EndAt - e.StartAt));
             m.Writer.WriteShort(e.Param);
-            if (e.Type == 14 || e.Type == 2 || e.Type == 3) { m.Writer.WriteShort(me.X); m.Writer.WriteShort(me.Y); }
+            if (e.Type == 14 || e.Type == 2 || e.Type == 3)
+            {
+                m.Writer.WriteShort(me.X);
+                m.Writer.WriteShort(me.Y);
+            }
+
             me.Session.Send(m);
         }
 
@@ -396,17 +442,27 @@ namespace NsoServer.Net
         {
             var m = Sub(ME_REMOVE_EFFECT);
             m.Writer.WriteByte(e.TemplateId);
-            if (e.Type == 0 || e.Type == 12) { m.Writer.WriteInt(me.Hp); m.Writer.WriteInt(me.Mp); }
-            else if (e.Type == 4 || e.Type == 13 || e.Type == 17) m.Writer.WriteInt(me.Hp);
-            else if (e.Type == 23) { m.Writer.WriteInt(me.Hp); m.Writer.WriteInt(me.MaxHp); }
+            if (e.Type == 0 || e.Type == 12)
+            {
+                m.Writer.WriteInt(me.Hp);
+                m.Writer.WriteInt(me.Mp);
+            }
+            else if (e.Type == 4 || e.Type == 13 || e.Type == 17)
+                m.Writer.WriteInt(me.Hp);
+            else if (e.Type == 23)
+            {
+                m.Writer.WriteInt(me.Hp);
+                m.Writer.WriteInt(me.MaxHp);
+            }
+
             me.Session.Send(m);
         }
 
         // ---- ground items and monster states ----
-
         public static void SendZone(Zone zone, Message m)
         {
-            foreach (PlayerState p in zone.Players) p.Session.Send(m);
+            foreach (PlayerState p in zone.Players)
+                p.Session.Send(m);
         }
 
         // MapService.addItemMap
@@ -468,8 +524,7 @@ namespace NsoServer.Net
         {
             var m = new Message(ITEMMAP_MYPICK);
             m.Writer.WriteShort(it.Id);
-            m.Writer.WriteShort(t != null && t.Type == PlayerItems.TypeMoney
-                ? System.Math.Max(0, System.Math.Min(ushort.MaxValue, it.Item.Quantity)) : QuantityDisplay(it.Item, t));
+            m.Writer.WriteShort(t != null && t.Type == PlayerItems.TypeMoney ? System.Math.Max(0, System.Math.Min(ushort.MaxValue, it.Item.Quantity)) : QuantityDisplay(it.Item, t));
             me.Session.Send(m);
             // MapService.pickItem -> Service.playerPickItem: the other characters of the zone see it picked up and
             // drop it from their screen (without this a human kept seeing items an AI player had taken; picking
@@ -477,7 +532,9 @@ namespace NsoServer.Net
             var others = new Message(ITEMMAP_PLAYERPICK);
             others.Writer.WriteShort(it.Id);
             others.Writer.WriteInt(me.Record.Id);
-            foreach (PlayerState p in me.Zone.Players) if (p != me) p.Session.Send(others);
+            foreach (PlayerState p in me.Zone.Players)
+                if (p != me)
+                    p.Session.Send(others);
         }
 
         // MapService.setFire / setIce / setWind / setDisable / setMove

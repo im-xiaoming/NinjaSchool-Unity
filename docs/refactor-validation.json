@@ -1,0 +1,141 @@
+{
+  "baselineCommit": "eac5538a5ef944113ca3cdad118f2015fea97853",
+  "branch": "botbrain",
+  "date": "2026-11-13",
+  "serverRegression": [
+    {
+      "suite": "combatcheck",
+      "exit": 0,
+      "seconds": 12.1
+    },
+    {
+      "suite": "questcheck",
+      "exit": 0,
+      "seconds": 7.7
+    },
+    {
+      "suite": "progresscheck",
+      "exit": 0,
+      "seconds": 1.2
+    },
+    {
+      "suite": "lootcheck",
+      "exit": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "regencheck",
+      "exit": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "rulecheck",
+      "exit": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "navcheck",
+      "exit": 0,
+      "seconds": 1.3
+    },
+    {
+      "suite": "webcheck",
+      "exit": 0,
+      "seconds": 5.1
+    },
+    {
+      "suite": "bagcheck",
+      "exit": 0,
+      "seconds": 15.1
+    },
+    {
+      "suite": "upgradecheck",
+      "exit": 0,
+      "seconds": 18.6
+    },
+    {
+      "suite": "ledgercheck",
+      "exit": 0,
+      "seconds": 25.7
+    }
+  ],
+  "additionalServerChecks": [
+    {
+      "suite": "baseline-default",
+      "exit": 2,
+      "pass": 18,
+      "fail": 2
+    },
+    {
+      "suite": "current-default",
+      "exit": 2,
+      "pass": 18,
+      "fail": 2
+    },
+    {
+      "suite": "pendingcheck",
+      "exit": 0,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "suite": "knowledgecheck",
+      "exit": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    {
+      "suite": "promptcheck",
+      "exit": 0,
+      "pass": 0,
+      "fail": 0
+    }
+  ],
+  "brain": {
+    "tests": 20,
+    "passed": true,
+    "promptFixtures": 6,
+    "knowledgeDocuments": 1885,
+    "realHttpWithMockUpstreams": true,
+    "ownedAndExternalProcessChecks": true,
+    "ownedRestartRecovery": true,
+    "realServicesUsedByChecks": false
+  },
+  "rl": {
+    "syntheticChecks": 7,
+    "device": "cuda",
+    "passed": true,
+    "scratchHost": true,
+    "longEvaluationStarted": false
+  },
+  "sourceAudit": {
+    "originalMembersUnchanged": 8778,
+    "integrationChangesExcludedAndDocumented": true
+  },
+  "unity": {
+    "actualEditorRefresh": true,
+    "groundTruth": {
+      "sampledUtc": "2026-11-13T14:24:23.2084837Z",
+      "ageMs": 216,
+      "compilationFailed": false,
+      "compiling": false,
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "consoleLogs": 2,
+      "seeded": true
+    },
+    "finalPlayState": false,
+    "ownCompilerRuntimeAndEditorPassed": true,
+    "transitionRuntimeErrorGroups": 2,
+    "transitionLogsPreservedBeforeClear": true,
+    "freshPlayTested": false
+  },
+  "manualSaveEdits": false,
+  "authorizedNormalStopSavedThroughExistingFlow": true,
+  "unverified": [
+    "fresh Play and visual/input acceptance",
+    "real Ollama/Qdrant gameplay acceptance",
+    "13-bot frame-time profiling",
+    "Windows release packaging"
+  ]
+}

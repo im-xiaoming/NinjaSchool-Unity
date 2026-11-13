@@ -1,0 +1,2290 @@
+{
+  "baselineCommit": "eac5538a5ef944113ca3cdad118f2015fea97853",
+  "branch": "botbrain",
+  "changes": [
+    {
+      "status": "??",
+      "path": ".editorconfig"
+    },
+    {
+      "status": " M",
+      "path": ".gitignore"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Documentation/InspectorConfiguration.md"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Documentation/ServerPort.md"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Documentation/UiReference.md"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Editor/NsoControlEditors.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Editor/NsoMapOverlayEditors.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/GameCanvas.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/GameMidlet.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/Interp.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/Main.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/MotherCanvas.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/RemoteMotion.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Application/mSystem.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Audio/MenuAudio.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Audio/MyAudioClip.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Audio/Sound.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Bridge/NsoConfigurationBridge.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Bridge/NsoConfigurationBridge.cs.meta"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Bridge/NsoMapCoordinates.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Bridge/NsoMapObject.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Bridge/NsoMapOverlayBridge.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Bridge/NsoMapSnapshot.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Custom/NsoPlayerInfo.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/GameData.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Localization/mResources.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Persistence/RMS.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Res.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/ArrayCast.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/DataInputStream.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/DataOutputStream.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/InputStream.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/MyStream.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/myReader.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Data/Serialization/myWriter.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/DevAutoTest.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/DevMenu.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/LogOverlay.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/NsoGameControl.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/NsoInputControl.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/NsoServerControl.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/NsoSettings.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/NsoSettingsMenu.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/NsoUiLayout.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/TextAlignPanel.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Diagnostics/TextCalib.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/Auto.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/AutoCommand.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/AutoNVHN.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/AutoTask.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/Buff.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/Clock.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/Handle.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/Auto/TanSat.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/CommandFuncs.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/ListCharFunctions.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Functions/MainFuctions.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/AnimateEffect.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Arrow.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Arrowpaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Domsang.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EPosition.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffAtutoTemp.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Effect.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Effect2.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffectAuto.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffectCharPaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffectData.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffectInfoPaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffectPaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/EffectTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/FrameEff.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Lanterns.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Lightning.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/MonsterDart.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/ServerEffect.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Effects/Set.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Appearance.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Appearance.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Combat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Combat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Commands.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Commands.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Input.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Input.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Inventory.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Inventory.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Lifecycle.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Lifecycle.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Movement.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Movement.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.NpcQuest.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.NpcQuest.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Rendering.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Rendering.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Targeting.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Targeting.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Update.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.Update.cs.meta"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/Char.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/CharCountDown.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/CharPartInfo.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/MainObject.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/NClass.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/Part.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/PartFrame.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Entities/PartImage.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/DunItem.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/Item.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemMap.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemOption.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemOptionTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemSprin.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemStands.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Items/ItemTemplates.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/BuNhin.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/EggMonters.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/Mob.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/MobAttack.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/MobMove.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/MobSoul.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Mobs/MobTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/NPCs/Npc.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/NPCs/NpcTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/BasicSkillGrowth.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/DataSkillEff.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/ModelDSkill.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/Skill.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/SkillInfoPaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/SkillOption.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/SkillOptionTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/SkillPaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/SkillTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Skills/Skills.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Social/Clan.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Social/Clan_ThanThu.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Social/Friend.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Social/Member.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Social/Party.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Social/Ranked.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Tasks/Task.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Tasks/TaskOrder.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/Tasks/TaskTemplate.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/ItemTree.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/Map.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/MovePoint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/Position.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/StaticObj.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/TileMap.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Gameplay/World/Waypoint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/GamePad.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/IKbAction.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/Key.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/KeyConstant.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/MyKeyMap.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/NsoGamepadInput.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/NsoInputSystemBridge.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/TargetCycler.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/TouchScreenKeyboard.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Input/TouchScreenKeyboardType.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Authentication/LocalLogin.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Authentication/ReLogin.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Protocol/Cmd.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.Combat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.Combat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.Inventory.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.Inventory.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.Movement.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.Movement.cs.meta"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Protocol/Controller.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Protocol/IMessageHandler.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Protocol/Message.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Protocol/Readmsg.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Combat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Combat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Commands.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Commands.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Inventory.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Inventory.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Messages.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Messages.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Movement.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Movement.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.NpcQuest.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.NpcQuest.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Rendering.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Rendering.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Update.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Networking/Protocol/Service.Update.cs.meta"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Protocol/Service.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Transport/GameTcp.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Transport/ISession.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Networking/Transport/Session_ME.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Platform/GPS.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Platform/iOSPlugins.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Platform/iPhoneGeneration.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Platform/iPhoneSettings.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/Frame.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/FrameImage.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/IPaint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/Image.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/ImageIcon.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/ImageInfo.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/Layer.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/MyImage.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/NsoGameLayer.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/Paint.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/ScaleGUI.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/SmallImage.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/Sprite.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/mFont.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Rendering/mGraphics.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/CreateCharScr.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Chat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Chat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Combat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Combat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Commands.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Commands.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Companions.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Companions.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Input.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Input.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Inventory.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Inventory.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Lifecycle.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Lifecycle.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Movement.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Movement.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.NpcQuest.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.NpcQuest.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Rendering.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Rendering.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Update.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Scripts/Screens/GameScr.Update.cs.meta"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/GameScr.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/LanguageScr.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/MapScr.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/SelectCharScr.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/SelectServerScr.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/SettingsMenu.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/SplashScr.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Screens/mScreen.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/ChatTextField.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/Command.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/IActionListener.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/Menu.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/NsoTerminal.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/Scroll.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/ScrollResult.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/TField.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/TabGridNavigation.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Components/Text.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Dialogs/ChatPopup.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Dialogs/Dialog.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Dialogs/InfoDlg.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Dialogs/Input2Dlg.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Dialogs/InputDlg.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/Dialogs/MsgDlg.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/HUD/Info.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/HUD/InfoItem.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/UI/HUD/InfoMe.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/Math.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/MyRandom.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/MyVector.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/NinjaUtil.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/Out.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/Timer.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Scripts/Utilities/mHashtable.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentConfig.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentConfig.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentForaging.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentForaging.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentKnowledge.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentKnowledge.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentManager.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentManager.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentMapView.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentMapView.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentModel.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentModel.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentRag.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentRag.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentZoneSelection.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/AgentZoneSelection.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/BotClient.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/BotClient.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/BotMovement.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/BotMovement.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/BotNavigation.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/BotNavigation.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/AgentEvent.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/AgentEvent.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/AgentSnapshot.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/AgentSnapshot.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/Decision.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/Decision.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/DecisionResult.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/DecisionResult.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/FastTrip.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/FastTrip.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/GoalType.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/GoalType.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/HuntOption.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/HuntOption.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/PlanStep.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/PlanStep.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/Priority.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Contracts/Priority.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/GameKnowledge.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/GameKnowledge.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/AgentRag.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/AgentRag.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/BotClient.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/BotClient.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/BrainClient.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/BrainClient.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/LlmPlanner.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/LlmPlanner.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/LlmReplyFormat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Integration/LlmReplyFormat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/ActionRewards.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/ActionRewards.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlBridge.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlBridge.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlCandidates.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlCandidates.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlContracts.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlContracts.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlPolicy.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlPolicy.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlRuntime.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Learning/RlRuntime.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/LlmReplyFormat.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/LlmReplyFormat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory/AgentKnowledge.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory/AgentKnowledge.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory/AgentMapView.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory/AgentMapView.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory/GameKnowledge.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Memory/GameKnowledge.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Navigation.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Navigation/BotMovement.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Navigation/BotMovement.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Navigation/BotNavigation.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Navigation/BotNavigation.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/DecisionParser.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/DecisionParser.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/RulePlanner.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/RulePlanner.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/StrategicLayer.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/StrategicLayer.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/StrategicService.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/StrategicService.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/WorldKnowledge.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Planning/WorldKnowledge.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/ActionRewards.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/ActionRewards.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlBridge.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlBridge.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlCandidates.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlCandidates.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlContracts.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlContracts.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlPolicy.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlPolicy.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlRuntime.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/Rl/RlRuntime.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentConfig.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentConfig.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Diagnostics.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Diagnostics.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Events.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Events.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Observation.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Observation.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Persistence.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Persistence.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Planning.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.Planning.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentManager.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentModel.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentModel.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentPersonality.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Runtime/AgentPersonality.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentForaging.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentForaging.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Combat.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Combat.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Foraging.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Foraging.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Quests.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Quests.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Supplies.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Supplies.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Travel.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentTactics.Travel.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentZoneSelection.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/AgentZoneSelection.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/TacticalLayer.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Ai/Skills/TacticalLayer.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/StrategicLayer.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/StrategicLayer.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/TacticalLayer.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/TacticalLayer.cs.meta"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/WorldKnowledge.cs"
+    },
+    {
+      "status": " D",
+      "path": "Assets/Server/Ai/WorldKnowledge.cs.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Configuration.meta"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Configuration/RuntimeConfiguration.cs"
+    },
+    {
+      "status": "??",
+      "path": "Assets/Server/Configuration/RuntimeConfiguration.cs.meta"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Data/Json.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Data/JsonWriter.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Data/SqlDump.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiApi.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiControl.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiDashboard.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiData.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiProgression.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiServer.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/DevWiki/WikiSprites.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/GameServer.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Cmd.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Controller.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/DevTerminal.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/EnterWorld.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Escort.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Gymnasium.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/LocalPipe.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Message.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/MobBrain.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerActions.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerBuff.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerCombat.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerEffects.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerItemUse.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerItems.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerLog.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerLogDb.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerLuong.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerService.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerSkills.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerStorage.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerTasks.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerTuning.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/PlayerUpgrade.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Png.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Presence.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/QuestTravel.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/Session.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/TaskMechanics.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/TaskOrders.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Net/TilePicture.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/ServerBootstrap.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Store/AccountStore.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Store/InventoryGrouping.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Store/PlayerInventory.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Store/PlayerProgress.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/Store/SqliteSaveDb.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/CharacterProgressionRules.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/CombatRules.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/GameBalanceRules.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/GameData.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/GroundLootPolicy.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/LootRules.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/MapUnlock.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/MobTuning.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/TileGrid.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/TileMotion.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/Server/World/World.cs"
+    },
+    {
+      "status": " M",
+      "path": "Assets/StreamingAssets/NsoWiki/notes.json"
+    },
+    {
+      "status": " M",
+      "path": "DECISIONS.md"
+    },
+    {
+      "status": " M",
+      "path": "HANDOFF.md"
+    },
+    {
+      "status": " M",
+      "path": "PROJECT_STATUS.md"
+    },
+    {
+      "status": " M",
+      "path": "README.md"
+    },
+    {
+      "status": " M",
+      "path": "TASKS.md"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/.env.example"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/ContractHost/ContractHost.csproj"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/ContractHost/Program.cs"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/check_contracts.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/__init__.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/api.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/config.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/contracts.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/knowledge.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/llm.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/memory.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/orchestration.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/prompts.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/resources/legend.txt"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/resources/reply_schema.json"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/nso_brain/resources/system.txt"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/pyproject.toml"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/runtime-config.example.json"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/serve.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/tests/fixtures/knowledge_hashes.json"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/tests/fixtures/prompts.json"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/tests/test_contracts.py"
+    },
+    {
+      "status": "??",
+      "path": "Tools/Brain/uv.lock"
+    },
+    {
+      "status": "??",
+      "path": "Tools/CodeMaintenance/CodeMaintenance.csproj"
+    },
+    {
+      "status": "??",
+      "path": "Tools/CodeMaintenance/Program.cs"
+    },
+    {
+      "status": "??",
+      "path": "Tools/CodeMaintenance/check_unity_sources.py"
+    },
+    {
+      "status": " M",
+      "path": "Tools/Learning/RlHost/Program.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/Learning/check_contracts.py"
+    },
+    {
+      "status": " M",
+      "path": "Tools/Learning/evaluation.py"
+    },
+    {
+      "status": " M",
+      "path": "Tools/Learning/policy_io.py"
+    },
+    {
+      "status": " M",
+      "path": "Tools/Learning/trainer.py"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/BagCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/FoodCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/KnowledgeCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/LedgerCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/MoveCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/NavDebug.cs"
+    },
+    {
+      "status": "??",
+      "path": "Tools/ServerTests/PendingCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/Program.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/PromptCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/RagKnowledgeCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/RegenTests.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/StuckCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/UpgradeCheck.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/ServerTests/WikiControlTests.cs"
+    },
+    {
+      "status": " M",
+      "path": "Tools/gen_effect_usage.py"
+    },
+    {
+      "status": " M",
+      "path": "docs/AI_LEARNING.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/ARCHITECTURE.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/REFACTORING.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/TESTING.md"
+    },
+    {
+      "status": " M",
+      "path": "docs/UnityProjectContext.md"
+    },
+    {
+      "status": "??",
+      "path": "docs/refactor-changes.json"
+    },
+    {
+      "status": "??",
+      "path": "docs/refactor-validation.json"
+    }
+  ],
+  "preservedGuidMoves": [
+    {
+      "from": "Assets/Server/Ai/AgentConfig.cs",
+      "to": "Assets/Server/Ai/Runtime/AgentConfig.cs",
+      "guid": "f6675a3597c64ef4aaa2c4a6d7466052"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentForaging.cs",
+      "to": "Assets/Server/Ai/Skills/AgentForaging.cs",
+      "guid": "60ea9eac8ceab594cbd2cfe44f648e3f"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentKnowledge.cs",
+      "to": "Assets/Server/Ai/Memory/AgentKnowledge.cs",
+      "guid": "fc6b6147b771921468cce6c094e0a581"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentManager.cs",
+      "to": "Assets/Server/Ai/Runtime/AgentManager.cs",
+      "guid": "106a168dab44ec541ae356a11d67716b"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentMapView.cs",
+      "to": "Assets/Server/Ai/Memory/AgentMapView.cs",
+      "guid": "3367a0146797ba04a9d1d4e63c0c4150"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentModel.cs",
+      "to": "Assets/Server/Ai/Runtime/AgentModel.cs",
+      "guid": "c04bd2df8f321904dbc00297a1996632"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentRag.cs",
+      "to": "Assets/Server/Ai/Integration/AgentRag.cs",
+      "guid": "0dba4d617337d1940a1f161781dd7900"
+    },
+    {
+      "from": "Assets/Server/Ai/AgentZoneSelection.cs",
+      "to": "Assets/Server/Ai/Skills/AgentZoneSelection.cs",
+      "guid": "dbfcd6de508b6d44b86c58bdfbd8388c"
+    },
+    {
+      "from": "Assets/Server/Ai/BotClient.cs",
+      "to": "Assets/Server/Ai/Integration/BotClient.cs",
+      "guid": "7c8ad6d0a340b3546918d465d4758723"
+    },
+    {
+      "from": "Assets/Server/Ai/BotMovement.cs",
+      "to": "Assets/Server/Ai/Navigation/BotMovement.cs",
+      "guid": "da058bf22ce994e4dad5f460b6135cf5"
+    },
+    {
+      "from": "Assets/Server/Ai/BotNavigation.cs",
+      "to": "Assets/Server/Ai/Navigation/BotNavigation.cs",
+      "guid": "7e505efe82fb3a34f9d9d005f1381a82"
+    },
+    {
+      "from": "Assets/Server/Ai/GameKnowledge.cs",
+      "to": "Assets/Server/Ai/Memory/GameKnowledge.cs",
+      "guid": "5b34e1af45cdac94bb813d64d9371032"
+    },
+    {
+      "from": "Assets/Server/Ai/LlmReplyFormat.cs",
+      "to": "Assets/Server/Ai/Integration/LlmReplyFormat.cs",
+      "guid": "9484b618bc95a044d86a04b3f213b2b7"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl",
+      "to": "Assets/Server/Ai/Learning",
+      "guid": "ae4bb834998da7d46a883dc10798ba11"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl/ActionRewards.cs",
+      "to": "Assets/Server/Ai/Learning/ActionRewards.cs",
+      "guid": "d148d52a3ff513f4fb44dd7563baa392"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl/RlBridge.cs",
+      "to": "Assets/Server/Ai/Learning/RlBridge.cs",
+      "guid": "2f258bee81c057a4ea3c7192e5b0d8f5"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl/RlCandidates.cs",
+      "to": "Assets/Server/Ai/Learning/RlCandidates.cs",
+      "guid": "67e9a79682f1d91448f3245eaab70ba7"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl/RlContracts.cs",
+      "to": "Assets/Server/Ai/Learning/RlContracts.cs",
+      "guid": "19f5846aedc759e439d6e0c1a7d78ea7"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl/RlPolicy.cs",
+      "to": "Assets/Server/Ai/Learning/RlPolicy.cs",
+      "guid": "8bcaf0c312e720e4897089962efd22d4"
+    },
+    {
+      "from": "Assets/Server/Ai/Rl/RlRuntime.cs",
+      "to": "Assets/Server/Ai/Learning/RlRuntime.cs",
+      "guid": "cd451bf320507bc41b2beb2cebb874cf"
+    },
+    {
+      "from": "Assets/Server/Ai/StrategicLayer.cs",
+      "to": "Assets/Server/Ai/Planning/StrategicLayer.cs",
+      "guid": "d13745d63c07b034a9601c3c04d4e33c"
+    },
+    {
+      "from": "Assets/Server/Ai/TacticalLayer.cs",
+      "to": "Assets/Server/Ai/Skills/TacticalLayer.cs",
+      "guid": "eb7fe3aa8a74c4f409a022a1ee60c91c"
+    },
+    {
+      "from": "Assets/Server/Ai/WorldKnowledge.cs",
+      "to": "Assets/Server/Ai/Planning/WorldKnowledge.cs",
+      "guid": "59e175072a94b5c4d9e261203e259fac"
+    }
+  ],
+  "functionalIntegrationAreas": [
+    "Assets/Server/Ai/{Integration,Memory,Planning,Runtime,Contracts}",
+    "Assets/Server/Configuration/RuntimeConfiguration.cs",
+    "Assets/Server/ServerBootstrap.cs",
+    "Assets/Scripts/Bridge/NsoConfigurationBridge.cs",
+    "Assets/Scripts/Diagnostics/{NsoServerControl,NsoGameControl,NsoUiLayout}.cs",
+    "Tools/Brain",
+    "Tools/CodeMaintenance",
+    "Tools/Learning/{trainer,check_contracts}.py",
+    "Tools/Learning/RlHost/Program.cs",
+    "Tools/ServerTests/{Program,PromptCheck,PendingCheck}.cs"
+  ],
+  "gameplayMembersVerifiedUnchanged": 8778,
+  "originalAndReferenceSourcesModified": false,
+  "scenesPrefabsStaticArtModified": false
+}

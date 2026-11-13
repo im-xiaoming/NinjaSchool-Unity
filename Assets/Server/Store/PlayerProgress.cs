@@ -36,22 +36,30 @@ namespace NsoServer.Store
         // Char.onOSkill / onKSkill / onCSkill: skill template ids on the 5 screen slots, the 3 hot keys and the
         // current skill (-1 = empty). Empty arrays make the client fill its default bar (GameScr.loadDefault*).
         public sbyte[] OSkill = new sbyte[0], KSkill = new sbyte[0], CSkill = new sbyte[0];
-
         private static sbyte[] Bytes(Dictionary<string, object> root, string key)
         {
             object raw;
-            if (!root.TryGetValue(key, out raw) || !(raw is List<object>)) return new sbyte[0];
+            if (!root.TryGetValue(key, out raw) || !(raw is List<object>))
+                return new sbyte[0];
             var list = (List<object>)raw;
             var a = new sbyte[list.Count];
-            for (int i = 0; i < a.Length; i++) a[i] = (sbyte)Json.Long(list[i]);
+            for (int i = 0; i < a.Length; i++)
+                a[i] = (sbyte)Json.Long(list[i]);
             return a;
         }
 
         private static void AppendBytes(StringBuilder b, string key, sbyte[] a)
         {
-            if (a == null || a.Length == 0) return;
+            if (a == null || a.Length == 0)
+                return;
             b.Append(",\"").Append(key).Append("\":[");
-            for (int i = 0; i < a.Length; i++) { if (i > 0) b.Append(','); b.Append(a[i]); }
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (i > 0)
+                    b.Append(',');
+                b.Append(a[i]);
+            }
+
             b.Append(']');
         }
 
@@ -59,7 +67,12 @@ namespace NsoServer.Store
         {
             var p = new PlayerProgress();
             var root = string.IsNullOrEmpty(json) ? null : Json.Parse(json) as Dictionary<string, object>;
-            if (root == null) { p.Skills.Add(new[] { 0, 0 }); return p; }
+            if (root == null)
+            {
+                p.Skills.Add(new[] { 0, 0 });
+                return p;
+            }
+
             p.Yen = Long(root, "yen", 0);
             p.Xu = Long(root, "xu", 0);
             p.SaveMap = (int)Long(root, "saveMap", 22);
@@ -71,28 +84,47 @@ namespace NsoServer.Store
                 p.TaskIndex = (int)Long(t, "index", 0);
                 p.TaskCount = (int)Long(t, "count", 0);
             }
+
             if (root.TryGetValue("skills", out raw) && raw is List<object>)
             {
                 foreach (var s in (List<object>)raw)
                 {
                     var pair = s as List<object>;
-                    if (pair != null && pair.Count >= 2) p.Skills.Add(new[] { (int)Json.Long(pair[0]), (int)Json.Long(pair[1]) });
+                    if (pair != null && pair.Count >= 2)
+                        p.Skills.Add(new[] { (int)Json.Long(pair[0]), (int)Json.Long(pair[1]) });
                 }
             }
-            if (p.Skills.Count == 0) p.Skills.Add(new[] { 0, 0 });
+
+            if (p.Skills.Count == 0)
+                p.Skills.Add(new[] { 0, 0 });
             if (root.TryGetValue("potential", out raw) && raw is List<object>)
             {
                 var list = (List<object>)raw;
-                if (list.Count == 4) p.Potential = new[] { (int)Json.Long(list[0]), (int)Json.Long(list[1]), (int)Json.Long(list[2]), (int)Json.Long(list[3]) };
+                if (list.Count == 4)
+                    p.Potential = new[]
+                    {
+                        (int)Json.Long(list[0]),
+                        (int)Json.Long(list[1]),
+                        (int)Json.Long(list[2]),
+                        (int)Json.Long(list[3])
+                    };
             }
+
             p.PotentialPoint = (int)Long(root, "potentialPoint", 0);
             p.SkillPoint = (int)Long(root, "skillPoint", 0);
             if (root.TryGetValue("foodEffect", out raw) && raw is List<object>)
             {
                 var food = (List<object>)raw;
                 if (food.Count == 4)
-                    p.FoodEffect = new[] { Json.Long(food[0]), Json.Long(food[1]), Json.Long(food[2]), Json.Long(food[3]) };
+                    p.FoodEffect = new[]
+                    {
+                        Json.Long(food[0]),
+                        Json.Long(food[1]),
+                        Json.Long(food[2]),
+                        Json.Long(food[3])
+                    };
             }
+
             p.DailyDate = root.ContainsKey("dailyDate") && root["dailyDate"] is string ? (string)root["dailyDate"] : "";
             p.CountFinishDay = (int)Long(root, "countFinishDay", 20);
             p.CountDoneTaskDay = (int)Long(root, "countDoneTaskDay", 0);
@@ -119,6 +151,7 @@ namespace NsoServer.Store
                         p.TaskOrders.Add(new[] { (int)Json.Long(l[0]), (int)Json.Long(l[1]), (int)Json.Long(l[2]), (int)Json.Long(l[3]), (int)Json.Long(l[4]) });
                 }
             }
+
             return p;
         }
 
@@ -126,21 +159,23 @@ namespace NsoServer.Store
         public static string ToJson(PlayerInventory inventory, PlayerProgress p)
         {
             string inv = inventory.ToJson();
-            var b = new StringBuilder(inv, 0, inv.Length - 1, inv.Length + 256);   // drop the closing brace
+            var b = new StringBuilder(inv, 0, inv.Length - 1, inv.Length + 256); // drop the closing brace
             b.Append(",\"yen\":").Append(p.Yen.ToString(CultureInfo.InvariantCulture));
             b.Append(",\"xu\":").Append(p.Xu.ToString(CultureInfo.InvariantCulture));
             b.Append(",\"saveMap\":").Append(p.SaveMap);
-            if (p.TaskActive) b.Append(",\"task\":{\"index\":").Append(p.TaskIndex).Append(",\"count\":").Append(p.TaskCount).Append('}');
+            if (p.TaskActive)
+                b.Append(",\"task\":{\"index\":").Append(p.TaskIndex).Append(",\"count\":").Append(p.TaskCount).Append('}');
             b.Append(",\"skills\":[");
             for (int i = 0; i < p.Skills.Count; i++)
             {
-                if (i > 0) b.Append(',');
+                if (i > 0)
+                    b.Append(',');
                 b.Append('[').Append(p.Skills[i][0]).Append(',').Append(p.Skills[i][1]).Append(']');
             }
+
             b.Append(']');
             if (p.Potential != null)
-                b.Append(",\"potential\":[").Append(p.Potential[0]).Append(',').Append(p.Potential[1]).Append(',')
-                 .Append(p.Potential[2]).Append(',').Append(p.Potential[3]).Append(']');
+                b.Append(",\"potential\":[").Append(p.Potential[0]).Append(',').Append(p.Potential[1]).Append(',').Append(p.Potential[2]).Append(',').Append(p.Potential[3]).Append(']');
             b.Append(",\"potentialPoint\":").Append(p.PotentialPoint);
             b.Append(",\"skillPoint\":").Append(p.SkillPoint);
             if (p.FoodEffect != null && p.FoodEffect.Length == 4)
@@ -148,11 +183,14 @@ namespace NsoServer.Store
                 b.Append(",\"foodEffect\":[");
                 for (int i = 0; i < 4; i++)
                 {
-                    if (i > 0) b.Append(',');
+                    if (i > 0)
+                        b.Append(',');
                     b.Append(p.FoodEffect[i].ToString(CultureInfo.InvariantCulture));
                 }
+
                 b.Append(']');
             }
+
             b.Append(",\"dailyDate\":\"").Append(p.DailyDate ?? "").Append('"');
             b.Append(",\"countFinishDay\":").Append(p.CountFinishDay);
             b.Append(",\"countDoneTaskDay\":").Append(p.CountDoneTaskDay);
@@ -173,10 +211,12 @@ namespace NsoServer.Store
             b.Append(",\"taskOrder\":[");
             for (int i = 0; i < p.TaskOrders.Count; i++)
             {
-                if (i > 0) b.Append(',');
+                if (i > 0)
+                    b.Append(',');
                 var t = p.TaskOrders[i];
                 b.Append('[').Append(t[0]).Append(',').Append(t[1]).Append(',').Append(t[2]).Append(',').Append(t[3]).Append(',').Append(t[4]).Append(']');
             }
+
             b.Append(']');
             return b.Append('}').ToString();
         }

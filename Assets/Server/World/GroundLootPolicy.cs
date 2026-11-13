@@ -16,7 +16,10 @@ namespace NsoServer.World
             OwnerProtectionMs = ownerSeconds * 1000;
             LifetimeMs = Math.Max(ownerSeconds + 1, Math.Min(3600, lifetimeSeconds)) * 1000;
         }
+
         public static bool HasOwnership(int characterId, ItemMapEntry item, long now)
-        { return item.OwnerId == -1 || item.OwnerId == characterId || now - item.CreatedAt >= OwnerProtectionMs; }
+        {
+            return item.OwnerId == -1 || item.OwnerId == characterId || now - item.CreatedAt >= OwnerProtectionMs;
+        }
     }
 }

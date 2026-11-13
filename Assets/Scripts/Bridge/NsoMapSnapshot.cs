@@ -7,22 +7,23 @@ namespace NsoBridge
     // Read-only for everything else: overlays never write back into GameScr / TileMap.
     public struct NsoMapSnapshot
     {
-        public bool Ready;          // the game screen is showing a loaded map
+        public bool Ready; // the game screen is showing a loaded map
         public int MapId;
         public int Zone;
-        public float CameraX;       // logical map pixel at the screen's left edge (Y down)
-        public float CameraY;       // logical map pixel at the screen's top edge
-        public int Zoom;            // screen pixels per logical pixel (mGraphics.zoomLevel, 1..4)
-        public int ScreenWidth;     // size of the texture the game painted into
+        public float CameraX; // logical map pixel at the screen's left edge (Y down)
+        public float CameraY; // logical map pixel at the screen's top edge
+        public int Zoom; // screen pixels per logical pixel (mGraphics.zoomLevel, 1..4)
+        public int ScreenWidth; // size of the texture the game painted into
         public int ScreenHeight;
-        public int MapWidth;        // map size in logical pixels (TileMap.pxw / pxh)
+        public int MapWidth; // map size in logical pixels (TileMap.pxw / pxh)
         public int MapHeight;
-        public int Version;         // goes up on every capture
-
+        public int Version; // goes up on every capture
         public static NsoMapSnapshot Current;
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() { Current = default(NsoMapSnapshot); }
+        private static void ResetStatics()
+        {
+            Current = default(NsoMapSnapshot);
+        }
 
         // Called from Main.OnGUI between Interp.BeginPaint and canvas.paint.
         public static void Capture()

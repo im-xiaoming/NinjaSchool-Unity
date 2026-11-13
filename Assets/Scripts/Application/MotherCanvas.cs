@@ -1,27 +1,16 @@
 public class MotherCanvas
 {
     public static MotherCanvas instance;
-
     public GameCanvas tCanvas;
-
     public int zoomLevel = 1;
-
     public Image imgCache;
-
     public static int w;
-
     public static int h;
-
     private int newWidth;
-
     private int newHeight;
-
     private int OUTPUTSIZE = 20;
-
     public static int addR;
-
     public static int addL;
-
     public MotherCanvas()
     {
         mSystem.setScale();
@@ -35,6 +24,7 @@ public class MotherCanvas
             {
                 zoomLevel = NsoGameControl.UiZoomOverride; // set on the "NSO Game Control" object
             }
+
             mGraphics.zoomLevel = zoomLevel;
             newWidth = w / zoomLevel + 2;
             newHeight = h / zoomLevel + 2;
@@ -62,6 +52,7 @@ public class MotherCanvas
         {
             mGraphics.zoomLevel = (zoomLevel = 1);
         }
+
         if (mGraphics.zoomLevel == 3)
         {
             addR = 1;
@@ -131,6 +122,7 @@ public class MotherCanvas
         {
             return getHeight();
         }
+
         return newHeight;
     }
 
@@ -140,6 +132,7 @@ public class MotherCanvas
         {
             return getWidth();
         }
+
         return newWidth;
     }
 }

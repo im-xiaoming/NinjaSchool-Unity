@@ -1,50 +1,47 @@
 public class Message
 {
-	public sbyte command;
+    public sbyte command;
+    private myReader dis;
+    private myWriter dos;
+    public Message(int command)
+    {
+        this.command = (sbyte)command;
+        dos = new myWriter();
+    }
 
-	private myReader dis;
+    public Message()
+    {
+        dos = new myWriter();
+    }
 
-	private myWriter dos;
+    public Message(sbyte command)
+    {
+        this.command = command;
+        dos = new myWriter();
+    }
 
-	public Message(int command)
-	{
-		this.command = (sbyte)command;
-		dos = new myWriter();
-	}
+    public Message(sbyte command, sbyte[] data)
+    {
+        this.command = command;
+        dis = new myReader(data);
+    }
 
-	public Message()
-	{
-		dos = new myWriter();
-	}
+    public sbyte[] getData()
+    {
+        return dos.getData();
+    }
 
-	public Message(sbyte command)
-	{
-		this.command = command;
-		dos = new myWriter();
-	}
+    public myReader reader()
+    {
+        return dis;
+    }
 
-	public Message(sbyte command, sbyte[] data)
-	{
-		this.command = command;
-		dis = new myReader(data);
-	}
+    public myWriter writer()
+    {
+        return dos;
+    }
 
-	public sbyte[] getData()
-	{
-		return dos.getData();
-	}
-
-	public myReader reader()
-	{
-		return dis;
-	}
-
-	public myWriter writer()
-	{
-		return dos;
-	}
-
-	public void cleanup()
-	{
-	}
+    public void cleanup()
+    {
+    }
 }

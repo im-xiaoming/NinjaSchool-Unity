@@ -2,29 +2,106 @@ public class Res
 {
     private static short[] SIN = new short[91]
     {
-        0, 18, 36, 54, 71, 89, 107, 125, 143, 160,
-        178, 195, 213, 230, 248, 265, 282, 299, 316, 333,
-        350, 367, 384, 400, 416, 433, 449, 465, 481, 496,
-        512, 527, 543, 558, 573, 587, 602, 616, 630, 644,
-        658, 672, 685, 698, 711, 724, 737, 749, 761, 773,
-        784, 796, 807, 818, 828, 839, 849, 859, 868, 878,
-        887, 896, 904, 912, 920, 928, 935, 943, 949, 956,
-        962, 968, 974, 979, 984, 989, 994, 998, 1002, 1005,
-        1008, 1011, 1014, 1016, 1018, 1020, 1022, 1023, 1023, 1024,
+        0,
+        18,
+        36,
+        54,
+        71,
+        89,
+        107,
+        125,
+        143,
+        160,
+        178,
+        195,
+        213,
+        230,
+        248,
+        265,
+        282,
+        299,
+        316,
+        333,
+        350,
+        367,
+        384,
+        400,
+        416,
+        433,
+        449,
+        465,
+        481,
+        496,
+        512,
+        527,
+        543,
+        558,
+        573,
+        587,
+        602,
+        616,
+        630,
+        644,
+        658,
+        672,
+        685,
+        698,
+        711,
+        724,
+        737,
+        749,
+        761,
+        773,
+        784,
+        796,
+        807,
+        818,
+        828,
+        839,
+        849,
+        859,
+        868,
+        878,
+        887,
+        896,
+        904,
+        912,
+        920,
+        928,
+        935,
+        943,
+        949,
+        956,
+        962,
+        968,
+        974,
+        979,
+        984,
+        989,
+        994,
+        998,
+        1002,
+        1005,
+        1008,
+        1011,
+        1014,
+        1016,
+        1018,
+        1020,
+        1022,
+        1023,
+        1023,
+        1024,
         1024
     };
-
     private static short[] COS;
-
     private static int[] TAN;
-
     public static MyRandom r = new MyRandom();
-
-
     public static int e(int var0)
     {
         return var0 > 0 ? var0 : -var0;
     }
+
     public static void init()
     {
         COS = new short[91];
@@ -50,14 +127,17 @@ public class Res
         {
             return SIN[a];
         }
+
         if (a >= 90 && a < 180)
         {
             return SIN[180 - a];
         }
+
         if (a >= 180 && a < 270)
         {
             return -SIN[a - 180];
         }
+
         return -SIN[360 - a];
     }
 
@@ -68,14 +148,17 @@ public class Res
         {
             return COS[a];
         }
+
         if (a >= 90 && a < 180)
         {
             return -COS[180 - a];
         }
+
         if (a >= 180 && a < 270)
         {
             return -COS[a - 180];
         }
+
         return COS[360 - a];
     }
 
@@ -86,14 +169,17 @@ public class Res
         {
             return TAN[a];
         }
+
         if (a >= 90 && a < 180)
         {
             return -TAN[180 - a];
         }
+
         if (a >= 180 && a < 270)
         {
             return TAN[a - 180];
         }
+
         return -TAN[360 - a];
     }
 
@@ -106,6 +192,7 @@ public class Res
                 return i;
             }
         }
+
         return 0;
     }
 
@@ -120,10 +207,12 @@ public class Res
             {
                 num = 180 - num;
             }
+
             if (dy < 0 && dx < 0)
             {
                 num = 180 + num;
             }
+
             if (dy < 0 && dx >= 0)
             {
                 num = 360 - num;
@@ -133,6 +222,7 @@ public class Res
         {
             num = ((dy <= 0) ? 270 : 90);
         }
+
         return num;
     }
 
@@ -142,10 +232,12 @@ public class Res
         {
             angle -= 360;
         }
+
         if (angle < 0)
         {
             angle += 360;
         }
+
         return angle;
     }
 
@@ -172,6 +264,7 @@ public class Res
         {
             num++;
         }
+
         return num;
     }
 
@@ -186,6 +279,7 @@ public class Res
         {
             return 0;
         }
+
         int num = (a + 1) / 2;
         int num2;
         do
@@ -243,6 +337,7 @@ public class Res
             array = new string[count + 1];
             num = original.Length;
         }
+
         if (num < original.Length)
         {
             array[count] = original.Substring(0, num);
@@ -251,6 +346,7 @@ public class Res
         {
             array[count] = original.Substring(0);
         }
+
         return array;
     }
 
@@ -262,6 +358,7 @@ public class Res
         {
             return string.Empty;
         }
+
         long num2 = 0L;
         long num3 = 0L;
         long num4 = num / 60;
@@ -285,6 +382,7 @@ public class Res
         {
             num5 = num;
         }
+
         if (num2 > 0)
         {
             if (num2 >= 10)
@@ -336,6 +434,7 @@ public class Res
         {
             result = ((num5 >= 10) ? (num5 + "s") : ("0" + num5 + "s"));
         }
+
         return result;
     }
 

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "server": {},
+  "game": {},
+  "ui": {},
+  "agents": {
+    "BrainEndpoint": "http://127.0.0.1:8797",
+    "BrainAutoStart": true
+  }
+}

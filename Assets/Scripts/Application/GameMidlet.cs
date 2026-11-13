@@ -6,52 +6,32 @@ using UnityEngine;
 public class GameMidlet
 {
     public static sbyte CLIENT_TYPE = 4;
-
     public static sbyte indexClient;
-
     public static string IP = string.Empty;
-
     public static int PORT = 14444;
-
     public static sbyte userProvider;
-
     public static string clientAgent;
-
     public static bool isWorldver;
-
     public static sbyte serverLogin;
-
     public const string VERSION = "2.1.9";
-
     public static GameMidlet instance;
-
     public static int muzic = -1;
-
     public static bool isPlaySound;
-
     public static string inFoSMS;
-
     public static string latitude = string.Empty;
-
     public static string longitude = string.Empty;
-
     public static string linkDefault;
-
     public static string java = "Local:127.0.0.1:14444:0:0";
-
     public static string smartPhone = "Local:127.0.0.1:14444:0:0";
     public static string[] nameServer;
-
     public static string[] ipList;
-
     public static short[] portList;
-
     public static sbyte[] serverLoginList;
-
-    public static sbyte[] language = { 1 };
-
+    public static sbyte[] language =
+    {
+        1
+    };
     public static sbyte[] serverST;
-
     public GameMidlet()
     {
         MotherCanvas.instance = new MotherCanvas();
@@ -68,6 +48,7 @@ public class GameMidlet
         {
             userProvider = 1;
         }
+
         SplashScr.loadSplashScr();
         GameCanvas.currentScreen = new SplashScr();
         Key.mapKeyPC();
@@ -114,7 +95,6 @@ public class GameMidlet
     }
 
     public static void getServerList(string str)
-
     {
         string[] array = Res.split(str.Trim(), ",", 0);
         nameServer = new string[array.Length];
@@ -144,6 +124,7 @@ public class GameMidlet
                 b2++;
             }
         }
+
         saveIP();
     }
 
@@ -162,6 +143,7 @@ public class GameMidlet
                 dataOutputStream.writeByte(language[i]);
                 dataOutputStream.writeByte(serverST[i]);
             }
+
             RMS.saveRMS("NJlink", dataOutputStream.toByteArray());
             dataOutputStream.close();
             SelectServerScr.loadIP();
@@ -172,12 +154,10 @@ public class GameMidlet
     }
 
     // ip sv
-
     public static void getStrSv()
     {
         // The original reads an encoded list of online servers from the "Unnamed" resource; offline there is only this one.
         getServerList("Local:127.0.0.1:14444:0:0");
-
     }
 
     // public static void getStrSv()
@@ -188,9 +168,7 @@ public class GameMidlet
     //     string empty = string.Empty;
     //     empty = connectHTTP(iptcp);
     //     getServerList(empty);
-
     // }
-
     public static void loadLinkRMS()
     {
         sbyte[] array = RMS.loadRMS("NJlink");
@@ -199,11 +177,13 @@ public class GameMidlet
             getStrSv();
             return;
         }
+
         DataInputStream dataInputStream = new DataInputStream(array);
         if (dataInputStream == null)
         {
             return;
         }
+
         try
         {
             sbyte b = dataInputStream.readByte();
@@ -216,13 +196,13 @@ public class GameMidlet
             for (int i = 0; i < b; i++)
             {
                 nameServer[i] = dataInputStream.readUTF();
-
                 ipList[i] = dataInputStream.readUTF();
                 portList[i] = dataInputStream.readShort();
                 serverLoginList[i] = dataInputStream.readByte();
                 language[i] = dataInputStream.readByte();
                 serverST[i] = dataInputStream.readByte();
             }
+
             dataInputStream.close();
             SelectServerScr.loadIP();
         }
@@ -239,6 +219,7 @@ public class GameMidlet
         {
             num = mResources.Lang_EN;
         }
+
         for (int i = 0; i <= language.Length - 1; i++)
         {
             if (language[i] == num)
@@ -246,6 +227,7 @@ public class GameMidlet
                 return i;
             }
         }
+
         return result;
     }
 
@@ -259,6 +241,7 @@ public class GameMidlet
                 return i - 1;
             }
         }
+
         return result;
     }
 }

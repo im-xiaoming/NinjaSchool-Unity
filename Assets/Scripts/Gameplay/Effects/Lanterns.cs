@@ -1,45 +1,41 @@
 public class Lanterns
 {
-	public int x;
+    public int x;
+    public int y;
+    public int dy = 3;
+    public int yStart;
+    public bool isEnd;
+    public Lanterns(int x, int y)
+    {
+        this.x = x;
+        this.y = (yStart = y);
+        isEnd = false;
+    }
 
-	public int y;
+    public void update()
+    {
+        y -= dy;
+        if (yStart - y > 150)
+        {
+            isEnd = true;
+        }
+    }
 
-	public int dy = 3;
+    public void paint(mGraphics g)
+    {
+        using (Interp.Offset(g, this))
+            PaintAtRenderPosition(g);
+    }
 
-	public int yStart;
-
-	public bool isEnd;
-
-	public Lanterns(int x, int y)
-	{
-		this.x = x;
-		this.y = (yStart = y);
-		isEnd = false;
-	}
-
-	public void update()
-	{
-		y -= dy;
-		if (yStart - y > 150)
-		{
-			isEnd = true;
-		}
-	}
-
-	public void paint(mGraphics g)
-	{
-	    using (Interp.Offset(g, this)) PaintAtRenderPosition(g);
-	}
-
-	private void PaintAtRenderPosition(mGraphics g)
-	{
-		if (GameCanvas.gameTick % 10 < 8)
-		{
-			SmallImage.drawSmallImage(g, 1292, x, y, 0, mGraphics.VCENTER | mGraphics.HCENTER);
-		}
-		else
-		{
-			SmallImage.drawSmallImage(g, 1291, x, y, 0, mGraphics.VCENTER | mGraphics.HCENTER);
-		}
-	}
+    private void PaintAtRenderPosition(mGraphics g)
+    {
+        if (GameCanvas.gameTick % 10 < 8)
+        {
+            SmallImage.drawSmallImage(g, 1292, x, y, 0, mGraphics.VCENTER | mGraphics.HCENTER);
+        }
+        else
+        {
+            SmallImage.drawSmallImage(g, 1291, x, y, 0, mGraphics.VCENTER | mGraphics.HCENTER);
+        }
+    }
 }

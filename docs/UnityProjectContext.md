@@ -73,3 +73,6 @@ The reported inability to hit dummies was reproduced in the live client and fixe
 
 ## Follow-up: local Workbench (2026-11-11)
 Wiki is now a local control/lookup workbench. LootRules is immutable per world, loaded from save-folder game-rules.json at startup; default behavior preserved. WikiControl exposes validated rule saves and readonly runtime/loot/history snapshots. UI app.js/app.css preserves deep links. API checks 27/27, pure UI 18/18; nearby gameplay tests and Unity current Console clean. Browser automation unavailable: visual/click/mobile QA pending. Read latest handoff/architecture before changing persistence/control routes.
+
+## 2026-11-13 - Botbrain boundary update
+Current branch botbrain now uses code-first runtime configuration and a separate local Python Brain. See REFACTORING.md and the newest HANDOFF entry; the original main-branch onboarding facts above are historical. C# gameplay remains Unity-independent except ServerBootstrap; new Configuration code is also pure. Client and server still share the default Unity assembly, with legacy global type aliases retained. Python is a dev-time optional service, not a Unity package or replacement gameplay server. Manual Play/Windows release validation remains pending.

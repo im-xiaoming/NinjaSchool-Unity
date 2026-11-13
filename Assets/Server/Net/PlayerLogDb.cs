@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 
 namespace NsoServer.Net
 {
-    using Math = System.Math;   // the client has its own global Math class
+    using Math = System.Math; // the client has its own global Math class
 
     /// <summary>
     /// The log database (offline debugging aid, separate from the save database nso.db): Logs/PlayerLog/player_log.db.
@@ -19,13 +19,21 @@ namespace NsoServer.Net
     /// </summary>
     public sealed class PlayerLogDb : IDisposable
     {
-        public struct Line { public long Ms; public string Time, Kind, Text; }
-        public struct BotLine { public long Ms; public string Time, Bot, Kind, Text; }
+        public struct Line
+        {
+            public long Ms;
+            public string Time, Kind, Text;
+        }
 
-        private static readonly object InitLock = new object();
+        public struct BotLine
+        {
+            public long Ms;
+            public string Time, Bot, Kind, Text;
+        }
+
+        private static readonly object InitLock = new object ();
         private static bool initialized;
         private readonly SqliteConnection conn;
-
         public long SessionId { get; private set; }
         public string FilePath { get; private set; }
 
@@ -33,8 +41,13 @@ namespace NsoServer.Net
         {
             lock (InitLock)
             {
-                if (!initialized) { SQLitePCL.Batteries_V2.Init(); initialized = true; }
+                if (!initialized)
+                {
+                    SQLitePCL.Batteries_V2.Init();
+                    initialized = true;
+                }
             }
+
             FilePath = file;
             conn = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = file, Mode = SqliteOpenMode.ReadWriteCreate, Pooling = false }.ToString());
             conn.Open();
@@ -54,6 +67,7 @@ CREATE INDEX IF NOT EXISTS bot_entries_ts ON bot_entries(ts_ms);");
                 c.Parameters.AddWithValue("$cut", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - Math.Max(1, keepBotDays) * 86400000L);
                 c.ExecuteNonQuery();
             }
+
             // forget the oldest sessions (PlayerLog.KeepFiles applies to sessions here)
             using (var c = conn.CreateCommand())
             {
@@ -62,6 +76,7 @@ DELETE FROM sessions WHERE id NOT IN (SELECT id FROM sessions ORDER BY id DESC L
                 c.Parameters.AddWithValue("$keep", Math.Max(0, keepSessions - 1));
                 c.ExecuteNonQuery();
             }
+
             using (var c = conn.CreateCommand())
             {
                 c.CommandText = "INSERT INTO sessions (started_at, started_ms) VALUES ($at, $ms); SELECT last_insert_rowid();";
@@ -73,13 +88,18 @@ DELETE FROM sessions WHERE id NOT IN (SELECT id FROM sessions ORDER BY id DESC L
 
         private void Exec(string sql)
         {
-            using (var c = conn.CreateCommand()) { c.CommandText = sql; c.ExecuteNonQuery(); }
+            using (var c = conn.CreateCommand())
+            {
+                c.CommandText = sql;
+                c.ExecuteNonQuery();
+            }
         }
 
         /// <summary>Inserts buffered lines in one transaction.</summary>
         public void Insert(List<Line> lines)
         {
-            if (lines.Count == 0) return;
+            if (lines.Count == 0)
+                return;
             using (var tx = conn.BeginTransaction())
             using (var c = conn.CreateCommand())
             {
@@ -93,9 +113,13 @@ DELETE FROM sessions WHERE id NOT IN (SELECT id FROM sessions ORDER BY id DESC L
                 s.Value = SessionId;
                 foreach (var l in lines)
                 {
-                    ms.Value = l.Ms; t.Value = l.Time; k.Value = l.Kind; x.Value = l.Text ?? "";
+                    ms.Value = l.Ms;
+                    t.Value = l.Time;
+                    k.Value = l.Kind;
+                    x.Value = l.Text ?? "";
                     c.ExecuteNonQuery();
                 }
+
                 tx.Commit();
             }
         }
@@ -103,7 +127,8 @@ DELETE FROM sessions WHERE id NOT IN (SELECT id FROM sessions ORDER BY id DESC L
         /// <summary>Inserts buffered bot lines in one transaction.</summary>
         public void InsertBots(List<BotLine> lines)
         {
-            if (lines.Count == 0) return;
+            if (lines.Count == 0)
+                return;
             using (var tx = conn.BeginTransaction())
             using (var c = conn.CreateCommand())
             {
@@ -116,16 +141,28 @@ DELETE FROM sessions WHERE id NOT IN (SELECT id FROM sessions ORDER BY id DESC L
                 var x = c.Parameters.Add("$x", SqliteType.Text);
                 foreach (var l in lines)
                 {
-                    ms.Value = l.Ms; t.Value = l.Time; b.Value = l.Bot; k.Value = l.Kind; x.Value = l.Text ?? "";
+                    ms.Value = l.Ms;
+                    t.Value = l.Time;
+                    b.Value = l.Bot;
+                    k.Value = l.Kind;
+                    x.Value = l.Text ?? "";
                     c.ExecuteNonQuery();
                 }
+
                 tx.Commit();
             }
         }
 
         public void Dispose()
         {
-            try { Exec("PRAGMA wal_checkpoint(TRUNCATE);"); } catch (Exception) { }
+            try
+            {
+                Exec("PRAGMA wal_checkpoint(TRUNCATE);");
+            }
+            catch (Exception)
+            {
+            }
+
             conn.Dispose();
         }
     }

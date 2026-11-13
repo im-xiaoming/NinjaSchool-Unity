@@ -12,6 +12,7 @@ sent by the server as id -1) are added from RULES below.
 Needs NsoWiki/db.json (written by the dev wiki). Run from the project root after changing effect calls:
     python Tools/gen_effect_usage.py
 """
+
 import json
 import os
 import re
@@ -30,15 +31,33 @@ CASE = re.compile(r"^\s*case\s+([^:]+):")
 ELEMENTS = {"1": "Hỏa", "2": "Thủy", "3": "Phong"}
 
 # Server message names of the Controller cases that play an effect (client Controller.onMessage).
-PACKETS = {"-78": "server gửi hiệu ứng lên nhân vật mình", "-110": "server gửi hiệu ứng lên một nhân vật",
-           "-5": "quái bị đánh", "5": "nhân vật lên cấp", "7": "nhận hiệu ứng", "75": "nhận hiệu ứng",
-           "77": "đánh bù nhìn", "78": "đánh quái", "-58": "hiệu ứng tại chỗ", "-59": "hiệu ứng tại chỗ", "-73": "gói -73"}
+PACKETS = {
+    "-78": "server gửi hiệu ứng lên nhân vật mình",
+    "-110": "server gửi hiệu ứng lên một nhân vật",
+    "-5": "quái bị đánh",
+    "5": "nhân vật lên cấp",
+    "7": "nhận hiệu ứng",
+    "75": "nhận hiệu ứng",
+    "77": "đánh bù nhìn",
+    "78": "đánh quái",
+    "-58": "hiệu ứng tại chỗ",
+    "-59": "hiệu ứng tại chỗ",
+    "-73": "gói -73",
+}
 
 # Usages that are not a literal call: the offline server (MobBrain, like Java Service.npcAttackMe) sends attack effect -1,
 # so the client plays effect 59 (Mob.cs: idSkill_atk != -1 ? idSkill_atk : 59) for every non-boss mob hit.
-RULES = [{"id": 59, "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs", "method": "updateMobAttack", "line": 0,
-          "how": "tại người/quái bị đánh, lặp 1 lần", "when": "server gửi idSkill_atk = -1 (mọi đòn đánh thường của quái)",
-          "who": [{"kind": "allMobs"}]}]
+RULES = [
+    {
+        "id": 59,
+        "file": "Assets/Scripts/Gameplay/Mobs/Mob.cs",
+        "method": "updateMobAttack",
+        "line": 0,
+        "how": "tại người/quái bị đánh, lặp 1 lần",
+        "when": "server gửi idSkill_atk = -1 (mọi đòn đánh thường của quái)",
+        "who": [{"kind": "allMobs"}],
+    }
+]
 
 
 def split_args(text):
@@ -80,15 +99,22 @@ class Data:
 
     def mob(self, mid):
         m = self.mobs.get(mid)
-        return {"kind": "mob", "id": int(mid), "name": m["name"] if m else f"quái #{mid}",
-                "level": m.get("level") if m else None, "boss": bool(m and m.get("boss"))}
+        return {
+            "kind": "mob",
+            "id": int(mid),
+            "name": m["name"] if m else f"quái #{mid}",
+            "level": m.get("level") if m else None,
+            "boss": bool(m and m.get("boss")),
+        }
 
 
 def resolve(conditions, data):
     """Turns the enclosing conditions into who/what triggers the effect."""
     who = []
     # mob ids: only the innermost condition naming mobs (outer ones are often wider gates listing other mobs)
-    mob_conds = [c for c in conditions if re.search(r"(?:mobTemplateId|templateId|idBoss)\s*==\s*\d+", c)]
+    mob_conds = [
+        c for c in conditions if re.search(r"(?:mobTemplateId|templateId|idBoss)\s*==\s*\d+", c)
+    ]
     if mob_conds:
         for mid in re.findall(r"(?:mobTemplateId|templateId|idBoss)\s*==\s*(\d+)", mob_conds[-1]):
             who.append(data.mob(mid))
@@ -135,7 +161,9 @@ def scan(data):
                         top = stack[-1]
                         # consecutive case labels fall through together
                         prev = lines[i - 1].strip() if i else ""
-                        top[2] = (top[2] if prev.startswith("case ") else []) + [case.group(1).strip()]
+                        top[2] = (top[2] if prev.startswith("case ") else []) + [
+                            case.group(1).strip()
+                        ]
                     call = CALL.search(code)
                     if call and "static void" not in code:
                         conds = []
@@ -147,13 +175,24 @@ def scan(data):
                         if single:
                             conds.append(single)
                         args = split_args(call.group(2))
-                        use = {"file": rel, "line": i + 1, "method": method, "how": describe(call.group(1), args),
-                               "when": " › ".join(conds[-3:]), "who": resolve(conds, data)}
+                        use = {
+                            "file": rel,
+                            "line": i + 1,
+                            "method": method,
+                            "how": describe(call.group(1), args),
+                            "when": " › ".join(conds[-3:]),
+                            "who": resolve(conds, data),
+                        }
                         if rel.endswith("Controller.cs"):
                             for c in conds:
                                 mm = re.search(r"== (-?\d+)$", c)
                                 if mm and mm.group(1) in PACKETS and "switch" not in c:
-                                    use["who"].append({"kind": "packet", "name": f"Gói {mm.group(1)}: {PACKETS[mm.group(1)]}"})
+                                    use["who"].append(
+                                        {
+                                            "kind": "packet",
+                                            "name": f"Gói {mm.group(1)}: {PACKETS[mm.group(1)]}",
+                                        }
+                                    )
                                     break
                         if re.fullmatch(r"\d+", args[0]):
                             fixed.setdefault(int(args[0]), []).append(use)
@@ -193,12 +232,21 @@ def main():
     for rule in RULES:
         rule = dict(rule)
         fixed.setdefault(rule.pop("id"), []).insert(0, rule)
-    mobs = [{"id": int(k), "name": m["name"], "level": m.get("level")} for k, m in data.mobs.items() if not m.get("boss")]
-    out = {"byId": {str(k): v for k, v in sorted(fixed.items())}, "dynamic": dynamic,
-           "allMobs": sorted(mobs, key=lambda m: (m["level"] or 0, m["id"]))}
+    mobs = [
+        {"id": int(k), "name": m["name"], "level": m.get("level")}
+        for k, m in data.mobs.items()
+        if not m.get("boss")
+    ]
+    out = {
+        "byId": {str(k): v for k, v in sorted(fixed.items())},
+        "dynamic": dynamic,
+        "allMobs": sorted(mobs, key=lambda m: (m["level"] or 0, m["id"])),
+    }
     with open(OUT, "w", encoding="utf-8", newline="\n") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
-    print(f"{len(fixed)} ids, {sum(len(v) for v in fixed.values())} uses, {len(dynamic)} dynamic -> {OUT}")
+    print(
+        f"{len(fixed)} ids, {sum(len(v) for v in fixed.values())} uses, {len(dynamic)} dynamic -> {OUT}"
+    )
 
 
 if __name__ == "__main__":

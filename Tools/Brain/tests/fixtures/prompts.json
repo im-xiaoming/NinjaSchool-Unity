@@ -1,0 +1,695 @@
+{
+  "settings": {
+    "Enabled": true,
+    "AgentCount": 13,
+    "LoginSpacingSeconds": 2,
+    "MoveStepPx": 60,
+    "MoveSendMilliseconds": 250,
+    "ReviveAfterSeconds": 8,
+    "DefaultFleeHpPercent": 30,
+    "DrinkMpPercent": 15,
+    "PotionStock": 10,
+    "MinPotionsToFight": 3,
+    "NoPotionFleeHpPercent": 55,
+    "FoodStock": 2,
+    "FoodMoneyReserve": 300,
+    "BagReserveSlots": 3,
+    "FastTravelMinSavedHops": 2,
+    "FastTravelScrollCostHops": 2,
+    "StepTimeoutSeconds": 300,
+    "NoTargetFailSeconds": 25,
+    "SafeDistancePx": 340,
+    "GreetPercent": 40,
+    "LootScanRadiusPx": 600,
+    "LootVerticalRangePx": 144,
+    "LootStallSeconds": 4,
+    "LootRetrySeconds": 8,
+    "UnreachableRetrySeconds": 20,
+    "SpreadHuntingZones": true,
+    "ZoneCheckSeconds": 10,
+    "ZoneChangeCooldownSeconds": 45,
+    "ZoneApproachTimeoutSeconds": 30,
+    "ZoneCrowdingThreshold": 3,
+    "ZonePopulationImprovement": 2,
+    "MinDecisionSeconds": 15,
+    "ReviewSeconds": 300,
+    "MemorySize": 20,
+    "OptionHops": 3,
+    "SaveSeconds": 60,
+    "LlmEnabled": true,
+    "LlmLeads": true,
+    "LlmStallSeconds": 90,
+    "NpcMapsInPrompt": 12,
+    "RagEnabled": true,
+    "QdrantUrl": "http://127.0.0.1:6333",
+    "RagCollection": "nso_agent_memory",
+    "EmbedModel": "bge-m3",
+    "EmbedEndpoint": "http://127.0.0.1:11434/api/embed",
+    "RagTopK": 8,
+    "RagGameKnowledge": true,
+    "RagKnowledgeTopK": 4,
+    "RagMemoryChars": 600,
+    "LlmPriorityMinutes": 15,
+    "ContextEvents": 8,
+    "LlmContextTokens": 4096,
+    "CharsPerToken": 2.5,
+    "SummaryWords": 80,
+    "LlmReviewSeconds": 120,
+    "LlmEndpoint": "http://127.0.0.1:11434/v1/chat/completions",
+    "LlmModel": "qwen3.5:4b",
+    "LlmApiKey": "",
+    "LlmLocalOnly": true,
+    "LlmTimeoutSeconds": 40,
+    "LlmTemperature": 0.7,
+    "LlmMaxTokens": 500,
+    "LlmReasoningEffort": "none",
+    "LlmJsonMode": true,
+    "LlmStructuredOutputs": true,
+    "LlmFormatBackoffSeconds": 5,
+    "LlmBackoffSeconds": 60,
+    "LlmMaxQueue": 16,
+    "LlmGuide": "BEGINNER'S GUIDE:\n- You start in Làng Tone. Follow the main quests of the village chief Tajima in order: they teach the basics, give rewards and unlock new maps. When unsure, choose the quest.\n- Without a weapon you cannot fight: Tajima gives a wooden sword.\n- Shops open after quest 3 (NV diệt sên trừ cóc). Kiriko sells HP/MP potions, Tabemono food. Carry potions before long hunts.\n- Monsters drop yen (about one kill in ten) and sometimes items; drops are owner-only for 30 seconds, then public until they expire.\n- Train on monsters from your level to about 3 levels above. Far stronger ones kill you; ones 10 levels below give no experience.\n- At level 10, after quest 8 (visit the 3 schools), join your school: Hirosaki (kiếm, phi tiêu), Ookaza (kunai, cung) or Haruna (đao, quạt). Then read the school's book and use its weapon.\n- Potential and skill points are spent for you. When a quest step needs a level, hunt until you reach it.\n- If you die you return to the village with full HP; learn from it and avoid that monster for a while.",
+    "AccountPrefix": "ai",
+    "DefaultGuide": "BEGINNER'S GUIDE:\n- You start in Làng Tone. Follow the main quests of the village chief Tajima in order: they teach the basics, give rewards and unlock new maps. When unsure, choose the quest.\n- Without a weapon you cannot fight: Tajima gives a wooden sword.\n- Shops open after quest 3 (NV diệt sên trừ cóc). Kiriko sells HP/MP potions, Tabemono food. Carry potions before long hunts.\n- Monsters drop yen (about one kill in ten) and sometimes items; drops are owner-only for 30 seconds, then public until they expire.\n- Train on monsters from your level to about 3 levels above. Far stronger ones kill you; ones 10 levels below give no experience.\n- At level 10, after quest 8 (visit the 3 schools), join your school: Hirosaki (kiếm, phi tiêu), Ookaza (kunai, cung) or Haruna (đao, quạt). Then read the school's book and use its weapon.\n- Potential and skill points are spent for you. When a quest step needs a level, hunt until you reach it.\n- If you die you return to the village with full HP; learn from it and avoid that monster for a while.",
+    "GroundOwnerSeconds": 30,
+    "GroundLifetimeSeconds": 60
+  },
+  "cases": [
+    {
+      "snapshot": {
+        "AgentId": 0,
+        "Name": "sample",
+        "Bio": "A curious ninja.",
+        "Traits": "curiosity 0.8",
+        "ClassName": "none",
+        "Aggression": 0,
+        "Caution": 0,
+        "Greed": 0.8,
+        "Curiosity": 0,
+        "Sociability": 0,
+        "Level": 5,
+        "HpPercent": 70,
+        "MpPercent": 40,
+        "Kills": 4,
+        "Deaths": 1,
+        "QuestsDone": 2,
+        "MapId": 22,
+        "ItemsNearby": 3,
+        "PlayersHere": 2,
+        "HpPotions": 2,
+        "MpPotions": 0,
+        "FreeSlots": 3,
+        "Yen": 321,
+        "Xu": 5,
+        "Exp": 0,
+        "ExpNext": 0,
+        "MapView": "YOU at (100,200)\n",
+        "Activity": "walking",
+        "Terrain": "grid\n",
+        "Account": "aisample",
+        "Summary": "I survived.",
+        "EventsInPrompt": 2147483647,
+        "NpcMemory": [
+          "Kiriko (10,20)"
+        ],
+        "ExpPercent": 12.35,
+        "HasWeapon": false,
+        "CanShop": false,
+        "CanAffordPotions": false,
+        "Foods": 1,
+        "Priorities": [
+          2,
+          1,
+          0.5,
+          0,
+          3,
+          1
+        ],
+        "Fed": true,
+        "WantsFood": false,
+        "MapName": "Village",
+        "Trigger": "quest progress",
+        "CurrentPlan": "quest",
+        "InVillage": true,
+        "QuestId": 5,
+        "QuestLevel": 0,
+        "QuestName": "Herbs",
+        "QuestStep": "Find herbs",
+        "QuestState": "active",
+        "QuestHint": "near water",
+        "QuestGuide": "Talk to Kiriko",
+        "QuestBlockedByLevel": false,
+        "TryItemId": 23,
+        "TryItemText": "food",
+        "Bag": [
+          "potion x2"
+        ],
+        "Equipment": [
+          "sword"
+        ],
+        "Memory": [
+          "first",
+          "second"
+        ],
+        "Knowledge": [
+          "danger"
+        ],
+        "Hunts": [
+          {
+            "MapId": 5,
+            "Hops": 2,
+            "MobId": 5,
+            "MobLevel": 7,
+            "MapName": "Field",
+            "MobName": "Snail"
+          }
+        ],
+        "Neighbors": [
+          1
+        ],
+        "MapNames": {
+          "1": "School"
+        },
+        "UnlockedMaps": 10,
+        "Seed": 0
+      },
+      "recalled": null,
+      "terrain": true,
+      "expected": "YOU: sample. A curious ninja.\nTraits: curiosity 0.8\nSPENDING STYLE: thrifty: you keep money back, carry few potions and rarely buy things just to try\nCHARACTER: level 5 (12.4% to next), none, HP 70%, MP 40%, yen 321, xu 5, NO WEAPON\nLIFE: 4 kills, 1 deaths, 2 quests finished, 10 maps unlocked\nBAG (3 free slots): HP potions 2, MP potions 0, food 1 (eating: HP/MP regenerating), potion x2\nEQUIPPED: sword\nMAIN QUEST 5 \"Herbs\": active, step \"Find herbs\" (near water)\nQUEST NEXT: Talk to Kiriko. The step {\"goal\":\"quest\"} does exactly this by itself (walks there, talks, hunts, picks up); prefer it over goto/hunt unless you must shop, rest or train for the level first.\nUNKNOWN ITEM YOU COULD TRY: food - the step {\"goal\":\"shop\",\"mob\":23} buys one and uses it once; what it did goes into your knowledge.\nLOCATION: map 22 \"Village\" (village), players here 2, items on the ground you may take 3\nCURRENT GROUND LOOT RULES: exclusive owner for 30 seconds; disappears after 60 seconds. These timings override the beginner guide.\nCURRENT PLAN: quest\nYOUR PRIORITIES NOW: quest 2, hunt 1, shop 0.5, explore 0, collect 3, idle 1\nDOING NOW: walking\nCURRENT MAP (pixels; x grows right, y grows DOWN and is the floor under the feet):\nTERRAIN of the whole map, one character per cell of S x S pixels (S given below); column c covers x = c*S .. c*S+S-1, row r is y = r*S (a standing character's y is the row of the floor it stands on). _ floor you can reach from where you are now; x floor you CANNOT reach from here; # solid ground/wall (not passable); w wood/rock obstacle (not passable, jump over); . open air (passable, you fall through it); @ you; E exit to another map; N NPC; M monster; i item on the ground; P another player.\ngrid\nYOU at (100,200)\nYOUR STORY SO FAR (summary of older memories): I survived.\nKNOWLEDGE (what you learned playing):\n- danger\nNPC POSITIONS YOU REMEMBER IN OTHER MAPS (goto them with the map id and coordinates):\n- Kiriko (10,20)\nRECENT EVENTS (oldest first):\n- first\n- second\nHUNTING GROUNDS IN UNLOCKED MAPS (map id \"name\" hops: monster id name level):\n- map 5 \"Field\" 2 hops: mob 5 Snail lv 7\nNEIGHBOUR MAPS: 1 \"School\"\nEVENT: quest progress\nDecide the next plan. JSON only."
+    },
+    {
+      "snapshot": {
+        "AgentId": 0,
+        "Name": "sample",
+        "Bio": "A curious ninja.",
+        "Traits": "curiosity 0.8",
+        "ClassName": "none",
+        "Aggression": 0,
+        "Caution": 0,
+        "Greed": 0.8,
+        "Curiosity": 0,
+        "Sociability": 0,
+        "Level": 5,
+        "HpPercent": 70,
+        "MpPercent": 40,
+        "Kills": 4,
+        "Deaths": 1,
+        "QuestsDone": 2,
+        "MapId": 22,
+        "ItemsNearby": 3,
+        "PlayersHere": 2,
+        "HpPotions": 2,
+        "MpPotions": 0,
+        "FreeSlots": 3,
+        "Yen": 321,
+        "Xu": 5,
+        "Exp": 0,
+        "ExpNext": 0,
+        "MapView": "YOU at (100,200)\n",
+        "Activity": "walking",
+        "Terrain": "grid\n",
+        "Account": "aisample",
+        "Summary": "I survived.",
+        "EventsInPrompt": 2147483647,
+        "NpcMemory": [
+          "Kiriko (10,20)"
+        ],
+        "ExpPercent": 12.35,
+        "HasWeapon": false,
+        "CanShop": false,
+        "CanAffordPotions": false,
+        "Foods": 1,
+        "Priorities": [
+          2,
+          1,
+          0.5,
+          0,
+          3,
+          1
+        ],
+        "Fed": true,
+        "WantsFood": false,
+        "MapName": "Village",
+        "Trigger": "quest progress",
+        "CurrentPlan": "quest",
+        "InVillage": true,
+        "QuestId": 5,
+        "QuestLevel": 0,
+        "QuestName": "Herbs",
+        "QuestStep": "Find herbs",
+        "QuestState": "active",
+        "QuestHint": "near water",
+        "QuestGuide": "Talk to Kiriko",
+        "QuestBlockedByLevel": false,
+        "TryItemId": 23,
+        "TryItemText": "food",
+        "Bag": [
+          "potion x2"
+        ],
+        "Equipment": [
+          "sword"
+        ],
+        "Memory": [
+          "first",
+          "second"
+        ],
+        "Knowledge": [
+          "danger"
+        ],
+        "Hunts": [
+          {
+            "MapId": 5,
+            "Hops": 2,
+            "MobId": 5,
+            "MobLevel": 7,
+            "MapName": "Field",
+            "MobName": "Snail"
+          }
+        ],
+        "Neighbors": [
+          1
+        ],
+        "MapNames": {
+          "1": "School"
+        },
+        "UnlockedMaps": 10,
+        "Seed": 0
+      },
+      "recalled": null,
+      "terrain": false,
+      "expected": "YOU: sample. A curious ninja.\nTraits: curiosity 0.8\nSPENDING STYLE: thrifty: you keep money back, carry few potions and rarely buy things just to try\nCHARACTER: level 5 (12.4% to next), none, HP 70%, MP 40%, yen 321, xu 5, NO WEAPON\nLIFE: 4 kills, 1 deaths, 2 quests finished, 10 maps unlocked\nBAG (3 free slots): HP potions 2, MP potions 0, food 1 (eating: HP/MP regenerating), potion x2\nEQUIPPED: sword\nMAIN QUEST 5 \"Herbs\": active, step \"Find herbs\" (near water)\nQUEST NEXT: Talk to Kiriko. The step {\"goal\":\"quest\"} does exactly this by itself (walks there, talks, hunts, picks up); prefer it over goto/hunt unless you must shop, rest or train for the level first.\nUNKNOWN ITEM YOU COULD TRY: food - the step {\"goal\":\"shop\",\"mob\":23} buys one and uses it once; what it did goes into your knowledge.\nLOCATION: map 22 \"Village\" (village), players here 2, items on the ground you may take 3\nCURRENT GROUND LOOT RULES: exclusive owner for 30 seconds; disappears after 60 seconds. These timings override the beginner guide.\nCURRENT PLAN: quest\nYOUR PRIORITIES NOW: quest 2, hunt 1, shop 0.5, explore 0, collect 3, idle 1\nDOING NOW: walking\nCURRENT MAP (pixels; x grows right, y grows DOWN and is the floor under the feet):\nYOU at (100,200)\nYOUR STORY SO FAR (summary of older memories): I survived.\nKNOWLEDGE (what you learned playing):\n- danger\nNPC POSITIONS YOU REMEMBER IN OTHER MAPS (goto them with the map id and coordinates):\n- Kiriko (10,20)\nRECENT EVENTS (oldest first):\n- first\n- second\nHUNTING GROUNDS IN UNLOCKED MAPS (map id \"name\" hops: monster id name level):\n- map 5 \"Field\" 2 hops: mob 5 Snail lv 7\nNEIGHBOUR MAPS: 1 \"School\"\nEVENT: quest progress\nDecide the next plan. JSON only."
+    },
+    {
+      "snapshot": {
+        "AgentId": 0,
+        "Name": "sample",
+        "Bio": "A curious ninja.",
+        "Traits": "curiosity 0.8",
+        "ClassName": "none",
+        "Aggression": 0,
+        "Caution": 0,
+        "Greed": 0.8,
+        "Curiosity": 0,
+        "Sociability": 0,
+        "Level": 5,
+        "HpPercent": 70,
+        "MpPercent": 40,
+        "Kills": 4,
+        "Deaths": 1,
+        "QuestsDone": 2,
+        "MapId": 22,
+        "ItemsNearby": 3,
+        "PlayersHere": 2,
+        "HpPotions": 2,
+        "MpPotions": 0,
+        "FreeSlots": 3,
+        "Yen": 321,
+        "Xu": 5,
+        "Exp": 0,
+        "ExpNext": 0,
+        "MapView": "YOU at (100,200)\n",
+        "Activity": "walking",
+        "Terrain": "grid\n",
+        "Account": "aisample",
+        "Summary": "I survived.",
+        "EventsInPrompt": 2147483647,
+        "NpcMemory": [
+          "Kiriko (10,20)"
+        ],
+        "ExpPercent": 12.35,
+        "HasWeapon": false,
+        "CanShop": false,
+        "CanAffordPotions": false,
+        "Foods": 1,
+        "Priorities": [
+          2,
+          1,
+          0.5,
+          0,
+          3,
+          1
+        ],
+        "Fed": true,
+        "WantsFood": false,
+        "MapName": "Village",
+        "Trigger": "quest progress",
+        "CurrentPlan": "quest",
+        "InVillage": true,
+        "QuestId": 5,
+        "QuestLevel": 0,
+        "QuestName": "Herbs",
+        "QuestStep": "Find herbs",
+        "QuestState": "active",
+        "QuestHint": "near water",
+        "QuestGuide": "Talk to Kiriko",
+        "QuestBlockedByLevel": false,
+        "TryItemId": 23,
+        "TryItemText": "food",
+        "Bag": [
+          "potion x2"
+        ],
+        "Equipment": [
+          "sword"
+        ],
+        "Memory": [
+          "first",
+          "second"
+        ],
+        "Knowledge": [
+          "danger"
+        ],
+        "Hunts": [
+          {
+            "MapId": 5,
+            "Hops": 2,
+            "MobId": 5,
+            "MobLevel": 7,
+            "MapName": "Field",
+            "MobName": "Snail"
+          }
+        ],
+        "Neighbors": [
+          1
+        ],
+        "MapNames": {
+          "1": "School"
+        },
+        "UnlockedMaps": 10,
+        "Seed": 0
+      },
+      "recalled": [],
+      "terrain": true,
+      "expected": "YOU: sample. A curious ninja.\nTraits: curiosity 0.8\nSPENDING STYLE: thrifty: you keep money back, carry few potions and rarely buy things just to try\nCHARACTER: level 5 (12.4% to next), none, HP 70%, MP 40%, yen 321, xu 5, NO WEAPON\nLIFE: 4 kills, 1 deaths, 2 quests finished, 10 maps unlocked\nBAG (3 free slots): HP potions 2, MP potions 0, food 1 (eating: HP/MP regenerating), potion x2\nEQUIPPED: sword\nMAIN QUEST 5 \"Herbs\": active, step \"Find herbs\" (near water)\nQUEST NEXT: Talk to Kiriko. The step {\"goal\":\"quest\"} does exactly this by itself (walks there, talks, hunts, picks up); prefer it over goto/hunt unless you must shop, rest or train for the level first.\nUNKNOWN ITEM YOU COULD TRY: food - the step {\"goal\":\"shop\",\"mob\":23} buys one and uses it once; what it did goes into your knowledge.\nLOCATION: map 22 \"Village\" (village), players here 2, items on the ground you may take 3\nCURRENT GROUND LOOT RULES: exclusive owner for 30 seconds; disappears after 60 seconds. These timings override the beginner guide.\nCURRENT PLAN: quest\nYOUR PRIORITIES NOW: quest 2, hunt 1, shop 0.5, explore 0, collect 3, idle 1\nDOING NOW: walking\nCURRENT MAP (pixels; x grows right, y grows DOWN and is the floor under the feet):\nTERRAIN of the whole map, one character per cell of S x S pixels (S given below); column c covers x = c*S .. c*S+S-1, row r is y = r*S (a standing character's y is the row of the floor it stands on). _ floor you can reach from where you are now; x floor you CANNOT reach from here; # solid ground/wall (not passable); w wood/rock obstacle (not passable, jump over); . open air (passable, you fall through it); @ you; E exit to another map; N NPC; M monster; i item on the ground; P another player.\ngrid\nYOU at (100,200)\nYOUR STORY SO FAR (summary of older memories): I survived.\nMEMORIES RELEVANT NOW (recalled from your long-term memory):\n- nothing relevant\nRECENT EVENTS (oldest first):\n- first\n- second\nHUNTING GROUNDS IN UNLOCKED MAPS (map id \"name\" hops: monster id name level):\n- map 5 \"Field\" 2 hops: mob 5 Snail lv 7\nNEIGHBOUR MAPS: 1 \"School\"\nEVENT: quest progress\nDecide the next plan. JSON only."
+    },
+    {
+      "snapshot": {
+        "AgentId": 0,
+        "Name": "sample",
+        "Bio": "A curious ninja.",
+        "Traits": "curiosity 0.8",
+        "ClassName": "none",
+        "Aggression": 0,
+        "Caution": 0,
+        "Greed": 0.8,
+        "Curiosity": 0,
+        "Sociability": 0,
+        "Level": 5,
+        "HpPercent": 70,
+        "MpPercent": 40,
+        "Kills": 4,
+        "Deaths": 1,
+        "QuestsDone": 2,
+        "MapId": 22,
+        "ItemsNearby": 3,
+        "PlayersHere": 2,
+        "HpPotions": 2,
+        "MpPotions": 0,
+        "FreeSlots": 3,
+        "Yen": 321,
+        "Xu": 5,
+        "Exp": 0,
+        "ExpNext": 0,
+        "MapView": "YOU at (100,200)\n",
+        "Activity": "walking",
+        "Terrain": "grid\n",
+        "Account": "aisample",
+        "Summary": "I survived.",
+        "EventsInPrompt": 2147483647,
+        "NpcMemory": [
+          "Kiriko (10,20)"
+        ],
+        "ExpPercent": 12.35,
+        "HasWeapon": false,
+        "CanShop": false,
+        "CanAffordPotions": false,
+        "Foods": 1,
+        "Priorities": [
+          2,
+          1,
+          0.5,
+          0,
+          3,
+          1
+        ],
+        "Fed": true,
+        "WantsFood": false,
+        "MapName": "Village",
+        "Trigger": "quest progress",
+        "CurrentPlan": "quest",
+        "InVillage": true,
+        "QuestId": 5,
+        "QuestLevel": 0,
+        "QuestName": "Herbs",
+        "QuestStep": "Find herbs",
+        "QuestState": "active",
+        "QuestHint": "near water",
+        "QuestGuide": "Talk to Kiriko",
+        "QuestBlockedByLevel": false,
+        "TryItemId": 23,
+        "TryItemText": "food",
+        "Bag": [
+          "potion x2"
+        ],
+        "Equipment": [
+          "sword"
+        ],
+        "Memory": [
+          "first",
+          "second"
+        ],
+        "Knowledge": [
+          "danger"
+        ],
+        "Hunts": [
+          {
+            "MapId": 5,
+            "Hops": 2,
+            "MobId": 5,
+            "MobLevel": 7,
+            "MapName": "Field",
+            "MobName": "Snail"
+          }
+        ],
+        "Neighbors": [
+          1
+        ],
+        "MapNames": {
+          "1": "School"
+        },
+        "UnlockedMaps": 10,
+        "Seed": 0
+      },
+      "recalled": [],
+      "terrain": false,
+      "expected": "YOU: sample. A curious ninja.\nTraits: curiosity 0.8\nSPENDING STYLE: thrifty: you keep money back, carry few potions and rarely buy things just to try\nCHARACTER: level 5 (12.4% to next), none, HP 70%, MP 40%, yen 321, xu 5, NO WEAPON\nLIFE: 4 kills, 1 deaths, 2 quests finished, 10 maps unlocked\nBAG (3 free slots): HP potions 2, MP potions 0, food 1 (eating: HP/MP regenerating), potion x2\nEQUIPPED: sword\nMAIN QUEST 5 \"Herbs\": active, step \"Find herbs\" (near water)\nQUEST NEXT: Talk to Kiriko. The step {\"goal\":\"quest\"} does exactly this by itself (walks there, talks, hunts, picks up); prefer it over goto/hunt unless you must shop, rest or train for the level first.\nUNKNOWN ITEM YOU COULD TRY: food - the step {\"goal\":\"shop\",\"mob\":23} buys one and uses it once; what it did goes into your knowledge.\nLOCATION: map 22 \"Village\" (village), players here 2, items on the ground you may take 3\nCURRENT GROUND LOOT RULES: exclusive owner for 30 seconds; disappears after 60 seconds. These timings override the beginner guide.\nCURRENT PLAN: quest\nYOUR PRIORITIES NOW: quest 2, hunt 1, shop 0.5, explore 0, collect 3, idle 1\nDOING NOW: walking\nCURRENT MAP (pixels; x grows right, y grows DOWN and is the floor under the feet):\nYOU at (100,200)\nYOUR STORY SO FAR (summary of older memories): I survived.\nMEMORIES RELEVANT NOW (recalled from your long-term memory):\n- nothing relevant\nRECENT EVENTS (oldest first):\n- first\n- second\nHUNTING GROUNDS IN UNLOCKED MAPS (map id \"name\" hops: monster id name level):\n- map 5 \"Field\" 2 hops: mob 5 Snail lv 7\nNEIGHBOUR MAPS: 1 \"School\"\nEVENT: quest progress\nDecide the next plan. JSON only."
+    },
+    {
+      "snapshot": {
+        "AgentId": 0,
+        "Name": "sample",
+        "Bio": "A curious ninja.",
+        "Traits": "curiosity 0.8",
+        "ClassName": "none",
+        "Aggression": 0,
+        "Caution": 0,
+        "Greed": 0.8,
+        "Curiosity": 0,
+        "Sociability": 0,
+        "Level": 5,
+        "HpPercent": 70,
+        "MpPercent": 40,
+        "Kills": 4,
+        "Deaths": 1,
+        "QuestsDone": 2,
+        "MapId": 22,
+        "ItemsNearby": 3,
+        "PlayersHere": 2,
+        "HpPotions": 2,
+        "MpPotions": 0,
+        "FreeSlots": 3,
+        "Yen": 321,
+        "Xu": 5,
+        "Exp": 0,
+        "ExpNext": 0,
+        "MapView": "YOU at (100,200)\n",
+        "Activity": "walking",
+        "Terrain": "grid\n",
+        "Account": "aisample",
+        "Summary": "I survived.",
+        "EventsInPrompt": 2147483647,
+        "NpcMemory": [
+          "Kiriko (10,20)"
+        ],
+        "ExpPercent": 12.35,
+        "HasWeapon": false,
+        "CanShop": false,
+        "CanAffordPotions": false,
+        "Foods": 1,
+        "Priorities": [
+          2,
+          1,
+          0.5,
+          0,
+          3,
+          1
+        ],
+        "Fed": true,
+        "WantsFood": false,
+        "MapName": "Village",
+        "Trigger": "quest progress",
+        "CurrentPlan": "quest",
+        "InVillage": true,
+        "QuestId": 5,
+        "QuestLevel": 0,
+        "QuestName": "Herbs",
+        "QuestStep": "Find herbs",
+        "QuestState": "active",
+        "QuestHint": "near water",
+        "QuestGuide": "Talk to Kiriko",
+        "QuestBlockedByLevel": false,
+        "TryItemId": 23,
+        "TryItemText": "food",
+        "Bag": [
+          "potion x2"
+        ],
+        "Equipment": [
+          "sword"
+        ],
+        "Memory": [
+          "first",
+          "second"
+        ],
+        "Knowledge": [
+          "danger"
+        ],
+        "Hunts": [
+          {
+            "MapId": 5,
+            "Hops": 2,
+            "MobId": 5,
+            "MobLevel": 7,
+            "MapName": "Field",
+            "MobName": "Snail"
+          }
+        ],
+        "Neighbors": [
+          1
+        ],
+        "MapNames": {
+          "1": "School"
+        },
+        "UnlockedMaps": 10,
+        "Seed": 0
+      },
+      "recalled": [
+        "[item] food"
+      ],
+      "terrain": true,
+      "expected": "YOU: sample. A curious ninja.\nTraits: curiosity 0.8\nSPENDING STYLE: thrifty: you keep money back, carry few potions and rarely buy things just to try\nCHARACTER: level 5 (12.4% to next), none, HP 70%, MP 40%, yen 321, xu 5, NO WEAPON\nLIFE: 4 kills, 1 deaths, 2 quests finished, 10 maps unlocked\nBAG (3 free slots): HP potions 2, MP potions 0, food 1 (eating: HP/MP regenerating), potion x2\nEQUIPPED: sword\nMAIN QUEST 5 \"Herbs\": active, step \"Find herbs\" (near water)\nQUEST NEXT: Talk to Kiriko. The step {\"goal\":\"quest\"} does exactly this by itself (walks there, talks, hunts, picks up); prefer it over goto/hunt unless you must shop, rest or train for the level first.\nUNKNOWN ITEM YOU COULD TRY: food - the step {\"goal\":\"shop\",\"mob\":23} buys one and uses it once; what it did goes into your knowledge.\nLOCATION: map 22 \"Village\" (village), players here 2, items on the ground you may take 3\nCURRENT GROUND LOOT RULES: exclusive owner for 30 seconds; disappears after 60 seconds. These timings override the beginner guide.\nCURRENT PLAN: quest\nYOUR PRIORITIES NOW: quest 2, hunt 1, shop 0.5, explore 0, collect 3, idle 1\nDOING NOW: walking\nCURRENT MAP (pixels; x grows right, y grows DOWN and is the floor under the feet):\nTERRAIN of the whole map, one character per cell of S x S pixels (S given below); column c covers x = c*S .. c*S+S-1, row r is y = r*S (a standing character's y is the row of the floor it stands on). _ floor you can reach from where you are now; x floor you CANNOT reach from here; # solid ground/wall (not passable); w wood/rock obstacle (not passable, jump over); . open air (passable, you fall through it); @ you; E exit to another map; N NPC; M monster; i item on the ground; P another player.\ngrid\nYOU at (100,200)\nYOUR STORY SO FAR (summary of older memories): I survived.\nMEMORIES RELEVANT NOW (recalled from your long-term memory):\n- [item] food\nRECENT EVENTS (oldest first):\n- first\n- second\nHUNTING GROUNDS IN UNLOCKED MAPS (map id \"name\" hops: monster id name level):\n- map 5 \"Field\" 2 hops: mob 5 Snail lv 7\nNEIGHBOUR MAPS: 1 \"School\"\nEVENT: quest progress\nDecide the next plan. JSON only."
+    },
+    {
+      "snapshot": {
+        "AgentId": 0,
+        "Name": "sample",
+        "Bio": "A curious ninja.",
+        "Traits": "curiosity 0.8",
+        "ClassName": "none",
+        "Aggression": 0,
+        "Caution": 0,
+        "Greed": 0.8,
+        "Curiosity": 0,
+        "Sociability": 0,
+        "Level": 5,
+        "HpPercent": 70,
+        "MpPercent": 40,
+        "Kills": 4,
+        "Deaths": 1,
+        "QuestsDone": 2,
+        "MapId": 22,
+        "ItemsNearby": 3,
+        "PlayersHere": 2,
+        "HpPotions": 2,
+        "MpPotions": 0,
+        "FreeSlots": 3,
+        "Yen": 321,
+        "Xu": 5,
+        "Exp": 0,
+        "ExpNext": 0,
+        "MapView": "YOU at (100,200)\n",
+        "Activity": "walking",
+        "Terrain": "grid\n",
+        "Account": "aisample",
+        "Summary": "I survived.",
+        "EventsInPrompt": 2147483647,
+        "NpcMemory": [
+          "Kiriko (10,20)"
+        ],
+        "ExpPercent": 12.35,
+        "HasWeapon": false,
+        "CanShop": false,
+        "CanAffordPotions": false,
+        "Foods": 1,
+        "Priorities": [
+          2,
+          1,
+          0.5,
+          0,
+          3,
+          1
+        ],
+        "Fed": true,
+        "WantsFood": false,
+        "MapName": "Village",
+        "Trigger": "quest progress",
+        "CurrentPlan": "quest",
+        "InVillage": true,
+        "QuestId": 5,
+        "QuestLevel": 0,
+        "QuestName": "Herbs",
+        "QuestStep": "Find herbs",
+        "QuestState": "active",
+        "QuestHint": "near water",
+        "QuestGuide": "Talk to Kiriko",
+        "QuestBlockedByLevel": false,
+        "TryItemId": 23,
+        "TryItemText": "food",
+        "Bag": [
+          "potion x2"
+        ],
+        "Equipment": [
+          "sword"
+        ],
+        "Memory": [
+          "first",
+          "second"
+        ],
+        "Knowledge": [
+          "danger"
+        ],
+        "Hunts": [
+          {
+            "MapId": 5,
+            "Hops": 2,
+            "MobId": 5,
+            "MobLevel": 7,
+            "MapName": "Field",
+            "MobName": "Snail"
+          }
+        ],
+        "Neighbors": [
+          1
+        ],
+        "MapNames": {
+          "1": "School"
+        },
+        "UnlockedMaps": 10,
+        "Seed": 0
+      },
+      "recalled": [
+        "[item] food"
+      ],
+      "terrain": false,
+      "expected": "YOU: sample. A curious ninja.\nTraits: curiosity 0.8\nSPENDING STYLE: thrifty: you keep money back, carry few potions and rarely buy things just to try\nCHARACTER: level 5 (12.4% to next), none, HP 70%, MP 40%, yen 321, xu 5, NO WEAPON\nLIFE: 4 kills, 1 deaths, 2 quests finished, 10 maps unlocked\nBAG (3 free slots): HP potions 2, MP potions 0, food 1 (eating: HP/MP regenerating), potion x2\nEQUIPPED: sword\nMAIN QUEST 5 \"Herbs\": active, step \"Find herbs\" (near water)\nQUEST NEXT: Talk to Kiriko. The step {\"goal\":\"quest\"} does exactly this by itself (walks there, talks, hunts, picks up); prefer it over goto/hunt unless you must shop, rest or train for the level first.\nUNKNOWN ITEM YOU COULD TRY: food - the step {\"goal\":\"shop\",\"mob\":23} buys one and uses it once; what it did goes into your knowledge.\nLOCATION: map 22 \"Village\" (village), players here 2, items on the ground you may take 3\nCURRENT GROUND LOOT RULES: exclusive owner for 30 seconds; disappears after 60 seconds. These timings override the beginner guide.\nCURRENT PLAN: quest\nYOUR PRIORITIES NOW: quest 2, hunt 1, shop 0.5, explore 0, collect 3, idle 1\nDOING NOW: walking\nCURRENT MAP (pixels; x grows right, y grows DOWN and is the floor under the feet):\nYOU at (100,200)\nYOUR STORY SO FAR (summary of older memories): I survived.\nMEMORIES RELEVANT NOW (recalled from your long-term memory):\n- [item] food\nRECENT EVENTS (oldest first):\n- first\n- second\nHUNTING GROUNDS IN UNLOCKED MAPS (map id \"name\" hops: monster id name level):\n- map 5 \"Field\" 2 hops: mob 5 Snail lv 7\nNEIGHBOUR MAPS: 1 \"School\"\nEVENT: quest progress\nDecide the next plan. JSON only."
+    }
+  ]
+}

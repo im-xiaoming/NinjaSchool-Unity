@@ -3,9 +3,7 @@
     public class TanSat : Auto
     {
         public int templateId;
-
         public int mobId;
-
         public override void Run()
         {
             if (Auto.isDie(Char.getMyChar()))
@@ -13,6 +11,7 @@
                 Hoisinh(isWait: true);
                 return;
             }
+
             if (TileMap.mapID != mapID || TileMap.zoneID != zoneID) // reMap removed; was always on
             {
                 Go(mapID, zoneID);
@@ -32,6 +31,7 @@
             {
                 return "Tàn sát + HS lượng: " + (GameScr.HoiSinhLuong ? "Bật" : "Tắt");
             }
+
             return "Tàn sát: " + Mob.MobName(templateId) + " + HS lượng: " + (GameScr.HoiSinhLuong ? "Bật" : "Tắt");
         }
 

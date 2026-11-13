@@ -10,16 +10,14 @@ using UnityEngine;
 // Both can be switched off in Settings (F6) > Âm thanh.
 public class MenuAudio : MonoBehaviour
 {
-    public static bool menuMusic = true;          // Settings > Âm thanh > Nhạc menu
-    public static bool uiSounds = true;           // Settings > Âm thanh > Âm thanh nút bấm
-    public static float menuMusicVolume = 0.6f;   // loudness of the menu track before the settings volume
-    public static bool menuMusicLoop = false;     // false: the track plays once per visit to the menu; true: it repeats
-    private const float FadeSeconds = 1.2f;       // fade in / fade out time
-
-    private float level;      // 0..1 fade position
-    private bool ours;        // the background source is playing our menu track
-    private bool played;      // the track was started during this visit to the menu (reset when the menu is left)
-
+    public static bool menuMusic = true; // Settings > Âm thanh > Nhạc menu
+    public static bool uiSounds = true; // Settings > Âm thanh > Âm thanh nút bấm
+    public static float menuMusicVolume = 0.6f; // loudness of the menu track before the settings volume
+    public static bool menuMusicLoop = false; // false: the track plays once per visit to the menu; true: it repeats
+    private const float FadeSeconds = 1.2f; // fade in / fade out time
+    private float level; // 0..1 fade position
+    private bool ours; // the background source is playing our menu track
+    private bool played; // the track was started during this visit to the menu (reset when the menu is left)
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Boot()
     {
@@ -42,37 +40,52 @@ public class MenuAudio : MonoBehaviour
     // Confirm / button press sound on menu screens.
     public static void Click()
     {
-        if (uiSounds && OnMenuScreen) Sound.play(Sound.MBClick, 0.5f);
+        if (uiSounds && OnMenuScreen)
+            Sound.play(Sound.MBClick, 0.5f);
     }
 
     // Softer sound for moving the selection on menu screens.
     public static void Tick()
     {
-        if (uiSounds && OnMenuScreen) Sound.play(Sound.MBClick, 0.25f);
+        if (uiSounds && OnMenuScreen)
+            Sound.play(Sound.MBClick, 0.25f);
     }
 
-    private static AudioClip MenuClip { get { return Sound.mysound != null && Sound.mysound.Length > Sound.MLogin ? Sound.mysound[Sound.MLogin] : null; } }
+    private static AudioClip MenuClip
+    {
+        get
+        {
+            return Sound.mysound != null && Sound.mysound.Length > Sound.MLogin ? Sound.mysound[Sound.MLogin] : null;
+        }
+    }
 
     private void Update()
     {
         AudioSource src = Sound.SoundBGLoop;
         AudioClip clip = MenuClip;
-        if (src == null || clip == null) return;   // sound not loaded yet
-        if (ours && src.clip != clip) { ours = false; level = 0f; }   // something else took the source (map music)
+        if (src == null || clip == null)
+            return; // sound not loaded yet
+        if (ours && src.clip != clip)
+        {
+            ours = false;
+            level = 0f;
+        } // something else took the source (map music)
 
         bool onMenu = OnMenuScreen;
-        if (!onMenu && !ours) played = false;   // menu left (and faded out): the next visit plays the track again
+        if (!onMenu && !ours)
+            played = false; // menu left (and faded out): the next visit plays the track again
         bool want = menuMusic && Sound.isSound && onMenu;
         if (want && !ours && (menuMusicLoop || !played))
         {
             Sound.playSoundBGLoop(Sound.MLogin, menuMusicVolume);
-            src.loop = menuMusicLoop;   // playSoundBGLoop always loops
+            src.loop = menuMusicLoop; // playSoundBGLoop always loops
             ours = src.isPlaying && src.clip == clip;
             played = ours;
             level = 0f;
         }
-        if (!ours) return;
 
+        if (!ours)
+            return;
         level = Mathf.MoveTowards(level, want ? 1f : 0f, Time.unscaledDeltaTime / FadeSeconds);
         src.volume = menuMusicVolume * Sound.ambientVolume * level;
         if (!want && level <= 0f)

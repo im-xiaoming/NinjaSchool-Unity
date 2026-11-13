@@ -3,7 +3,7 @@
 Bản offline của NSO trên Unity `6000.6.8f1`. Server C# (port từ Java) chạy ngay trong game, không cần mạng.
 
 ## Chạy
-Mở scene `Assets/Scenes/NinjaGame.unity` → **Play**. Mọi cấu hình nằm trên object **NSO Server Control**.
+Mở scene `Assets/Scenes/NinjaGame.unity` → **Play**. Inspector cũ vẫn làm fallback; cấu hình JSON tùy chọn và Python Brain được mô tả trong [docs/REFACTORING.md](docs/REFACTORING.md).
 
 ## Dữ liệu
 | | Vị trí |

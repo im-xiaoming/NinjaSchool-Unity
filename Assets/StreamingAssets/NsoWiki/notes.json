@@ -1,45 +1,318 @@
 {
   "_comment": "Hand-written collections of the dev wiki (Assets/Server/DevWiki). Each key is a collection, each value an array of documents with an \"id\". Keys starting with _ are ignored. Edit, then press 'Tải lại dữ liệu' in the page. status: done | partial | todo | skip.",
   "features": [
-    {"id": "bot-tile-movement", "area": "AI movement", "title": "Swept headless client movement", "status": "partial", "files": "World/TileMotion.cs; Ai/BotMovement.cs, BotClient.cs, AgentManager.cs; GameServer.cs", "notes": "Rules/RL destination intents execute in ~42 ms client frames through unchanged move handlers. Pixel collision sweeps, grounded jump/gravity, ceiling and landing; cancel stale input on correction/death/map/zone switch. Compile-only; high/unreachable obstacles may still stall."},
-    {"id": "ai-reply-remote-motion", "area": "AI and presentation", "title": "Required LLM steps and remote packet interpolation", "status": "partial", "files": "Ai/LlmReplyFormat.cs, StrategicLayer.cs; Application/RemoteMotion.cs, Interp.cs; client Controller.cs; diagnostics controls; agents.js", "notes": "Required structured steps, separate 5-second formatting backoff and bounded failed reply diagnostics. Adaptive render-only smoothing of remote movement (0.5/0.75 seconds, teleport 180 px). Compile-only; collision trajectory parity remains unresolved. RL candidate has no passing evaluation or active release."},
-    {"id": "rl-confirmed-action-rewards", "area": "AI learning", "title": "Confirmed item and NPC rewards", "status": "partial", "files": "Ai/Rl/ActionRewards.cs, RlRuntime.cs, RlContracts.cs; Net/Controller.cs; Ai/AgentManager.cs; agents.html/js", "notes": "Configurable rewards for first successful item use/purchase, timely needed use, first NPC discovery and useful NPC services. Observe server outcomes, persist novelty, cooldown useful uses; record components per transition and show per-bot session counters. No gameplay EXP/currency bonus. Compile-only; user verifies gameplay."},
-    {"id": "shared-ground-loot-ai-zones", "area": "Loot and AI", "title": "Shared 30-second ownership; AI foraging and quieter zones", "status": "partial", "files": "World/GroundLootPolicy.cs, Net/PlayerItems.cs, Net/PlayerActions.cs, Ai/AgentForaging.cs, Ai/AgentZoneSelection.cs, Ai/TacticalLayer.cs", "notes": "Humans and bots share ownership, reach, bag acceptance and zone capacity predicates. Before 30 s other owners get the original message; at 30 s public, default despawn 60 s. Bots favour needed/own loot, skip stalled approaches, avoid contested targets and walk to NPC 13 before normal zone requests. Compile-only validation; user checks gameplay."},
-    {"id": "ai-guided-rl", "area": "Server", "title": "Guided online RL with GPU and uv", "status": "partial", "files": "Ai/Rl/*, Tools/Learning/*, agents.html, agents.js", "notes": "Rules teach masked PPO strategy/combat/movement; LLM advice only. CUDA uv environment installed. Synthetic C#/Python/PPO/restart checks passed. Dashboard controls learning, opt-in human recording, reward settings and evaluated model promotion/rollback. No live training, Play or long evaluation run. See docs/AI_LEARNING.md."},
-    {"id": "ai-players", "area": "Server", "title": "Người chơi AI (nhân vật thật)", "status": "partial", "files": "Ai/*, Net/Presence.cs, Net/Session.cs, GameServer.ConnectBot", "notes": "13 AI trên bot session, theo luật người chơi; nhiệm vụ 0-3 đã thấy chạy trong probe; trí nhớ AgentKnowledge; log bot_entries 20 ngày."},
-    {"id": "sqlite-storage", "area": "Server", "title": "Lưu game và log bằng SQLite", "status": "done", "files": "Store/SqliteSaveDb.cs, Store/AccountStore.cs, Net/PlayerLogDb.cs, Net/PlayerLog.cs, Plugins/Sqlite", "notes": "NsoData/nso.db (users, players, kv, meta); Logs/PlayerLog/player_log.db (sessions, entries). TSV import + fallback."},
-    {"id": "ai-upgrade-quest", "area": "Server", "title": "Bot làm NV nâng cấp trang bị (vũ khí, trang sức, y phục)", "status": "done", "files": "Ai/TacticalLayer.cs (QuestPlay.UpgradeStep, SellJunk), Ai/BotClient.cs (Upgrade)", "notes": "Lấy đồ cấp 10+ đang mặc hoặc trong túi, tới Kenshinto nâng cấp bằng đá (Char.upgradeItem cmd 21), rồi mặc vào. Thiếu đồ hoặc đá thì đi luyện để rơi đồ. Không bán đá/đồ nâng cấp được trước khi xong NV 12. Test: upgradecheck."},
-    {"id": "ai-nav-bottom-row", "area": "Server", "title": "Bot kẹt ở hàng cuối map 6 (lối sang map 20)", "status": "done", "files": "Ai/BotNavigation.cs (FallsOut), Ai/TacticalLayer.cs (WalkTo)", "notes": "Bộ tìm đường coi hàng gạch cuối là vực chết trong khi server cho đứng trên gạch T_TOP; bot đứng im mãi. WalkTo tới lối ra chỉ xét x nên đổi map khi còn ở dưới xa, server từ chối im lặng. Debug: ServerTests navprobe <map> <x> <y>. Test: stuckcheck."},
-    {"id": "ai-spending-death-items-fasttravel", "area": "Server", "title": "Bot: tiết kiệm/tiêu hoang, cái giá thật của cái chết, dùng bình mạnh khi cần, đi nhanh", "status": "done", "files": "Ai/TacticalLayer.cs (PotionTarget, MoneyReserve, ChoosePotion, PlanFastTravel, RunFastTravel), Ai/Rl/RlRuntime.cs (DeathCost), Ai/Rl/RlContracts.cs, Ai/Rl/RlCandidates.cs (slot 43/44), Net/PlayerTasks.cs (UmayakiVillages)", "notes": "Greed = mức tiết kiệm (số bình, tiền giữ lại, mua thử). Phạt chết = chờ hồi sinh 0.5 + 0.4 mỗi map phải đi lại (0 nếu đằng nào cũng về làng). Bình rẻ nhất đủ hồi, nguy cấp dùng bình mạnh nhất. Đi xe kéo Umayaki / Khả di lệnh khi bớt được >= 2 lần chuyển map. Test: ledgercheck, rulecheck."},
-    {"id": "ai-item-ledger", "area": "Server", "title": "Sổ vật phẩm: bot mua thử đồ lạ, nhớ công dụng, không mua lại đồ vô ích", "status": "done", "files": "Ai/Rl/ActionRewards.cs (ItemNote, Ledger), Ai/TacticalLayer.cs (PickTryItem, TryItem), Ai/StrategicLayer.cs (tryItem, prompt), Ai/Rl/RlCandidates.cs (slot 5)", "notes": "Mỗi bot ghi mua/dùng/có tác dụng/tiền đã tiêu cho từng món; kết luận vào knowledge ledger:<id>. Mua lại món đã dùng ledgerUselessAfter (3) lần không tác dụng bị phạt wastefulPurchasePenalty (0.3). Bot tò mò mua thử món chưa dùng ở Kiriko/Tabemono khi món đó có thể thể hiện tác dụng. Test: ledgercheck."},
-    {"id": "ai-sell-junk", "area": "Server", "title": "Bot bán đá và trang bị thừa khi túi gần đầy", "status": "done", "files": "Ai/TacticalLayer.cs (SellJunk), Ai/BotClient.cs (Sell), Ai/AgentConfig.cs (BagReserveSlots)", "notes": "Túi đầy làm server từ chối trả NV Hái thuốc và nhập học (cần 2 ô) nên bot lặp menu mãi. Khi còn ít hơn BagReserveSlots (3) ô trống, mỗi 2,5 s bot bán 1 món (Char.saleItem): đá trước, rồi đồ không bao giờ mặc. Giữ bình, thức ăn, đồ nhiệm vụ, đồ khác. Test: bagcheck."},
-    {"id": "ai-llm-priorities", "area": "Server", "title": "LLM đặt hệ số ưu tiên cho rules; bot không bỏ nhiệm vụ đi luyện", "status": "done", "files": "Ai/StrategicLayer.cs (RulePlanner, prompt QUEST NEXT), Ai/LlmReplyFormat.cs, Ai/AgentManager.cs (Apply), Ai/TacticalLayer.cs (QuestGuide, Travel)", "notes": "Mỗi câu trả lời LLM có priorities quest/hunt/shop/explore/collect/idle 0-3; rules nhân điểm với chúng khi LLM bận (hết hạn sau LlmPriorityMinutes). Nhiệm vụ mặc định ưu tiên hơn luyện cấp. Prompt có QUEST NEXT chỉ NPC/map/quái cụ thể."},
-    {"id": "ai-game-knowledge", "area": "Server", "title": "Kiến thức game trong RAG, bot báo mọi tương tác, bot ăn thức ăn", "status": "done", "files": "Ai/GameKnowledge.cs, Ai/AgentRag.cs, Ai/BotClient.cs (Observed), Ai/TacticalLayer.cs (Eat, BuyFood), Ai/StrategicLayer.cs", "notes": "1885 tài liệu chung (item: cách có, tác dụng, dùng được offline không; quái, map, NPC, shop, nhiệm vụ, kỹ năng). Mỗi tương tác ghi \"hành động -> kết quả\" vào trí nhớ và kiến thức (seen:*). Bot mua thức ăn ở Tabemono sau bình và tự ăn khi hết hiệu ứng."},
-    {"id": "ai-training-progress", "area": "Server", "title": "Tiến độ huấn luyện RL và vật phẩm bot đang dùng", "status": "done", "files": "Tools/Learning/trainer.py (Tracker), evaluation.py, Ai/Rl/RlBridge.cs, Ai/BotClient.cs, NsoWiki/agents.js", "notes": "/agents.html: id bot (#n), hiệu ứng/vật phẩm tiêu hao đang dùng; panel Tiến độ huấn luyện: pha, thanh tiến độ, ETA, loss/acc từng epoch (val 10%), thống kê PPO, điểm từng lượt đánh giá, lịch sử 100 vòng (training-history.json)."},
-    {"id": "ai-agents", "area": "Server", "title": "Ninja AI tự hành (LLM local + game AI)", "status": "partial", "files": "Ai/AgentManager.cs, Ai/StrategicLayer.cs, Ai/TacticalLayer.cs, Ai/WorldKnowledge.cs, Ai/AgentModel.cs, Ai/AgentConfig.cs", "notes": "MVP: hunt, collect own drops, rest, explore, travel, idle, speech bubbles, persistence. Debug /agents.html. Compile only."},
-    {"id": "supply-stacks-split", "area": "Inventory and storage", "title": "Sort supplies into counted stacks; split a chosen quantity", "status": "partial", "files": "Server/Store/InventoryGrouping.cs; Server/Net/PlayerItems.cs, PlayerStorage.cs, PlayerService.cs, PlayerUpgrade.cs, Controller.cs; Scripts/Gameplay/Entities/Char.cs, Screens/GameScr.cs, Application/GameCanvas.cs, Networking/Protocol/Service.cs and Controller.cs", "notes": "Explicit Sort merges nonexpiring compatible supplies (including food/crystals/star stones/insurance); equipment separate, max stack 32767. Bag/chest Split quantity creates one new stack in a free cell with server validation/ack. Food consumes one; legacy crafting asks for individual units and rejects grouped stones. No auto-grouping on acquisition. Unity compile/Console passed with zero current errors/warnings; loaded assembly contains CanStack/SplitStack. Gameplay validation left to user."},
-    {"id": "inventory-explicit-group-sort", "area": "Inventory and storage", "title": "Sort groups same-type items in bag and chest", "status": "partial", "files": "Server/Store/InventoryGrouping.cs, Server/Net/PlayerItems.cs, Controller.cs, Scripts/Gameplay/Entities/Char.cs", "notes": "Only on existing Sort button: shared stable type/template/lock ordering and compact slots; Java compatible stack merging retained with overflow guard. Missing BOX_SORT server handler added, bag and box share SortContainer. No automatic grouping on pickup/load/movement. Unity compile/Console passed with zero current errors/warnings; gameplay checks left to user."},
-    {"id": "school-element-shops", "area": "Shops", "title": "School NPC catalogs match school element", "status": "partial", "files": "Server/Net/PlayerItems.cs, Server/Net/PlayerSkills.cs", "notes": "Shared list/detail/buy filter by map 1 fire, 72 ice, 27 wind; visitor class irrelevant. Equipment uses StoreItem.Sys; books reuse skill-class mapping. Neutral supplies remain common; non-school stores unchanged. RestrictSchoolStores=true. Unity compile/Console passed with zero current errors/warnings; runtime shop verification left to user."},
-    {"id": "thien-bien-lenh-wiring", "area": "Items and automation", "title": "Thien bien lenh activates fighting, movement and nearby pickup", "status": "partial", "files": "Server/Net/PlayerItemUse.cs, PlayerActions.cs, Controller.cs; Scripts/Networking/Protocol/Controller.cs, Screens/GameScr.cs, Gameplay/Entities/Char.cs", "notes": "119 activates persistent auto and has validated server move handler. Nearest mob movement with range/2s throttle, fixed focus ordering. Explicit user exception: enabled item auto-picks within 120px every 350ms; normal play manual. Existing expiry, cooldown, bag/ownership validation retained. Unity compile/Console passed with zero current errors/warnings; physical/gameplay validation left to user."},
-    {"id": "manual-ground-pickup", "area": "Loot", "title": "Ground loot waits for manual interaction", "status": "partial", "files": "Scripts/Gameplay/Entities/Char.cs, Scripts/Screens/GameScr.cs, Scripts/Diagnostics/NsoGameControl.cs", "notes": "Removed newly introduced automatic nearby pickup/config and normal HutVP suction invocation. Explicit item interaction remains; real selection level and ground yen/single-credit pickup retained. Unity compile/Console passed with zero current errors/warnings; no gameplay tests."},
-    {"id": "character-level-auto-loot-yen", "area": "Progression and loot", "title": "Real character list level and manual ground yen pickup", "status": "partial", "files": "Server/Net/Controller.cs, Server/Net/PlayerItems.cs, Server/Net/PlayerService.cs, Scripts/Gameplay/Entities/Char.cs, Scripts/Diagnostics/NsoGameControl.cs", "notes": "Selection uses shared EXP table. Yen drops as ground bundles and credits once on explicit pickup, bag-full allowed. Newly added nearby auto-pickup was removed at user correction; ordinary suction invocation disabled. Runtime checks left to user."},
-    {"id": "quest-goto", "area": "Developer tools", "title": "/goto main quest objective", "status": "partial", "files": "Server/Net/QuestTravel.cs, Server/Net/DevTerminal.cs, Server/Net/TaskMechanics.cs, Server/World/GameData.cs, Server/World/World.cs", "notes": "Uses task.maps/current step and class school; lands at the map entrance (arrival point of a waypoint leading there, then LocationStand), NPC/required mob/drop/collection positions only as fallback. Reuses normal movement entry hooks; exploration can progress naturally. Does not skip/accept/finish quests. Special maps require normal NPC/item entry. Unity compile/Console passed with zero current errors/warnings; runtime checks left to user."},
-    {"id": "harder-combat-defaults", "area": "Combat balance", "title": "Stronger monsters and reduced dodge defaults", "status": "partial", "files": "Server/World/CombatRules.cs, NsoWiki/app.js", "notes": "Defaults: dodge scale 50%, monster accuracy 100%, dodge cap 40%, monster HP damage 150%. Same rules power gameplay and web Reset. Saved overrides win; no override file exists in current Editor data directory. JS syntax and Unity compile/Console passed with zero current errors/warnings. Runtime comparison left to user."},
-    {"id": "hp-recovery-weapon-diagnosis", "area": "Combat", "title": "Current gradual HP recovery comes from equipped +4 weapon", "status": "done", "files": "Server/Net/PlayerCombat.cs, Server/Net/PlayerEffects.cs", "notes": "Read-only save: equipped item 94 Bach Hac Kiem +4 has option [30,5] (+4 HP recovery every 5 seconds); type-3 threshold is active. No saved foodEffect and retained client effects empty. No gameplay/save edits. User can unequip the weapon to compare; legitimate equipment recovery retained. Runtime comparison not executed."},
-    {"id": "monster-hp-sync-correction", "area": "Combat", "title": "Consistent hit damage and no stat-refresh heal", "status": "partial", "files": "Server/Net/MobBrain.cs, Server/World/CombatRules.cs, Scripts/Networking/Protocol/Controller.cs, NsoWiki/app.js", "notes": "Scaled damage sent to victim matches server HP deduction; observers receive post-hit HP, victim excluded. Skill/potential refreshes preserve current HP/MP. Default monster damage now 100% instead of 20%; existing saved overrides retained, no override file found in current Editor data folder. JS syntax passed; Unity compile/Console passed with zero current errors/warnings. Runtime checks left to user."},
-    {"id": "miss-no-healing", "area": "Combat", "title": "MISS cannot add HP or MP", "status": "partial", "files": "Scripts/Gameplay/Entities/Char.cs", "notes": "Char.doInjure only subtracts positive damage; -1 MISS previously added 1 HP. Signed values retained for MISS text. Legitimate recovery/server damage rules unchanged. Read-only stopped-Editor baseline: natural regen zero and no client effects/auto healing. Unity compile passed with zero current Console errors/warnings; runtime symptom verification left to user."},
-    {"id": "map-close-and-next-step", "area": "Developer tools", "title": "Map Close only and /next quest step", "status": "partial", "files": "Scripts/Screens/MapScr.cs, Server/Net/DevTerminal.cs, Server/Net/PlayerTasks.cs", "notes": "Map Go To button hidden. /next advances an accepted intermediate quest step via existing TaskNext with save/sync/visibility hooks. Final step requires NPC report or /skip; no auto-accept. Unity compile passed with zero current Console errors/warnings; runtime checks left to user."},
-    {"id": "map-toggle-analog-cursor", "area": "Input", "title": "Share toggles map; left stick moves cursor", "status": "partial", "files": "Scripts/Input/NsoGamepadInput.cs, Scripts/Screens/MapScr.cs", "notes": "Offline input deviation: existing open/close commands; render-cadence analog movement with bounds, fractional accumulation and configurable Map Cursor Speed (120 logical px/s). Selecting does not trigger adminMove; Go To confirms. Unity compile/Console passed with zero current errors/warnings; physical-pad testing left to user."},
-    {"id": "share-map-handler-fix", "area": "Input", "title": "Correct Share/Create map action dispatch", "status": "partial", "files": "Scripts/Input/NsoGamepadInput.cs", "notes": "Attached DualSense HID select is Share/Create. Corrected no-op GameScr.perform call to actionPerform(110002,null), the actual map command handler. Unity compile passed with zero current Console errors/warnings; physical-button verification left to user."},
-    {"id": "share-map-gamepad", "area": "Input", "title": "Share/Create opens world map", "status": "partial", "files": "Scripts/Input/NsoGamepadInput.cs", "notes": "Gamepad.selectButton press in world invokes existing map command 110002. Releases held gameplay keys, consumes press, retains map arena restriction. Unity compiled with zero current Console errors/warnings; physical-pad validation pending."},
-    {"id": "shared-item-tab-navigation", "area": "Presentation", "title": "Shared grid/title navigation for item panels", "status": "partial", "files": "Scripts/UI/Components/TabGridNavigation.cs, Scripts/Screens/GameScr.cs", "notes": "Bag/equipment/mount/bijuu equipment, chest and upgrade share grid/title policy. Craft input consumed once to stop title reentry. Info panes release arrows; bijuu specialized pages clear focus at title. Unity compile passed with zero current Console errors/warnings; physical-controller checks left to user."},
-    {"id": "upgrade-controller-input", "area": "Presentation", "title": "Equipment upgrade controller navigation", "status": "partial", "files": "Scripts/Screens/GameScr.cs", "notes": "Normal/gold upgrade: Circle/Enter runs existing left select/action; arrows navigate slots instead of tooltip; Up from equipment row returns to tabs. Original upgrade handlers/confirmation unchanged. Unity compile passed with zero current Console errors/warnings; physical-controller checks left to user."},
-    {"id": "small1131-defringe", "area": "Art", "title": "Remove white matte contour from Small1131", "status": "done", "files": "Tools/Remove-SmallIconBackground.ps1, NsoStatic/Data/Img/Small/{2,3,4}/Small1131.png", "notes": "Opt-in zoom1 silhouette and original contour colors remove resampled white fringe. Interior pixels/dimensions/meta verified unchanged. Enlarged dark-background inspection passed. No Play/cache mutation. Command: -IconId 1131 -WhiteThreshold 160 -UseZoom1Silhouette."},
-    {"id": "small1131-background", "area": "Art", "title": "Small1131 original zoom restoration and background cleanup", "status": "done", "files": "NsoStatic/Data/Img/Small/{2,3,4}/Small1131.png, Tools/Remove-SmallIconBackground.ps1", "notes": "Restored zoom 4 from Git HEAD (64x56; working edit was 48x42). Edited file backed up under .codex/backups/nso-Small1131-20261112-193205. Completed user-selected code-based border-connected background removal via Tools/Remove-SmallIconBackground.ps1 (WhiteThreshold=235). Zoom 1 unchanged; 2/3/4 alpha cleared for 181/426/800 background pixels. Dimensions 16x14/32x28/48x42/64x56; unchanged foreground/RGB/meta verified after PNG save. Backups under .codex/backups/Small1131-20261112-193523. Runtime cache reload/visual check left to user."},
-    {"id": "item-all-sprite-paths", "area": "Workbench", "title": "All item sprite zoom paths and full path copying", "status": "partial", "files": "DevWiki/WikiData.cs, NsoWiki/sprites.js, app.js, app.css", "notes": "spriteFiles lists zoom 1-4, project path, absolute fullPath, existence and PNG dimensions. Per-zoom full-path copy button; original spritePath retained. JS syntax and Unity compile passed, zero current Console errors/warnings. User visual checks pending."},
-    {"id": "item-sprite-project-path", "area": "Workbench", "title": "Item sprite project path and copy button", "status": "partial", "files": "DevWiki/WikiData.cs, NsoWiki/app.js", "notes": "Item spritePath verifies original project PNG by icon ID and highest available zoom. Relative Assets path only, null for missing art. Detail copy button. JS syntax and Unity compile passed; zero current Console errors/warnings. User browser verification pending. Copy-path and missing-sprite Vietnamese labels repaired using explicit UTF-8; exact label and JS syntax checks passed."},
-    {"id": "world-map-command-input", "area": "Presentation", "title": "World map only and full-size button input", "status": "partial", "files": "Scripts/Screens/MapScr.cs", "notes": "User-requested removal of Change/local-map mode. Go To/Close hitboxes match image dimensions before input/paint. Actual bottom row excluded from map gestures. Unity compile passed with zero current Console errors/warnings. Runtime mouse verification pending."},
-    {"id": "popup-command-alignment", "area": "Presentation", "title": "Wide popup bottom button alignment", "status": "partial", "files": "Scripts/Screens/GameScr.cs, Scripts/Diagnostics/NsoUiLayout.cs", "notes": "Wide inventory/shop rows follow actual popup outer borders; centre uses image width. Narrow panels retain legacy row. Unity compiled successfully with zero current Console errors/warnings; user verifies visuals."},
+    {
+      "id": "bot-tile-movement",
+      "area": "AI movement",
+      "title": "Swept headless client movement",
+      "status": "partial",
+      "files": "World/TileMotion.cs; Ai/BotMovement.cs, BotClient.cs, AgentManager.cs; GameServer.cs",
+      "notes": "Rules/RL destination intents execute in ~42 ms client frames through unchanged move handlers. Pixel collision sweeps, grounded jump/gravity, ceiling and landing; cancel stale input on correction/death/map/zone switch. Compile-only; high/unreachable obstacles may still stall."
+    },
+    {
+      "id": "ai-reply-remote-motion",
+      "area": "AI and presentation",
+      "title": "Required LLM steps and remote packet interpolation",
+      "status": "partial",
+      "files": "Ai/LlmReplyFormat.cs, StrategicLayer.cs; Application/RemoteMotion.cs, Interp.cs; client Controller.cs; diagnostics controls; agents.js",
+      "notes": "Required structured steps, separate 5-second formatting backoff and bounded failed reply diagnostics. Adaptive render-only smoothing of remote movement (0.5/0.75 seconds, teleport 180 px). Compile-only; collision trajectory parity remains unresolved. RL candidate has no passing evaluation or active release."
+    },
+    {
+      "id": "rl-confirmed-action-rewards",
+      "area": "AI learning",
+      "title": "Confirmed item and NPC rewards",
+      "status": "partial",
+      "files": "Ai/Rl/ActionRewards.cs, RlRuntime.cs, RlContracts.cs; Net/Controller.cs; Ai/AgentManager.cs; agents.html/js",
+      "notes": "Configurable rewards for first successful item use/purchase, timely needed use, first NPC discovery and useful NPC services. Observe server outcomes, persist novelty, cooldown useful uses; record components per transition and show per-bot session counters. No gameplay EXP/currency bonus. Compile-only; user verifies gameplay."
+    },
+    {
+      "id": "shared-ground-loot-ai-zones",
+      "area": "Loot and AI",
+      "title": "Shared 30-second ownership; AI foraging and quieter zones",
+      "status": "partial",
+      "files": "World/GroundLootPolicy.cs, Net/PlayerItems.cs, Net/PlayerActions.cs, Ai/AgentForaging.cs, Ai/AgentZoneSelection.cs, Ai/TacticalLayer.cs",
+      "notes": "Humans and bots share ownership, reach, bag acceptance and zone capacity predicates. Before 30 s other owners get the original message; at 30 s public, default despawn 60 s. Bots favour needed/own loot, skip stalled approaches, avoid contested targets and walk to NPC 13 before normal zone requests. Compile-only validation; user checks gameplay."
+    },
+    {
+      "id": "ai-guided-rl",
+      "area": "Server",
+      "title": "Guided online RL with GPU and uv",
+      "status": "partial",
+      "files": "Ai/Rl/*, Tools/Learning/*, agents.html, agents.js",
+      "notes": "Rules teach masked PPO strategy/combat/movement; LLM advice only. CUDA uv environment installed. Synthetic C#/Python/PPO/restart checks passed. Dashboard controls learning, opt-in human recording, reward settings and evaluated model promotion/rollback. No live training, Play or long evaluation run. See docs/AI_LEARNING.md."
+    },
+    {
+      "id": "ai-players",
+      "area": "Server",
+      "title": "Người chơi AI (nhân vật thật)",
+      "status": "partial",
+      "files": "Ai/*, Net/Presence.cs, Net/Session.cs, GameServer.ConnectBot",
+      "notes": "13 AI trên bot session, theo luật người chơi; nhiệm vụ 0-3 đã thấy chạy trong probe; trí nhớ AgentKnowledge; log bot_entries 20 ngày."
+    },
+    {
+      "id": "sqlite-storage",
+      "area": "Server",
+      "title": "Lưu game và log bằng SQLite",
+      "status": "done",
+      "files": "Store/SqliteSaveDb.cs, Store/AccountStore.cs, Net/PlayerLogDb.cs, Net/PlayerLog.cs, Plugins/Sqlite",
+      "notes": "NsoData/nso.db (users, players, kv, meta); Logs/PlayerLog/player_log.db (sessions, entries). TSV import + fallback."
+    },
+    {
+      "id": "ai-upgrade-quest",
+      "area": "Server",
+      "title": "Bot làm NV nâng cấp trang bị (vũ khí, trang sức, y phục)",
+      "status": "done",
+      "files": "Ai/TacticalLayer.cs (QuestPlay.UpgradeStep, SellJunk), Ai/BotClient.cs (Upgrade)",
+      "notes": "Lấy đồ cấp 10+ đang mặc hoặc trong túi, tới Kenshinto nâng cấp bằng đá (Char.upgradeItem cmd 21), rồi mặc vào. Thiếu đồ hoặc đá thì đi luyện để rơi đồ. Không bán đá/đồ nâng cấp được trước khi xong NV 12. Test: upgradecheck."
+    },
+    {
+      "id": "ai-nav-bottom-row",
+      "area": "Server",
+      "title": "Bot kẹt ở hàng cuối map 6 (lối sang map 20)",
+      "status": "done",
+      "files": "Ai/BotNavigation.cs (FallsOut), Ai/TacticalLayer.cs (WalkTo)",
+      "notes": "Bộ tìm đường coi hàng gạch cuối là vực chết trong khi server cho đứng trên gạch T_TOP; bot đứng im mãi. WalkTo tới lối ra chỉ xét x nên đổi map khi còn ở dưới xa, server từ chối im lặng. Debug: ServerTests navprobe <map> <x> <y>. Test: stuckcheck."
+    },
+    {
+      "id": "ai-spending-death-items-fasttravel",
+      "area": "Server",
+      "title": "Bot: tiết kiệm/tiêu hoang, cái giá thật của cái chết, dùng bình mạnh khi cần, đi nhanh",
+      "status": "done",
+      "files": "Ai/TacticalLayer.cs (PotionTarget, MoneyReserve, ChoosePotion, PlanFastTravel, RunFastTravel), Ai/Rl/RlRuntime.cs (DeathCost), Ai/Rl/RlContracts.cs, Ai/Rl/RlCandidates.cs (slot 43/44), Net/PlayerTasks.cs (UmayakiVillages)",
+      "notes": "Greed = mức tiết kiệm (số bình, tiền giữ lại, mua thử). Phạt chết = chờ hồi sinh 0.5 + 0.4 mỗi map phải đi lại (0 nếu đằng nào cũng về làng). Bình rẻ nhất đủ hồi, nguy cấp dùng bình mạnh nhất. Đi xe kéo Umayaki / Khả di lệnh khi bớt được >= 2 lần chuyển map. Test: ledgercheck, rulecheck."
+    },
+    {
+      "id": "ai-item-ledger",
+      "area": "Server",
+      "title": "Sổ vật phẩm: bot mua thử đồ lạ, nhớ công dụng, không mua lại đồ vô ích",
+      "status": "done",
+      "files": "Ai/Rl/ActionRewards.cs (ItemNote, Ledger), Ai/TacticalLayer.cs (PickTryItem, TryItem), Ai/StrategicLayer.cs (tryItem, prompt), Ai/Rl/RlCandidates.cs (slot 5)",
+      "notes": "Mỗi bot ghi mua/dùng/có tác dụng/tiền đã tiêu cho từng món; kết luận vào knowledge ledger:<id>. Mua lại món đã dùng ledgerUselessAfter (3) lần không tác dụng bị phạt wastefulPurchasePenalty (0.3). Bot tò mò mua thử món chưa dùng ở Kiriko/Tabemono khi món đó có thể thể hiện tác dụng. Test: ledgercheck."
+    },
+    {
+      "id": "ai-sell-junk",
+      "area": "Server",
+      "title": "Bot bán đá và trang bị thừa khi túi gần đầy",
+      "status": "done",
+      "files": "Ai/TacticalLayer.cs (SellJunk), Ai/BotClient.cs (Sell), Ai/AgentConfig.cs (BagReserveSlots)",
+      "notes": "Túi đầy làm server từ chối trả NV Hái thuốc và nhập học (cần 2 ô) nên bot lặp menu mãi. Khi còn ít hơn BagReserveSlots (3) ô trống, mỗi 2,5 s bot bán 1 món (Char.saleItem): đá trước, rồi đồ không bao giờ mặc. Giữ bình, thức ăn, đồ nhiệm vụ, đồ khác. Test: bagcheck."
+    },
+    {
+      "id": "ai-llm-priorities",
+      "area": "Server",
+      "title": "LLM đặt hệ số ưu tiên cho rules; bot không bỏ nhiệm vụ đi luyện",
+      "status": "done",
+      "files": "Ai/StrategicLayer.cs (RulePlanner, prompt QUEST NEXT), Ai/LlmReplyFormat.cs, Ai/AgentManager.cs (Apply), Ai/TacticalLayer.cs (QuestGuide, Travel)",
+      "notes": "Mỗi câu trả lời LLM có priorities quest/hunt/shop/explore/collect/idle 0-3; rules nhân điểm với chúng khi LLM bận (hết hạn sau LlmPriorityMinutes). Nhiệm vụ mặc định ưu tiên hơn luyện cấp. Prompt có QUEST NEXT chỉ NPC/map/quái cụ thể."
+    },
+    {
+      "id": "ai-game-knowledge",
+      "area": "Server",
+      "title": "Kiến thức game trong RAG, bot báo mọi tương tác, bot ăn thức ăn",
+      "status": "done",
+      "files": "Ai/GameKnowledge.cs, Ai/AgentRag.cs, Ai/BotClient.cs (Observed), Ai/TacticalLayer.cs (Eat, BuyFood), Ai/StrategicLayer.cs",
+      "notes": "1885 tài liệu chung (item: cách có, tác dụng, dùng được offline không; quái, map, NPC, shop, nhiệm vụ, kỹ năng). Mỗi tương tác ghi \"hành động -> kết quả\" vào trí nhớ và kiến thức (seen:*). Bot mua thức ăn ở Tabemono sau bình và tự ăn khi hết hiệu ứng."
+    },
+    {
+      "id": "ai-training-progress",
+      "area": "Server",
+      "title": "Tiến độ huấn luyện RL và vật phẩm bot đang dùng",
+      "status": "done",
+      "files": "Tools/Learning/trainer.py (Tracker), evaluation.py, Ai/Rl/RlBridge.cs, Ai/BotClient.cs, NsoWiki/agents.js",
+      "notes": "/agents.html: id bot (#n), hiệu ứng/vật phẩm tiêu hao đang dùng; panel Tiến độ huấn luyện: pha, thanh tiến độ, ETA, loss/acc từng epoch (val 10%), thống kê PPO, điểm từng lượt đánh giá, lịch sử 100 vòng (training-history.json)."
+    },
+    {
+      "id": "ai-agents",
+      "area": "Server",
+      "title": "Ninja AI tự hành (LLM local + game AI)",
+      "status": "partial",
+      "files": "Ai/AgentManager.cs, Ai/StrategicLayer.cs, Ai/TacticalLayer.cs, Ai/WorldKnowledge.cs, Ai/AgentModel.cs, Ai/AgentConfig.cs",
+      "notes": "MVP: hunt, collect own drops, rest, explore, travel, idle, speech bubbles, persistence. Debug /agents.html. Compile only."
+    },
+    {
+      "id": "supply-stacks-split",
+      "area": "Inventory and storage",
+      "title": "Sort supplies into counted stacks; split a chosen quantity",
+      "status": "partial",
+      "files": "Server/Store/InventoryGrouping.cs; Server/Net/PlayerItems.cs, PlayerStorage.cs, PlayerService.cs, PlayerUpgrade.cs, Controller.cs; Scripts/Gameplay/Entities/Char.cs, Screens/GameScr.cs, Application/GameCanvas.cs, Networking/Protocol/Service.cs and Controller.cs",
+      "notes": "Explicit Sort merges nonexpiring compatible supplies (including food/crystals/star stones/insurance); equipment separate, max stack 32767. Bag/chest Split quantity creates one new stack in a free cell with server validation/ack. Food consumes one; legacy crafting asks for individual units and rejects grouped stones. No auto-grouping on acquisition. Unity compile/Console passed with zero current errors/warnings; loaded assembly contains CanStack/SplitStack. Gameplay validation left to user."
+    },
+    {
+      "id": "inventory-explicit-group-sort",
+      "area": "Inventory and storage",
+      "title": "Sort groups same-type items in bag and chest",
+      "status": "partial",
+      "files": "Server/Store/InventoryGrouping.cs, Server/Net/PlayerItems.cs, Controller.cs, Scripts/Gameplay/Entities/Char.cs",
+      "notes": "Only on existing Sort button: shared stable type/template/lock ordering and compact slots; Java compatible stack merging retained with overflow guard. Missing BOX_SORT server handler added, bag and box share SortContainer. No automatic grouping on pickup/load/movement. Unity compile/Console passed with zero current errors/warnings; gameplay checks left to user."
+    },
+    {
+      "id": "school-element-shops",
+      "area": "Shops",
+      "title": "School NPC catalogs match school element",
+      "status": "partial",
+      "files": "Server/Net/PlayerItems.cs, Server/Net/PlayerSkills.cs",
+      "notes": "Shared list/detail/buy filter by map 1 fire, 72 ice, 27 wind; visitor class irrelevant. Equipment uses StoreItem.Sys; books reuse skill-class mapping. Neutral supplies remain common; non-school stores unchanged. RestrictSchoolStores=true. Unity compile/Console passed with zero current errors/warnings; runtime shop verification left to user."
+    },
+    {
+      "id": "thien-bien-lenh-wiring",
+      "area": "Items and automation",
+      "title": "Thien bien lenh activates fighting, movement and nearby pickup",
+      "status": "partial",
+      "files": "Server/Net/PlayerItemUse.cs, PlayerActions.cs, Controller.cs; Scripts/Networking/Protocol/Controller.cs, Screens/GameScr.cs, Gameplay/Entities/Char.cs",
+      "notes": "119 activates persistent auto and has validated server move handler. Nearest mob movement with range/2s throttle, fixed focus ordering. Explicit user exception: enabled item auto-picks within 120px every 350ms; normal play manual. Existing expiry, cooldown, bag/ownership validation retained. Unity compile/Console passed with zero current errors/warnings; physical/gameplay validation left to user."
+    },
+    {
+      "id": "manual-ground-pickup",
+      "area": "Loot",
+      "title": "Ground loot waits for manual interaction",
+      "status": "partial",
+      "files": "Scripts/Gameplay/Entities/Char.cs, Scripts/Screens/GameScr.cs, Scripts/Diagnostics/NsoGameControl.cs",
+      "notes": "Removed newly introduced automatic nearby pickup/config and normal HutVP suction invocation. Explicit item interaction remains; real selection level and ground yen/single-credit pickup retained. Unity compile/Console passed with zero current errors/warnings; no gameplay tests."
+    },
+    {
+      "id": "character-level-auto-loot-yen",
+      "area": "Progression and loot",
+      "title": "Real character list level and manual ground yen pickup",
+      "status": "partial",
+      "files": "Server/Net/Controller.cs, Server/Net/PlayerItems.cs, Server/Net/PlayerService.cs, Scripts/Gameplay/Entities/Char.cs, Scripts/Diagnostics/NsoGameControl.cs",
+      "notes": "Selection uses shared EXP table. Yen drops as ground bundles and credits once on explicit pickup, bag-full allowed. Newly added nearby auto-pickup was removed at user correction; ordinary suction invocation disabled. Runtime checks left to user."
+    },
+    {
+      "id": "quest-goto",
+      "area": "Developer tools",
+      "title": "/goto main quest objective",
+      "status": "partial",
+      "files": "Server/Net/QuestTravel.cs, Server/Net/DevTerminal.cs, Server/Net/TaskMechanics.cs, Server/World/GameData.cs, Server/World/World.cs",
+      "notes": "Uses task.maps/current step and class school; lands at the map entrance (arrival point of a waypoint leading there, then LocationStand), NPC/required mob/drop/collection positions only as fallback. Reuses normal movement entry hooks; exploration can progress naturally. Does not skip/accept/finish quests. Special maps require normal NPC/item entry. Unity compile/Console passed with zero current errors/warnings; runtime checks left to user."
+    },
+    {
+      "id": "harder-combat-defaults",
+      "area": "Combat balance",
+      "title": "Stronger monsters and reduced dodge defaults",
+      "status": "partial",
+      "files": "Server/World/CombatRules.cs, NsoWiki/app.js",
+      "notes": "Defaults: dodge scale 50%, monster accuracy 100%, dodge cap 40%, monster HP damage 150%. Same rules power gameplay and web Reset. Saved overrides win; no override file exists in current Editor data directory. JS syntax and Unity compile/Console passed with zero current errors/warnings. Runtime comparison left to user."
+    },
+    {
+      "id": "hp-recovery-weapon-diagnosis",
+      "area": "Combat",
+      "title": "Current gradual HP recovery comes from equipped +4 weapon",
+      "status": "done",
+      "files": "Server/Net/PlayerCombat.cs, Server/Net/PlayerEffects.cs",
+      "notes": "Read-only save: equipped item 94 Bach Hac Kiem +4 has option [30,5] (+4 HP recovery every 5 seconds); type-3 threshold is active. No saved foodEffect and retained client effects empty. No gameplay/save edits. User can unequip the weapon to compare; legitimate equipment recovery retained. Runtime comparison not executed."
+    },
+    {
+      "id": "monster-hp-sync-correction",
+      "area": "Combat",
+      "title": "Consistent hit damage and no stat-refresh heal",
+      "status": "partial",
+      "files": "Server/Net/MobBrain.cs, Server/World/CombatRules.cs, Scripts/Networking/Protocol/Controller.cs, NsoWiki/app.js",
+      "notes": "Scaled damage sent to victim matches server HP deduction; observers receive post-hit HP, victim excluded. Skill/potential refreshes preserve current HP/MP. Default monster damage now 100% instead of 20%; existing saved overrides retained, no override file found in current Editor data folder. JS syntax passed; Unity compile/Console passed with zero current errors/warnings. Runtime checks left to user."
+    },
+    {
+      "id": "miss-no-healing",
+      "area": "Combat",
+      "title": "MISS cannot add HP or MP",
+      "status": "partial",
+      "files": "Scripts/Gameplay/Entities/Char.cs",
+      "notes": "Char.doInjure only subtracts positive damage; -1 MISS previously added 1 HP. Signed values retained for MISS text. Legitimate recovery/server damage rules unchanged. Read-only stopped-Editor baseline: natural regen zero and no client effects/auto healing. Unity compile passed with zero current Console errors/warnings; runtime symptom verification left to user."
+    },
+    {
+      "id": "map-close-and-next-step",
+      "area": "Developer tools",
+      "title": "Map Close only and /next quest step",
+      "status": "partial",
+      "files": "Scripts/Screens/MapScr.cs, Server/Net/DevTerminal.cs, Server/Net/PlayerTasks.cs",
+      "notes": "Map Go To button hidden. /next advances an accepted intermediate quest step via existing TaskNext with save/sync/visibility hooks. Final step requires NPC report or /skip; no auto-accept. Unity compile passed with zero current Console errors/warnings; runtime checks left to user."
+    },
+    {
+      "id": "map-toggle-analog-cursor",
+      "area": "Input",
+      "title": "Share toggles map; left stick moves cursor",
+      "status": "partial",
+      "files": "Scripts/Input/NsoGamepadInput.cs, Scripts/Screens/MapScr.cs",
+      "notes": "Offline input deviation: existing open/close commands; render-cadence analog movement with bounds, fractional accumulation and configurable Map Cursor Speed (120 logical px/s). Selecting does not trigger adminMove; Go To confirms. Unity compile/Console passed with zero current errors/warnings; physical-pad testing left to user."
+    },
+    {
+      "id": "share-map-handler-fix",
+      "area": "Input",
+      "title": "Correct Share/Create map action dispatch",
+      "status": "partial",
+      "files": "Scripts/Input/NsoGamepadInput.cs",
+      "notes": "Attached DualSense HID select is Share/Create. Corrected no-op GameScr.perform call to actionPerform(110002,null), the actual map command handler. Unity compile passed with zero current Console errors/warnings; physical-button verification left to user."
+    },
+    {
+      "id": "share-map-gamepad",
+      "area": "Input",
+      "title": "Share/Create opens world map",
+      "status": "partial",
+      "files": "Scripts/Input/NsoGamepadInput.cs",
+      "notes": "Gamepad.selectButton press in world invokes existing map command 110002. Releases held gameplay keys, consumes press, retains map arena restriction. Unity compiled with zero current Console errors/warnings; physical-pad validation pending."
+    },
+    {
+      "id": "shared-item-tab-navigation",
+      "area": "Presentation",
+      "title": "Shared grid/title navigation for item panels",
+      "status": "partial",
+      "files": "Scripts/UI/Components/TabGridNavigation.cs, Scripts/Screens/GameScr.cs",
+      "notes": "Bag/equipment/mount/bijuu equipment, chest and upgrade share grid/title policy. Craft input consumed once to stop title reentry. Info panes release arrows; bijuu specialized pages clear focus at title. Unity compile passed with zero current Console errors/warnings; physical-controller checks left to user."
+    },
+    {
+      "id": "upgrade-controller-input",
+      "area": "Presentation",
+      "title": "Equipment upgrade controller navigation",
+      "status": "partial",
+      "files": "Scripts/Screens/GameScr.cs",
+      "notes": "Normal/gold upgrade: Circle/Enter runs existing left select/action; arrows navigate slots instead of tooltip; Up from equipment row returns to tabs. Original upgrade handlers/confirmation unchanged. Unity compile passed with zero current Console errors/warnings; physical-controller checks left to user."
+    },
+    {
+      "id": "small1131-defringe",
+      "area": "Art",
+      "title": "Remove white matte contour from Small1131",
+      "status": "done",
+      "files": "Tools/Remove-SmallIconBackground.ps1, NsoStatic/Data/Img/Small/{2,3,4}/Small1131.png",
+      "notes": "Opt-in zoom1 silhouette and original contour colors remove resampled white fringe. Interior pixels/dimensions/meta verified unchanged. Enlarged dark-background inspection passed. No Play/cache mutation. Command: -IconId 1131 -WhiteThreshold 160 -UseZoom1Silhouette."
+    },
+    {
+      "id": "small1131-background",
+      "area": "Art",
+      "title": "Small1131 original zoom restoration and background cleanup",
+      "status": "done",
+      "files": "NsoStatic/Data/Img/Small/{2,3,4}/Small1131.png, Tools/Remove-SmallIconBackground.ps1",
+      "notes": "Restored zoom 4 from Git HEAD (64x56; working edit was 48x42). Edited file backed up under .codex/backups/nso-Small1131-20261112-193205. Completed user-selected code-based border-connected background removal via Tools/Remove-SmallIconBackground.ps1 (WhiteThreshold=235). Zoom 1 unchanged; 2/3/4 alpha cleared for 181/426/800 background pixels. Dimensions 16x14/32x28/48x42/64x56; unchanged foreground/RGB/meta verified after PNG save. Backups under .codex/backups/Small1131-20261112-193523. Runtime cache reload/visual check left to user."
+    },
+    {
+      "id": "item-all-sprite-paths",
+      "area": "Workbench",
+      "title": "All item sprite zoom paths and full path copying",
+      "status": "partial",
+      "files": "DevWiki/WikiData.cs, NsoWiki/sprites.js, app.js, app.css",
+      "notes": "spriteFiles lists zoom 1-4, project path, absolute fullPath, existence and PNG dimensions. Per-zoom full-path copy button; original spritePath retained. JS syntax and Unity compile passed, zero current Console errors/warnings. User visual checks pending."
+    },
+    {
+      "id": "item-sprite-project-path",
+      "area": "Workbench",
+      "title": "Item sprite project path and copy button",
+      "status": "partial",
+      "files": "DevWiki/WikiData.cs, NsoWiki/app.js",
+      "notes": "Item spritePath verifies original project PNG by icon ID and highest available zoom. Relative Assets path only, null for missing art. Detail copy button. JS syntax and Unity compile passed; zero current Console errors/warnings. User browser verification pending. Copy-path and missing-sprite Vietnamese labels repaired using explicit UTF-8; exact label and JS syntax checks passed."
+    },
+    {
+      "id": "world-map-command-input",
+      "area": "Presentation",
+      "title": "World map only and full-size button input",
+      "status": "partial",
+      "files": "Scripts/Screens/MapScr.cs",
+      "notes": "User-requested removal of Change/local-map mode. Go To/Close hitboxes match image dimensions before input/paint. Actual bottom row excluded from map gestures. Unity compile passed with zero current Console errors/warnings. Runtime mouse verification pending."
+    },
+    {
+      "id": "popup-command-alignment",
+      "area": "Presentation",
+      "title": "Wide popup bottom button alignment",
+      "status": "partial",
+      "files": "Scripts/Screens/GameScr.cs, Scripts/Diagnostics/NsoUiLayout.cs",
+      "notes": "Wide inventory/shop rows follow actual popup outer borders; centre uses image width. Narrow panels retain legacy row. Unity compiled successfully with zero current Console errors/warnings; user verifies visuals."
+    },
     {
       "id": "wiki-effect-previews",
       "area": "Workbench",
@@ -355,12 +628,34 @@
       "status": "partial",
       "files": "Net/PlayerUpgrade.cs, Net/PlayerItemUse.cs, Net/PlayerLuong.cs",
       "notes": "Convert upgrade (NOT_MAP -88), Thiên biến lệnh (cmd 119), Kamakura Mở giới hạn xu (coinMax), Cần câu vàng. Compile only."
+    },
+    {
+      "id": "python-brain-refactor",
+      "area": "AI",
+      "title": "Code-first modules and local Python Brain",
+      "status": "partial",
+      "files": "Ai/{Runtime,Contracts,Planning,Skills,Navigation,Memory,Learning,Integration}; Tools/Brain; Configuration/RuntimeConfiguration.cs",
+      "notes": "LLM/RAG/context/summary/prose moved to a separate local FastAPI service; gameplay, rules/RL, navigation, saves and validation remain C#. Six old prompts and 1885 knowledge documents match; manual Play acceptance pending. See docs/REFACTORING.md."
     }
   ],
   "constraints": [
-    {"id": "rl-validation-boundary", "title": "RL model acceptance is separate from compilation", "notes": "Only evaluator-approved schema/hash-compatible models execute. Long isolated evaluation is opt-in (about one hour); human recording defaults off. No 13-bot performance or human-likeness certification yet; handmade quest executors remain limited."},
-    {"id": "ai-no-player-loot", "area": "AI", "rule": "Agent không nhặt đồ của người chơi, không PvP", "where": "AgentTactics.NearestItem"},
-    {"id": "ai-llm-local", "area": "AI", "rule": "LLM chỉ gọi endpoint trên máy này (LlmLocalOnly); quyết định theo sự kiện, throttle 15 s/agent; không bao giờ gọi mỗi frame", "where": "AgentConfig, AgentManager.MaybeDecide"},
+    {
+      "id": "rl-validation-boundary",
+      "title": "RL model acceptance is separate from compilation",
+      "notes": "Only evaluator-approved schema/hash-compatible models execute. Long isolated evaluation is opt-in (about one hour); human recording defaults off. No 13-bot performance or human-likeness certification yet; handmade quest executors remain limited."
+    },
+    {
+      "id": "ai-no-player-loot",
+      "area": "AI",
+      "rule": "Agent không nhặt đồ của người chơi, không PvP",
+      "where": "AgentTactics.NearestItem"
+    },
+    {
+      "id": "ai-llm-local",
+      "area": "AI",
+      "rule": "LLM chỉ gọi endpoint trên máy này (LlmLocalOnly); quyết định theo sự kiện, throttle 15 s/agent; không bao giờ gọi mỗi frame",
+      "where": "AgentConfig, AgentManager.MaybeDecide"
+    },
     {
       "id": "workbench-rule-save",
       "area": "Debug tools",
@@ -512,14 +807,47 @@
       "area": "Chỉ số",
       "rule": "MP tối đa không dưới 100 (giá trị Java cho nhân vật mới)",
       "where": "PlayerCombat.SetAbility"
+    },
+    {
+      "id": "brain-authority",
+      "area": "AI",
+      "rule": "Python receives detached snapshots and proposes plans; C# owns gameplay, normal player permissions and save state. No external endpoint by default, model download or gameplay execution through Brain.",
+      "where": "BrainClient / AgentManager.Apply / BotClient / Controller"
     }
   ],
   "commands": [
-    {"id": "rl-contract-check", "title": "Synthetic learning contracts", "cmd": "uv run --project Tools/Learning --locked python Tools/Learning/check_contracts.py", "notes": "GPU, teacher imitation, actual C# inference parity, PPO source/version isolation, checkpoint restart, regression gates and incomplete spool lines; no game server or save access."},
-    {"id": "terminal:agents", "dir": "terminal", "cmd": -23, "name": "/agents, /replan [name]", "handler": "DevTerminal.Run", "status": "done"},
-    {"id": "s2c:-23", "dir": "server→client", "cmd": -23, "name": "CHAT_MAP (speech bubble of an agent)", "handler": "client Controller case -23", "status": "done"},
-    {"id": "goto", "cmd": "/goto", "notes": "Teleport to the entrance of the current main quest map (objective or giver/report NPC map). Does not skip the current step. No fixed target or special-map destinations return an explanation; dead/catch/fishing state refused."},
-    {"id": "next", "cmd": "/next", "notes": "Dev terminal: advance current accepted quest by one existing progression transition. Final step: report to NPC or /skip. No auto-accept."},
+    {
+      "id": "rl-contract-check",
+      "title": "Synthetic learning contracts",
+      "cmd": "uv run --project Tools/Learning --locked python Tools/Learning/check_contracts.py",
+      "notes": "GPU, teacher imitation, actual C# inference parity, PPO source/version isolation, checkpoint restart, regression gates and incomplete spool lines; no game server or save access."
+    },
+    {
+      "id": "terminal:agents",
+      "dir": "terminal",
+      "cmd": -23,
+      "name": "/agents, /replan [name]",
+      "handler": "DevTerminal.Run",
+      "status": "done"
+    },
+    {
+      "id": "s2c:-23",
+      "dir": "server→client",
+      "cmd": -23,
+      "name": "CHAT_MAP (speech bubble of an agent)",
+      "handler": "client Controller case -23",
+      "status": "done"
+    },
+    {
+      "id": "goto",
+      "cmd": "/goto",
+      "notes": "Teleport to the entrance of the current main quest map (objective or giver/report NPC map). Does not skip the current step. No fixed target or special-map destinations return an explanation; dead/catch/fishing state refused."
+    },
+    {
+      "id": "next",
+      "cmd": "/next",
+      "notes": "Dev terminal: advance current accepted quest by one existing progression transition. Final step: report to NPC or /skip. No auto-accept."
+    },
     {
       "id": "c2s:-30/-103",
       "dir": "client→server",
@@ -833,14 +1161,52 @@
     }
   ],
   "config": [
-    {"id": "ai-rag", "title": "RAG cho người chơi AI", "detail": "NSO Server Control: _ragEnabled, _qdrantUrl, _embedModel, _llmContextTokens. Cần Ollama (bge-m3) và Qdrant ở 127.0.0.1:6333."},
-    {"id": "bot-move-step", "title": "AI movement intent budget", "notes": "NSO Server Control > AI Move Step Px: default60, range12..120, next Play. Intent distance and execution budget; normal character Speed still caps motion. Motion revision and moveStepPx fingerprint evaluation; both arms receive --move-step-px."},
-    {"id": "rl-action-reward-weights", "title": "Item/NPC learning rewards", "default": "new use 0.2, new purchase 0.1, timely use 0.3, NPC discovery 0.1, useful NPC 0.3", "where": "/agents.html > Learning > Rewards", "notes": "Each weight 0..5. HP <=50%, MP <=25%, useful-use cooldown 30 s, near-full bag <=2 free slots; configurable. Novelty is template/NPC-based and survives normal save/relogin; opening/cancelling/rejected actions do not yield useful-service reward."},
-    {"id": "ground-loot-shared-timing", "title": "Ground drops - all characters", "default": "owner 30 s, lifetime 60 s", "where": "NSO Server Control > Ground drops", "notes": "Applied before Play for every character; lifetime clamped above protection. AI preferences under AI players: loot radius/vertical limit/stall/retry and zone spread/check/cooldown/timeout/population gap. RL evaluator receives the same ground timings and includes them in the environment fingerprint."},
-    {"id": "ai-learning", "title": "Online RL", "default": "Guided, CUDA, learning on, tier 0", "where": "/agents.html learning panel; GET/POST /control/learning", "notes": "uv-managed Tools/Learning/.venv; NsoLearning sibling of save folder. 60 FPS/30-second stability gate; human recording and long evaluation off; teacher probability/rewards configurable. Source rules retained as teacher/fallback."},
-    {"id": "ai-players", "title": "Người chơi AI", "detail": "NSO Server Control: _aiPlayerCount, _botLogEnabled, _botLogKeepDays, _llmGuide, _llm*."},
-    {"id": "sqlite-storage", "title": "SQLite storage", "detail": "NSO Server Control: _useSqlite, _playerLogToDatabase, _playerLogToFile, _playerLogKeepFiles (sessions kept)."},
-    {"id": "ai-agents", "title": "Autonomous agents", "detail": "NSO Server Control > Autonomous agents (count, damage/HP %, decision throttle, review, LLM endpoint/model/timeout/backoff/temperature/json mode/local only); more in NsoServer.Ai.AgentConfig."},
+    {
+      "id": "ai-rag",
+      "title": "RAG cho người chơi AI",
+      "detail": "NSO Server Control: _ragEnabled, _qdrantUrl, _embedModel, _llmContextTokens. Cần Ollama (bge-m3) và Qdrant ở 127.0.0.1:6333."
+    },
+    {
+      "id": "bot-move-step",
+      "title": "AI movement intent budget",
+      "notes": "NSO Server Control > AI Move Step Px: default60, range12..120, next Play. Intent distance and execution budget; normal character Speed still caps motion. Motion revision and moveStepPx fingerprint evaluation; both arms receive --move-step-px."
+    },
+    {
+      "id": "rl-action-reward-weights",
+      "title": "Item/NPC learning rewards",
+      "default": "new use 0.2, new purchase 0.1, timely use 0.3, NPC discovery 0.1, useful NPC 0.3",
+      "where": "/agents.html > Learning > Rewards",
+      "notes": "Each weight 0..5. HP <=50%, MP <=25%, useful-use cooldown 30 s, near-full bag <=2 free slots; configurable. Novelty is template/NPC-based and survives normal save/relogin; opening/cancelling/rejected actions do not yield useful-service reward."
+    },
+    {
+      "id": "ground-loot-shared-timing",
+      "title": "Ground drops - all characters",
+      "default": "owner 30 s, lifetime 60 s",
+      "where": "NSO Server Control > Ground drops",
+      "notes": "Applied before Play for every character; lifetime clamped above protection. AI preferences under AI players: loot radius/vertical limit/stall/retry and zone spread/check/cooldown/timeout/population gap. RL evaluator receives the same ground timings and includes them in the environment fingerprint."
+    },
+    {
+      "id": "ai-learning",
+      "title": "Online RL",
+      "default": "Guided, CUDA, learning on, tier 0",
+      "where": "/agents.html learning panel; GET/POST /control/learning",
+      "notes": "uv-managed Tools/Learning/.venv; NsoLearning sibling of save folder. 60 FPS/30-second stability gate; human recording and long evaluation off; teacher probability/rewards configurable. Source rules retained as teacher/fallback."
+    },
+    {
+      "id": "ai-players",
+      "title": "Người chơi AI",
+      "detail": "NSO Server Control: _aiPlayerCount, _botLogEnabled, _botLogKeepDays, _llmGuide, _llm*."
+    },
+    {
+      "id": "sqlite-storage",
+      "title": "SQLite storage",
+      "detail": "NSO Server Control: _useSqlite, _playerLogToDatabase, _playerLogToFile, _playerLogKeepFiles (sessions kept)."
+    },
+    {
+      "id": "ai-agents",
+      "title": "Autonomous agents",
+      "detail": "NSO Server Control > Autonomous agents (count, damage/HP %, decision throttle, review, LLM endpoint/model/timeout/backoff/temperature/json mode/local only); more in NsoServer.Ai.AgentConfig."
+    },
     {
       "id": "player-log",
       "title": "Player Log",
@@ -848,8 +1214,20 @@
       "where": "NSO Server Control > Player log (enabled, outgoing, snapshot seconds 5, payload bytes 48, keep files 20)",
       "notes": "Logs/PlayerLog/player_<time>.log in the project folder: IN client actions, OUT server replies, LOG server trace, EVT events, STATE snapshots. Server/Net/PlayerLog.cs."
     },
-    {"id": "gamepad-share-opens-map", "title": "Share Opens Map", "default": true, "where": "NSO Gamepad Input > Share Opens Map", "notes": "Share/Create/Select opens world map only while in gameplay; off restores configurable _create key code."},
-    {"id": "popup-side-inset", "title": "Popup command horizontal inset", "default": -2, "where": "NSO UI Layout > Bottom Buttons > Popup Side Inset", "notes": "Logical pixels relative to wide panel edges. -2 matches paintFrame outer border. Live; narrow rows unchanged."},
+    {
+      "id": "gamepad-share-opens-map",
+      "title": "Share Opens Map",
+      "default": true,
+      "where": "NSO Gamepad Input > Share Opens Map",
+      "notes": "Share/Create/Select opens world map only while in gameplay; off restores configurable _create key code."
+    },
+    {
+      "id": "popup-side-inset",
+      "title": "Popup command horizontal inset",
+      "default": -2,
+      "where": "NSO UI Layout > Bottom Buttons > Popup Side Inset",
+      "notes": "Logical pixels relative to wide panel edges. -2 matches paintFrame outer border. Live; narrow rows unchanged."
+    },
     {
       "id": "f6-workbench",
       "title": "F6 default-browser shortcut",
@@ -964,27 +1342,104 @@
       "id": "luong-more",
       "title": "Fishing / coin limit tunables",
       "detail": "PlayerItemUse.FishWaitMs, FishItems, FishRates; PlayerLuong.XuMaxStep, XuMaxCap, XuMaxFeePerStep."
+    },
+    {
+      "id": "runtime-json-brain",
+      "title": "Runtime JSON and Python Brain",
+      "detail": "Optional persistentDataPath/NsoConfig/runtime-config.json v1: JSON > captured Inspector > defaults; agents overrides after legacy mapping. Export context action never overwrites. agents.BrainEndpoint defaults 127.0.0.1:8797, BrainAutoStart=true. Setup: uv sync --project Tools/Brain --locked. Secrets only supported environment/.env provider keys. BrainSessionIdleSeconds defaults to 600; interrupted external sessions expire. Supported runtime preference setters take priority within the current session."
     }
   ],
   "deviations": [
-    {"id": "ai-move-cadence", "title": "Bot báo vị trí theo nhịp client (250 ms)", "detail": "BotMovement đi từng khung hình cục bộ nhưng chỉ gửi PLAYER_MOVE mỗi 250 ms (Char.sendMove), khi dừng, khi chạm đất hoặc ngay trước hành động khác; đi trên mặt phẳng không lùi về tâm ô. Trước đây 24 gói/giây làm client người chơi thấy bot quay trái phải."},
-    {"id": "ai-rules-potions", "title": "Rules bắt buộc mua bình trước khi đánh", "detail": "Log 36 giờ: mọi lần AI chết đều có shop, có trên 500 yên mà 0 bình HP. RulePlanner mua bình trước khi còn dưới MinPotionsToFight (3); không bình thì chỉ đánh quái tối đa hơn 1 cấp; hết bình mà có tiền thì rút lui ở 55% HP (NoPotionFleeHpPercent)."},
-    {"id": "rl-capacity", "title": "Tăng năng lực học RL", "detail": "trainer.py: mạng 256x256 (cũ 64x64), giữ 65 536 mẫu/miền, nhân bản rules 32 768 mẫu x 8 vòng, PPO n_steps 1024 / batch 256 / 10 epoch, train mỗi 20 giây, 4 luồng torch. Model 64 cũ được thay bằng model 256 mới học từ rules rồi đánh giá như thường; C# đọc kích thước lớp từ file."},
-    {"id": "ai-rag-memory", "title": "Trí nhớ dài hạn RAG (Qdrant)", "detail": "AgentRag: kiến thức, sự kiện, hướng dẫn được embed bằng bge-m3 vào collection nso_agent_memory; LLM chỉ nhận 8 trí nhớ liên quan + 8 sự kiện mới nhất; quá ngữ cảnh thì LLM tóm tắt sự kiện cũ."},
-    {"id": "ai-terrain-npc-memory", "title": "Lưới địa hình và trí nhớ NPC cho LLM", "detail": "Prompt có lưới toàn map (_ tới được, x không tới được, # đặc, w gỗ/đá, . không khí) và vị trí NPC của các map đã đi qua (npcs:<map>)."},
-    {"id": "ai-map-view", "title": "LLM thấy bản đồ có tọa độ", "detail": "AgentMapView: vị trí bản thân, lối ra, NPC, quái, vật phẩm, người chơi; bước goto {map,x,y}; LLM can thiệp sau 90 giây không có kết quả (LlmStallSeconds)."},
-    {"id": "rl-default", "title": "RL điều khiển mặc định", "detail": "RlSettings: Mode RL, Guidance 0, Stage 3; rule chỉ là dự phòng khi chưa có model đạt kiểm tra."},
-    {"id": "ai-llm-leads", "title": "LLM dẫn dắt người chơi AI", "detail": "AgentConfig.LlmLeads: kế hoạch LLM (đã kiểm tra) được thực hiện; rules/RL chỉ chạy tạm khi LLM đang nghĩ hoặc lỗi."},
-    {"id": "ai-pathfinding", "title": "Tìm đường cho người chơi AI", "detail": "BotNavigation: đồ thị theo ô 24 px, cạnh là khung hình client mô phỏng (đi, nhảy, nhảy đôi, rơi). Mục tiêu không tới được thì bỏ qua 20 giây."},
-    {"id": "bot-tile-movement", "title": "Headless client locomotion executor", "notes": "Offline addition to the original Java server: emulate base Char.updateCharRun/updateCharJump/updateCharFall/setAutoJump client geometry for bots. Conservative solid-body sweeps. No server bot privilege or direct coordinate write. Separate client-frame loop leaves 500 ms world/AI clocks unchanged. Runtime and special mount/flight parity remain unverified."},
-    {"id": "rl-confirmed-action-rewards", "title": "Training reward shaping for item/NPC use", "notes": "User-requested offline RL metadata only; no Java counterpart and no human/bot gameplay privilege. Controller observes before/after outcomes. Same classification for opted-in human demonstrations; bot novelty stored in ai_players.rewardHistory, opted-in human novelty in rl_reward_history_<characterId>. Optional fields preserve old saves."},
-    {"id": "ground-loot-30-second-release", "title": "Same pickup rules for humans and bots", "notes": "User explicitly requires no bot exceptions. Java ItemMap.isCanPickup=20 s and isExpired=30 s are superseded by shared configurable 30 s protection and 60 s lifetime, leaving a usable public pickup window. Original other-owner text retained. AI courtesy reservations influence decisions only and never block a human pickup/attack; NPC/zone/bag/range checks remain normal Controller rules."},
-    {"id": "ai-guided-rl", "title": "Offline learning AI players", "notes": "User-approved RL extension, no Java counterpart: rules demonstrations and opt-in player input train behavioural cloning; version-matched policy transitions train maintained MaskablePPO. BotClient/Controller remain authoritative. LLM provides advice/speech. No save schema change or free stat/recovery privileges."},
-    {"id": "ai-players", "title": "Người chơi AI", "detail": "Bổ sung offline: nhân vật AI đăng nhập bằng bot session, gửi đúng lệnh client; không dùng được dev terminal."},
-    {"id": "presence", "title": "Nhìn thấy nhân vật khác trong khu", "detail": "Bản offline gửi PLAYER_ADD/MOVE/REMOVE/DIE giữa các nhân vật cùng khu (Net/Presence) cho người chơi AI."},
-    {"id": "sqlite-storage", "title": "SQLite instead of MySQL / TSV", "detail": "Java used MySQL; offline saves were TSV files, now SQLite nso.db (same columns, data JSON unchanged). Player log in its own SQLite file."},
-    {"id": "chat-bubble", "title": "CHAT_MAP server→client shows a bubble again", "detail": "MapService.chat (int id, UTF text). The offline client ignored it; restored for the agents' speech."},
-    {"id": "ai-agents", "title": "Autonomous NPC ninjas (hybrid AI)", "detail": "Offline addition: server-side fake characters driven by a local LLM (strategy) and game AI (tactics). Java only had scripted Bot instances."},
+    {
+      "id": "ai-move-cadence",
+      "title": "Bot báo vị trí theo nhịp client (250 ms)",
+      "detail": "BotMovement đi từng khung hình cục bộ nhưng chỉ gửi PLAYER_MOVE mỗi 250 ms (Char.sendMove), khi dừng, khi chạm đất hoặc ngay trước hành động khác; đi trên mặt phẳng không lùi về tâm ô. Trước đây 24 gói/giây làm client người chơi thấy bot quay trái phải."
+    },
+    {
+      "id": "ai-rules-potions",
+      "title": "Rules bắt buộc mua bình trước khi đánh",
+      "detail": "Log 36 giờ: mọi lần AI chết đều có shop, có trên 500 yên mà 0 bình HP. RulePlanner mua bình trước khi còn dưới MinPotionsToFight (3); không bình thì chỉ đánh quái tối đa hơn 1 cấp; hết bình mà có tiền thì rút lui ở 55% HP (NoPotionFleeHpPercent)."
+    },
+    {
+      "id": "rl-capacity",
+      "title": "Tăng năng lực học RL",
+      "detail": "trainer.py: mạng 256x256 (cũ 64x64), giữ 65 536 mẫu/miền, nhân bản rules 32 768 mẫu x 8 vòng, PPO n_steps 1024 / batch 256 / 10 epoch, train mỗi 20 giây, 4 luồng torch. Model 64 cũ được thay bằng model 256 mới học từ rules rồi đánh giá như thường; C# đọc kích thước lớp từ file."
+    },
+    {
+      "id": "ai-rag-memory",
+      "title": "Trí nhớ dài hạn RAG (Qdrant)",
+      "detail": "AgentRag: kiến thức, sự kiện, hướng dẫn được embed bằng bge-m3 vào collection nso_agent_memory; LLM chỉ nhận 8 trí nhớ liên quan + 8 sự kiện mới nhất; quá ngữ cảnh thì LLM tóm tắt sự kiện cũ."
+    },
+    {
+      "id": "ai-terrain-npc-memory",
+      "title": "Lưới địa hình và trí nhớ NPC cho LLM",
+      "detail": "Prompt có lưới toàn map (_ tới được, x không tới được, # đặc, w gỗ/đá, . không khí) và vị trí NPC của các map đã đi qua (npcs:<map>)."
+    },
+    {
+      "id": "ai-map-view",
+      "title": "LLM thấy bản đồ có tọa độ",
+      "detail": "AgentMapView: vị trí bản thân, lối ra, NPC, quái, vật phẩm, người chơi; bước goto {map,x,y}; LLM can thiệp sau 90 giây không có kết quả (LlmStallSeconds)."
+    },
+    {
+      "id": "rl-default",
+      "title": "RL điều khiển mặc định",
+      "detail": "RlSettings: Mode RL, Guidance 0, Stage 3; rule chỉ là dự phòng khi chưa có model đạt kiểm tra."
+    },
+    {
+      "id": "ai-llm-leads",
+      "title": "LLM dẫn dắt người chơi AI",
+      "detail": "AgentConfig.LlmLeads: kế hoạch LLM (đã kiểm tra) được thực hiện; rules/RL chỉ chạy tạm khi LLM đang nghĩ hoặc lỗi."
+    },
+    {
+      "id": "ai-pathfinding",
+      "title": "Tìm đường cho người chơi AI",
+      "detail": "BotNavigation: đồ thị theo ô 24 px, cạnh là khung hình client mô phỏng (đi, nhảy, nhảy đôi, rơi). Mục tiêu không tới được thì bỏ qua 20 giây."
+    },
+    {
+      "id": "bot-tile-movement",
+      "title": "Headless client locomotion executor",
+      "notes": "Offline addition to the original Java server: emulate base Char.updateCharRun/updateCharJump/updateCharFall/setAutoJump client geometry for bots. Conservative solid-body sweeps. No server bot privilege or direct coordinate write. Separate client-frame loop leaves 500 ms world/AI clocks unchanged. Runtime and special mount/flight parity remain unverified."
+    },
+    {
+      "id": "rl-confirmed-action-rewards",
+      "title": "Training reward shaping for item/NPC use",
+      "notes": "User-requested offline RL metadata only; no Java counterpart and no human/bot gameplay privilege. Controller observes before/after outcomes. Same classification for opted-in human demonstrations; bot novelty stored in ai_players.rewardHistory, opted-in human novelty in rl_reward_history_<characterId>. Optional fields preserve old saves."
+    },
+    {
+      "id": "ground-loot-30-second-release",
+      "title": "Same pickup rules for humans and bots",
+      "notes": "User explicitly requires no bot exceptions. Java ItemMap.isCanPickup=20 s and isExpired=30 s are superseded by shared configurable 30 s protection and 60 s lifetime, leaving a usable public pickup window. Original other-owner text retained. AI courtesy reservations influence decisions only and never block a human pickup/attack; NPC/zone/bag/range checks remain normal Controller rules."
+    },
+    {
+      "id": "ai-guided-rl",
+      "title": "Offline learning AI players",
+      "notes": "User-approved RL extension, no Java counterpart: rules demonstrations and opt-in player input train behavioural cloning; version-matched policy transitions train maintained MaskablePPO. BotClient/Controller remain authoritative. LLM provides advice/speech. No save schema change or free stat/recovery privileges."
+    },
+    {
+      "id": "ai-players",
+      "title": "Người chơi AI",
+      "detail": "Bổ sung offline: nhân vật AI đăng nhập bằng bot session, gửi đúng lệnh client; không dùng được dev terminal."
+    },
+    {
+      "id": "presence",
+      "title": "Nhìn thấy nhân vật khác trong khu",
+      "detail": "Bản offline gửi PLAYER_ADD/MOVE/REMOVE/DIE giữa các nhân vật cùng khu (Net/Presence) cho người chơi AI."
+    },
+    {
+      "id": "sqlite-storage",
+      "title": "SQLite instead of MySQL / TSV",
+      "detail": "Java used MySQL; offline saves were TSV files, now SQLite nso.db (same columns, data JSON unchanged). Player log in its own SQLite file."
+    },
+    {
+      "id": "chat-bubble",
+      "title": "CHAT_MAP server→client shows a bubble again",
+      "detail": "MapService.chat (int id, UTF text). The offline client ignored it; restored for the agents' speech."
+    },
+    {
+      "id": "ai-agents",
+      "title": "Autonomous NPC ninjas (hybrid AI)",
+      "detail": "Offline addition: server-side fake characters driven by a local LLM (strategy) and game AI (tactics). Java only had scripted Bot instances."
+    },
     {
       "id": "skill-animation-per-tick",
       "title": "Animation skill chạy theo tick logic, không theo FPS",
@@ -997,23 +1452,108 @@
       "why": "Offline không có người chơi khác (lời mời) và không có phân thân; 'Nhận kiếm gỗ' (thêm offline) trước đây nhận vô hạn.",
       "how": "PlayerTasks.NpcTajima: 'Hủy vật phẩm và nhiệm vụ' (Char.clearTask, cần cấp 10), 'Nói chuyện', 'Nhận kiếm gỗ' chỉ khi chưa có kiếm gỗ trong hành trang/rương/trang bị."
     },
-    {"id": "supply-stacks-split", "title": "Counted supply stacks and bag/chest split command", "why": "User clarified actual one-cell stacks with quantities, excluding equipment, and requested quantity splitting.", "notes": "Extends original stack eligibility for supplies on explicit Sort. NOT_MAP -85 split request/ack extended with container flag; clone metadata and preserve quantities. Expiring instances not merged. Legacy crafting remains unit-based: split materials first."},
-    {"id": "inventory-explicit-group-sort", "title": "Group inventory by type on explicit Sort", "why": "User requested same-type grouping in bag and box only when pressing Sort.", "notes": "Shared pure ordering policy for client/server; existing bagSort/boxSort merging and ack protocol retained. Type, id, lock and original index determine deterministic order. No automatic reordering."},
-    {"id": "school-element-shops", "title": "School-specific elemental catalogs", "why": "User requested NPCs at each school sell that school element only.", "notes": "Filters existing Char.requestItem/Store.show/Store.buy catalog consistently; no item-table rewrite. Neutral supplies retained, classed skill books filtered by element. Other maps unchanged."},
-    {"id": "thien-bien-lenh-auto-pick", "title": "Enabled item is the exception to manual ground pickup", "why": "User explicitly requested Thien bien lenh auto-pick after reporting it inactive.", "notes": "Existing item automation/protocol completed; no global suction. While item and persistent auto active, normal nearby pickup requests run. Off/pause stops requests. Range origin, server expiry/item validation and cooldown constrain auto movement."},
-    {"id": "manual-ground-pickup", "title": "Manual ground-loot interaction in ordinary play", "why": "User clarified they do not want automatic suction or pickup.", "notes": "Supersedes nearby-auto-pickup: no Char.update auto collector or GameScr.update suction invocation. Ground items/yen use explicit interaction and normal server checks. Separately invoked legacy auto-play/task routines are outside this change."},
-    {"id": "nearby-auto-pickup", "title": "Nearby all-item auto pickup without auto-play", "why": "User reported no automatic pickup and requested yen on the ground.", "notes": "Reuses Char.autoPickItemMap and normal server validation; configurable 120px/350ms defaults, no movement. Yen ground drops match Mob.dropItem(YEN), pickup packet is sole client credit; server rewards still use AddYen normally."},
-    {"id": "quest-goto", "title": "Dev terminal teleport to main quest objective", "why": "User requested /goto to travel to the next needed main-quest location.", "notes": "QuestTravel resolves existing task map/NPC/spawns; normal map travel bypasses walking/unlock routing. Quest advancement remains in existing hooks; no direct TaskNext or reward grant. Private-instance entry rules retained."},
-    {"id": "harder-combat-defaults", "title": "Harder monster combat default profile", "why": "User requested stronger monsters and reduced player dodge after equipment recovery was identified.", "notes": "CombatRules defaults 50/100/40/150 for dodge scale/monster accuracy/dodge cap/damage. No raw character stats or save changes. Web tunables and explicit saved overrides retained."},
-    {"id": "monster-hp-sync-correction", "title": "Use actual damage in monster-hit packets; stat refresh does not heal", "why": "User still saw full HP recovery on hits and reported monsters too weak.", "notes": "Supersedes raw-display/scaled-deduction Java Mob.attack behavior: scale once before packets; post-hit observer HP; no duplicate victim observer hit. Client ME_LOAD_SKILL/UPDATE_POTENTIAL clamp HP/MP rather than fill them. Default damage factor 100% by request; web/saved overrides remain supported."},
-    {"id": "miss-no-healing", "title": "Reject negative injury deltas as healing", "why": "User reported HP rising without items; -1 MISS from Java Mob.attack display protocol was subtracted as damage.", "notes": "Client Char.doInjure subtracts HPShow/MPShow only if positive. Original signed values retained for MISS display. Food/potions/equipment recovery paths unchanged."},
-    {"id": "terminal-next-step", "title": "Dev terminal /next bypasses one quest step", "why": "User requested advancing to the next quest step and hiding the map Go To button.", "notes": "NextTaskStep validates active quest/index, then reuses Char.taskNext port. It does not finish or accept quests; /skip retains completion. Map left command null; legacy travel handler remains unbound."},
-    {"id": "map-toggle-analog-cursor", "title": "Controller map toggle and analog cursor", "why": "User requested Share/Create to open and close the map and left stick to move its cursor.", "notes": "MapScr.updateKey extended with render-cadence cursor movement; analog selection never invokes legacy adminMove. Existing Go To and close commands retained; speed configurable in NsoGamepadInput."},
-    {"id": "share-map-gamepad", "title": "Offline gamepad Share/Create map shortcut", "why": "Explicit user request for Share to open the map.", "notes": "Reuses GameScr.doShowMap via action 110002; no gameplay or map rendering changes."},
-    {"id": "shared-item-tab-navigation", "title": "Shared non-wrapping item-grid focus", "why": "User requested child cells return to tabs consistently like inventory, including upgrade, equipment, mount, chest and bijuu.", "notes": "Pure TabGridNavigation shared via GameScr adapters; left/right boundary -> title, Up -> parent. Equipment vertical shape preserved; upgrade hierarchy explicit. Original action/confirmation/gameplay handlers unchanged."},
-    {"id": "upgrade-controller-input", "title": "Equipment upgrade keyboard/gamepad navigation", "why": "Large-screen upgrade has no centre select command; tooltip captured directional keys and equipment row could not return to tabs.", "notes": "Scoped to isPaintUpGrade: Enter invokes left action, directions navigate slots, Up returns to title. Existing validation/confirmation/cost/probability preserved."},
-    {"id": "world-map-only", "title": "Remove MapScr local-map mode and Change command", "why": "Explicit user request: unnecessary third button and its features removed.", "notes": "Original MapScr 1001/local-map paint/bounds removed. World map, Go To and Close retained. Command hitboxes follow image size and actual bottom-row position; map gestures exclude this row."},
-    {"id": "popup-command-alignment", "title": "Wide popup commands follow panel bounds", "why": "GameScr.paint fixed -160/-35/+88 offsets disagree with the 310-pixel panel and actual button width.", "notes": "Presentation only: configurable inset -2 matches paintFrame outer border. Narrow layouts, command actions and vertical row unchanged."},
+    {
+      "id": "supply-stacks-split",
+      "title": "Counted supply stacks and bag/chest split command",
+      "why": "User clarified actual one-cell stacks with quantities, excluding equipment, and requested quantity splitting.",
+      "notes": "Extends original stack eligibility for supplies on explicit Sort. NOT_MAP -85 split request/ack extended with container flag; clone metadata and preserve quantities. Expiring instances not merged. Legacy crafting remains unit-based: split materials first."
+    },
+    {
+      "id": "inventory-explicit-group-sort",
+      "title": "Group inventory by type on explicit Sort",
+      "why": "User requested same-type grouping in bag and box only when pressing Sort.",
+      "notes": "Shared pure ordering policy for client/server; existing bagSort/boxSort merging and ack protocol retained. Type, id, lock and original index determine deterministic order. No automatic reordering."
+    },
+    {
+      "id": "school-element-shops",
+      "title": "School-specific elemental catalogs",
+      "why": "User requested NPCs at each school sell that school element only.",
+      "notes": "Filters existing Char.requestItem/Store.show/Store.buy catalog consistently; no item-table rewrite. Neutral supplies retained, classed skill books filtered by element. Other maps unchanged."
+    },
+    {
+      "id": "thien-bien-lenh-auto-pick",
+      "title": "Enabled item is the exception to manual ground pickup",
+      "why": "User explicitly requested Thien bien lenh auto-pick after reporting it inactive.",
+      "notes": "Existing item automation/protocol completed; no global suction. While item and persistent auto active, normal nearby pickup requests run. Off/pause stops requests. Range origin, server expiry/item validation and cooldown constrain auto movement."
+    },
+    {
+      "id": "manual-ground-pickup",
+      "title": "Manual ground-loot interaction in ordinary play",
+      "why": "User clarified they do not want automatic suction or pickup.",
+      "notes": "Supersedes nearby-auto-pickup: no Char.update auto collector or GameScr.update suction invocation. Ground items/yen use explicit interaction and normal server checks. Separately invoked legacy auto-play/task routines are outside this change."
+    },
+    {
+      "id": "nearby-auto-pickup",
+      "title": "Nearby all-item auto pickup without auto-play",
+      "why": "User reported no automatic pickup and requested yen on the ground.",
+      "notes": "Reuses Char.autoPickItemMap and normal server validation; configurable 120px/350ms defaults, no movement. Yen ground drops match Mob.dropItem(YEN), pickup packet is sole client credit; server rewards still use AddYen normally."
+    },
+    {
+      "id": "quest-goto",
+      "title": "Dev terminal teleport to main quest objective",
+      "why": "User requested /goto to travel to the next needed main-quest location.",
+      "notes": "QuestTravel resolves existing task map/NPC/spawns; normal map travel bypasses walking/unlock routing. Quest advancement remains in existing hooks; no direct TaskNext or reward grant. Private-instance entry rules retained."
+    },
+    {
+      "id": "harder-combat-defaults",
+      "title": "Harder monster combat default profile",
+      "why": "User requested stronger monsters and reduced player dodge after equipment recovery was identified.",
+      "notes": "CombatRules defaults 50/100/40/150 for dodge scale/monster accuracy/dodge cap/damage. No raw character stats or save changes. Web tunables and explicit saved overrides retained."
+    },
+    {
+      "id": "monster-hp-sync-correction",
+      "title": "Use actual damage in monster-hit packets; stat refresh does not heal",
+      "why": "User still saw full HP recovery on hits and reported monsters too weak.",
+      "notes": "Supersedes raw-display/scaled-deduction Java Mob.attack behavior: scale once before packets; post-hit observer HP; no duplicate victim observer hit. Client ME_LOAD_SKILL/UPDATE_POTENTIAL clamp HP/MP rather than fill them. Default damage factor 100% by request; web/saved overrides remain supported."
+    },
+    {
+      "id": "miss-no-healing",
+      "title": "Reject negative injury deltas as healing",
+      "why": "User reported HP rising without items; -1 MISS from Java Mob.attack display protocol was subtracted as damage.",
+      "notes": "Client Char.doInjure subtracts HPShow/MPShow only if positive. Original signed values retained for MISS display. Food/potions/equipment recovery paths unchanged."
+    },
+    {
+      "id": "terminal-next-step",
+      "title": "Dev terminal /next bypasses one quest step",
+      "why": "User requested advancing to the next quest step and hiding the map Go To button.",
+      "notes": "NextTaskStep validates active quest/index, then reuses Char.taskNext port. It does not finish or accept quests; /skip retains completion. Map left command null; legacy travel handler remains unbound."
+    },
+    {
+      "id": "map-toggle-analog-cursor",
+      "title": "Controller map toggle and analog cursor",
+      "why": "User requested Share/Create to open and close the map and left stick to move its cursor.",
+      "notes": "MapScr.updateKey extended with render-cadence cursor movement; analog selection never invokes legacy adminMove. Existing Go To and close commands retained; speed configurable in NsoGamepadInput."
+    },
+    {
+      "id": "share-map-gamepad",
+      "title": "Offline gamepad Share/Create map shortcut",
+      "why": "Explicit user request for Share to open the map.",
+      "notes": "Reuses GameScr.doShowMap via action 110002; no gameplay or map rendering changes."
+    },
+    {
+      "id": "shared-item-tab-navigation",
+      "title": "Shared non-wrapping item-grid focus",
+      "why": "User requested child cells return to tabs consistently like inventory, including upgrade, equipment, mount, chest and bijuu.",
+      "notes": "Pure TabGridNavigation shared via GameScr adapters; left/right boundary -> title, Up -> parent. Equipment vertical shape preserved; upgrade hierarchy explicit. Original action/confirmation/gameplay handlers unchanged."
+    },
+    {
+      "id": "upgrade-controller-input",
+      "title": "Equipment upgrade keyboard/gamepad navigation",
+      "why": "Large-screen upgrade has no centre select command; tooltip captured directional keys and equipment row could not return to tabs.",
+      "notes": "Scoped to isPaintUpGrade: Enter invokes left action, directions navigate slots, Up returns to title. Existing validation/confirmation/cost/probability preserved."
+    },
+    {
+      "id": "world-map-only",
+      "title": "Remove MapScr local-map mode and Change command",
+      "why": "Explicit user request: unnecessary third button and its features removed.",
+      "notes": "Original MapScr 1001/local-map paint/bounds removed. World map, Go To and Close retained. Command hitboxes follow image size and actual bottom-row position; map gestures exclude this row."
+    },
+    {
+      "id": "popup-command-alignment",
+      "title": "Wide popup commands follow panel bounds",
+      "why": "GameScr.paint fixed -160/-35/+88 offsets disagree with the 310-pixel panel and actual button width.",
+      "notes": "Presentation only: configurable inset -2 matches paintFrame outer border. Narrow layouts, command actions and vertical row unchanged."
+    },
     {
       "id": "character-progression-profiles",
       "title": "Configurable native character progression",
@@ -1185,6 +1725,11 @@
       "id": "skill-bar",
       "title": "Skill bar shown after first book skill; all 5 slots assignable",
       "detail": "GameScr.hasBookSkill / doSetOnScreenSkill (user request). Server now saves OSkill/KSkill/CSkill (Char.saveRms)."
+    },
+    {
+      "id": "python-brain-boundary",
+      "title": "User-approved code-first architecture and Python AI service",
+      "detail": "Offline architecture addition, no gameplay-rule deviation: thin Unity adapters, pure runtime config and Python LLM/RAG orchestration. Existing embedded C# server/in-memory protocol/saves and Qdrant point identity retained. Windows development first; standalone runtime packaging deferred."
     }
   ],
   "issues": [
@@ -1205,6 +1750,12 @@
       "title": "2 test đăng nhập fail",
       "status": "skip",
       "detail": "Dự kiến: bản offline luôn đăng nhập 1 tài khoản."
+    },
+    {
+      "id": "reload-lifecycle",
+      "title": "Legacy RMS/Main.FixedUpdate logs on Play reload",
+      "status": "pending",
+      "detail": "Two runtime groups observed during reload/normal Stop; unchanged source, stack traces recorded before clearing. Final stopped Console is clean; fresh Play acceptance remains with the user."
     }
   ],
   "tests": [
@@ -1272,6 +1823,12 @@
       "cmd": "dotnet run --project \"C:/My project/Tools/ServerTests/ServerTests.csproj\" -- wiki",
       "covers": "dựng db.json của website tra cứu và chạy website không cần Unity",
       "result": ""
+    },
+    {
+      "id": "brain-contracts",
+      "cmd": "uv run --project Tools/Brain --locked python Tools/Brain/check_contracts.py",
+      "covers": "Mock-based prompt/summary/RAG/API/config contracts, 1885 C# knowledge hashes and real C#/Python HTTP/process ownership",
+      "result": "20 tests plus actual HTTP/outbox/mock-Qdrant/restart probes pass; Unity refresh and final Console clean after authorized Stop. No fresh Play/real-service gameplay acceptance."
     }
   ]
 }

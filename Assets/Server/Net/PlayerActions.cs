@@ -18,7 +18,12 @@ namespace NsoServer.Net
         public int Kind;
         public string Name;
         public System.Action Run;
-        public MenuEntry(int kind, string name, System.Action run = null) { Kind = kind; Name = name; Run = run; }
+        public MenuEntry(int kind, string name, System.Action run = null)
+        {
+            Kind = kind;
+            Name = name;
+            Run = run;
+        }
     }
 
     // com.nsoz.effect.Effect on a character: template id, its type (`effect` table), time span and strength
@@ -26,7 +31,10 @@ namespace NsoServer.Net
     {
         public int TemplateId, Type, Param;
         public long StartAt, EndAt;
-        public bool IsExpired(long now) { return now >= EndAt; }
+        public bool IsExpired(long now)
+        {
+            return now >= EndAt;
+        }
     }
 
     public sealed class PlayerState
@@ -38,14 +46,13 @@ namespace NsoServer.Net
         public short X, Y, PreX, PreY;
         public int Speed = 5;
         public bool IsDead;
-        public bool BoxOpen;   // Char.getCommandBox() == RUONG_DO: the storage box UI was opened at Kamakura
+        public bool BoxOpen; // Char.getCommandBox() == RUONG_DO: the storage box UI was opened at Kamakura
         // timed quest action in progress (Java isCatchItem / isFailure), see TaskMechanics.StartCatch
         public long CatchUntil;
         public bool CatchFailed;
         public Action CatchDone;
         public bool IsChangeMap;
         public long TimeChangeMap;
-
         // Starting values of a level-1 character; they come from equipment, level and potential once those are ported.
         public int Hp = 50, MaxHp = 50, Mp = 100, MaxMp = 100;
         public long Exp, ExpDown;
@@ -56,35 +63,48 @@ namespace NsoServer.Net
         public int AutoOriginX, AutoOriginY;
         public long LastAutoMove;
         public long LastAutoCheck;
-        public long FishUntil;   // Cần câu vàng: the catch is decided at this time (0 = not fishing)   // Char.input: pending text box (PlayerLuong.ShowInput)
+        public long FishUntil; // Cần câu vàng: the catch is decided at this time (0 = not fishing)   // Char.input: pending text box (PlayerLuong.ShowInput)
         public sbyte TypePk;
         // damage reduction / resistances used when monsters hit the character
         public int DameDown, Miss, ResFire, ResIce, ResWind;
         public readonly int[] Options = new int[256];
         public bool IsInvisible;
-
         // Combat (see PlayerCombat): level from Exp, potential points, the selected skill and the attack values of
         // AbilityFromEquip.setAbility.
         public int Level = 1;
         public int PotentialPoint, SkillPoint;
-        public readonly int[] Potential = { 15, 5, 5, 5 };
+        public readonly int[] Potential =
+        {
+            15,
+            5,
+            5,
+            5
+        };
         public NsoServer.World.SkillData SelectedSkill;
-        public long LastTimeUseSkill;            // Skill.lastTimeUseThisSkill of the selected skill
+        public long LastTimeUseSkill; // Skill.lastTimeUseThisSkill of the selected skill
         public int Damage, Damage2, Exactly, Fatal, FatalDame, PercentFatalDame;
         public NsoServer.Store.PlayerInventory Inventory;
         public NsoServer.Store.PlayerProgress Progress;
-        public int[] SupportOptions;                       // Char.optionsSupportSkill (passive skills), set by SetAbility   // yen, xu, quest step, skills (saved in PlayerRecord.Data)
-
+        public int[] SupportOptions; // Char.optionsSupportSkill (passive skills), set by SetAbility   // yen, xu, quest step, skills (saved in PlayerRecord.Data)
         // Char.menus: the NPC menu currently shown (server-built, see PlayerTasks), and the quiz answer counter (Char.nAnswer)
         public readonly List<MenuEntry> Menus = new List<MenuEntry>();
         public int NAnswer;
-
         // Char.em: the character's effects (food, potions...), see PlayerEffects
         public readonly List<PlayerEffect> Effects = new List<PlayerEffect>();
-        public long LastRegen;   // last five-second equipment recovery (and optional offline recovery), see PlayerEffects
+        public long LastRegen; // last five-second equipment recovery (and optional offline recovery), see PlayerEffects
+        public int MapId
+        {
+            get
+            {
+                return Zone.Tile.Id;
+            }
+        }
 
-        public int MapId { get { return Zone.Tile.Id; } }
-        public void SetXY(short x, short y) { X = x; Y = y; }
+        public void SetXY(short x, short y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 
     // Port of Zone.move / Char.isCrossMap / Zone.requestChangeMap / Char.changeMap / Char.changeZone and the zone list.
@@ -93,11 +113,9 @@ namespace NsoServer.Net
     {
         private const int LimitSpeed = 17;
         private static readonly System.Random Rng = new System.Random();
-
         private readonly Session session;
         private readonly GameWorld world;
         private readonly PlayerState me;
-
         public PlayerActions(Session session, GameWorld world, PlayerState me)
         {
             this.session = session;
@@ -109,16 +127,32 @@ namespace NsoServer.Net
             long now = Now();
             if (food != null && food.Length == 4 && food[2] <= now && food[3] > now && world.EffectType((int)food[0]) == 0)
             {
-                var effect = new PlayerEffect { TemplateId = (int)food[0], Type = 0, Param = (int)food[1], StartAt = food[2], EndAt = food[3] };
+                var effect = new PlayerEffect
+                {
+                    TemplateId = (int)food[0],
+                    Type = 0,
+                    Param = (int)food[1],
+                    StartAt = food[2],
+                    EndAt = food[3]
+                };
                 me.Effects.Insert(0, effect);
                 PlayerService.AddEffect(me, effect, now);
             }
         }
 
-        private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
+        private static long Now()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
 
         // the character these actions belong to (used by PlayerCombat)
-        public PlayerState State { get { return me; } }
+        public PlayerState State
+        {
+            get
+            {
+                return me;
+            }
+        }
 
         // Char.move -> Zone.move
         public void Move(Message m)
@@ -126,8 +160,18 @@ namespace NsoServer.Net
             short x = m.Reader.ReadShort();
             short y = m.Reader.ReadShort();
             short preX = me.X, preY = me.Y;
-            if (me.X == x && me.Y == y) { ResetPoint(); return; }
-            if (!me.IsAutoPlay && System.Math.Abs(x - preX) > me.Speed * LimitSpeed) { ResetPoint(); return; }   // Zone: no speed check while auto-playing
+            if (me.X == x && me.Y == y)
+            {
+                ResetPoint();
+                return;
+            }
+
+            if (!me.IsAutoPlay && System.Math.Abs(x - preX) > me.Speed * LimitSpeed)
+            {
+                ResetPoint();
+                return;
+            } // Zone: no speed check while auto-playing
+
             me.PreX = preX;
             me.PreY = preY;
             me.SetXY(x, y);
@@ -140,6 +184,7 @@ namespace NsoServer.Net
                 ResetPoint();
                 return;
             }
+
             if (IsCrossMap(me.X, me.Y) && !me.IsChangeMap)
             {
                 // walking off the edge of the map kills the character
@@ -148,6 +193,7 @@ namespace NsoServer.Net
                 StartDie();
                 return;
             }
+
             var ms = new Message(Cmd.PLAYER_MOVE);
             ms.Writer.WriteInt(me.Record.Id);
             ms.Writer.WriteShort(me.X);
@@ -158,28 +204,39 @@ namespace NsoServer.Net
 
         private bool IsSoftBlock(short cx, short cy)
         {
-            if (Now() - me.TimeChangeMap < 500 || me.IsDead) return false;
+            if (Now() - me.TimeChangeMap < 500 || me.IsDead)
+                return false;
             var tile = me.Zone.Tile;
             var grid = world.GetGrid(tile);
-            if (grid.TileTypeAt(cx, cy - 1, TileGrid.T_WATERFLOW)) return false;
-            if (grid.IsWood(cx, cy - 1) || grid.IsRock(cx, cy - 1)) return true;
+            if (grid.TileTypeAt(cx, cy - 1, TileGrid.T_WATERFLOW))
+                return false;
+            if (grid.IsWood(cx, cy - 1) || grid.IsRock(cx, cy - 1))
+                return true;
             return (cx < 24 || cx > grid.PxW - 24) && !tile.IsInWaypoint(cx, cy);
         }
 
         private bool IsCrossMap(short cx, short cy)
         {
-            if (Now() - me.TimeChangeMap < 500) return false;
-            if (me.IsDead) return false;
+            if (Now() - me.TimeChangeMap < 500)
+                return false;
+            if (me.IsDead)
+                return false;
             var tile = me.Zone.Tile;
             var grid = world.GetGrid(tile);
-            if (grid.TileTypeAt(cx, cy - 1, TileGrid.T_WATERFLOW)) return false;
-            if (grid.TileId == 4 && cy >= grid.PxH - 48) return true;
-            if (grid.IsWood(cx, cy - 1)) return true;
-            if (grid.IsRock(cx, cy - 1)) return true;
-            if ((cx < 24 || cx > grid.PxW - 24) && !tile.IsInWaypoint(cx, cy)) return true;
+            if (grid.TileTypeAt(cx, cy - 1, TileGrid.T_WATERFLOW))
+                return false;
+            if (grid.TileId == 4 && cy >= grid.PxH - 48)
+                return true;
+            if (grid.IsWood(cx, cy - 1))
+                return true;
+            if (grid.IsRock(cx, cy - 1))
+                return true;
+            if ((cx < 24 || cx > grid.PxW - 24) && !tile.IsInWaypoint(cx, cy))
+                return true;
             // Offline deviation: Java kills at cy >= pxh - 24, but in maps whose last tile row is solid ground (61, 63)
             // the character stands at exactly pxh - 24 and died while walking. Standing on a T_TOP tile is not falling out.
-            if (cy >= grid.PxH - 24 && !tile.IsInWaypoint(cx, cy) && !grid.TileTypeAt(cx, cy, TileGrid.T_TOP)) return true;
+            if (cy >= grid.PxH - 24 && !tile.IsInWaypoint(cx, cy) && !grid.TileTypeAt(cx, cy, TileGrid.T_TOP))
+                return true;
             return false;
         }
 
@@ -189,28 +246,59 @@ namespace NsoServer.Net
             // Offline deviation: Java returns silently, but the client has already locked itself on the black
             // "loading" screen (Char.ischangingMap) and only RESET_POINT / MAP_INFO unlock it. The server's position
             // can lag the client's by the last unsent move, so reply with RESET_POINT instead of leaving it black.
-            if (me.IsDead) { ResetPoint(); return; }
+            if (me.IsDead)
+            {
+                ResetPoint();
+                return;
+            }
+
             var wp = me.Zone.Tile.FindWaypoint(me.X, me.Y);
-            if (wp == null) { PlayerLog.Event(me, "change map refused: no waypoint at the server position"); ResetPoint(); return; }
+            if (wp == null)
+            {
+                PlayerLog.Event(me, "change map refused: no waypoint at the server position");
+                ResetPoint();
+                return;
+            }
+
             me.TimeChangeMap = Now();
             int next = wp.Next;
             if (next == -1)
             {
                 // the "random" portal sends the player to one of four fixed spots
-                int[] ids = { 134, 135, 136, 137 };   // NUI_DORAGON, RUNG_MAJO, VUC_YUNIKOON, DONG_KINGU
+                int[] ids =
+                {
+                    134,
+                    135,
+                    136,
+                    137
+                }; // NUI_DORAGON, RUNG_MAJO, VUC_YUNIKOON, DONG_KINGU
                 next = ids[Rng.Next(ids.Length)];
                 short x = 0, y = 0;
                 switch (next)
                 {
-                    case 137: x = 45; y = 264; break;
-                    case 136: x = 1011; y = 1128; break;
-                    case 135: x = 2595; y = 240; break;
-                    case 134: x = 1011; y = 720; break;
+                    case 137:
+                        x = 45;
+                        y = 264;
+                        break;
+                    case 136:
+                        x = 1011;
+                        y = 1128;
+                        break;
+                    case 135:
+                        x = 2595;
+                        y = 240;
+                        break;
+                    case 134:
+                        x = 1011;
+                        y = 720;
+                        break;
                 }
+
                 me.SetXY(x, y);
                 ChangeMap(next);
                 return;
             }
+
             if (MapUnlock.CanEnter(me.Record.TaskId, next))
             {
                 me.SetXY(wp.X, wp.Y);
@@ -229,10 +317,28 @@ namespace NsoServer.Net
         {
             var tile = world.FindMap(id);
             // ResetPoint: unlock the client's black change-map screen when the move cannot happen (offline deviation)
-            if (tile == null) { ResetPoint(); Dialog("Không tìm thấy nơi này!"); return; }
-            if (!tile.IsNormal) { ResetPoint(); Dialog("Khu vực này chưa được hỗ trợ ở bản offline."); return; }
+            if (tile == null)
+            {
+                ResetPoint();
+                Dialog("Không tìm thấy nơi này!");
+                return;
+            }
+
+            if (!tile.IsNormal)
+            {
+                ResetPoint();
+                Dialog("Khu vực này chưa được hỗ trợ ở bản offline.");
+                return;
+            }
+
             int zoneId = world.RandomZoneId(id);
-            if (zoneId == -1) { ResetPoint(); Dialog("Không tìm thấy nơi này!"); return; }
+            if (zoneId == -1)
+            {
+                ResetPoint();
+                Dialog("Không tìm thấy nơi này!");
+                return;
+            }
+
             me.IsChangeMap = true;
             Join(id, zoneId);
         }
@@ -250,57 +356,76 @@ namespace NsoServer.Net
             var old = me.Zone;
             me.Zone.Players.Remove(me);
             Presence.Left(me, old);
-            if (old.IsInstance && old.Players.Count == 0) world.RemoveInstance(old);   // ChikatoyaTunnels.update: close when empty
+            if (old.IsInstance && old.Players.Count == 0)
+                world.RemoveInstance(old); // ChikatoyaTunnels.update: close when empty
             session.Send(new Message(Cmd.MAP_CLEAR));
             me.Zone = target;
             target.Players.Add(me);
             session.Send(EnterWorld.MapInfo(mapId, me.X, me.Y, target, me));
-            Presence.Joined(me);   // Zone.join: the other characters of the zone see each other
+            Presence.Joined(me); // Zone.join: the other characters of the zone see each other
             TaskMechanics.RefreshVisible(me);
             session.Send(EnterWorld.MapItems(target.Tile, world, session.ZoomLevel));
             me.IsChangeMap = false;
             PlayerLog.Event(me, "enter map " + mapId + " zone " + target.Id + (old != null ? " from map " + old.Tile.Id : ""));
-            PlayerTasks.OnChangeMap(me, world, mapId);   // NV khám phá xa làng
+            PlayerTasks.OnChangeMap(me, world, mapId); // NV khám phá xa làng
         }
 
         // Service.openUIZone: the list of zones with their player counts; needs Goosho nearby or a teleport scroll
         public void OpenUiZone()
         {
             var tile = me.Zone.Tile;
-            if (tile.IsNotChangeZone) { Dialog("Không thể chuyển khu"); return; }
+            if (tile.IsNotChangeZone)
+            {
+                Dialog("Không thể chuyển khu");
+                return;
+            }
+
             bool near = false;
             foreach (var n in me.Zone.Npcs)
-                if (n.TemplateId == 13 && System.Math.Abs(me.X - n.X) < 50 && System.Math.Abs(me.Y - n.Y) < 50) near = true;
+                if (n.TemplateId == 13 && System.Math.Abs(me.X - n.X) < 50 && System.Math.Abs(me.Y - n.Y) < 50)
+                    near = true;
             // Items 35 and 37 (teleport scrolls) also allow it; the bag is not ported yet, so only the NPC counts.
-            if (!near) { Dialog("Bạn cần đứng gần Goosho để chuyển khu."); return; }
+            if (!near)
+            {
+                Dialog("Bạn cần đứng gần Goosho để chuyển khu.");
+                return;
+            }
+
             var ms = new Message(Cmd.OPEN_UI_ZONE);
             var zones = world.GetZones(tile.Id);
             ms.Writer.WriteByte(zones.Count);
             foreach (var z in zones)
             {
                 ms.Writer.WriteByte(z.NumberChar);
-                ms.Writer.WriteByte(0);   // number of parties in the zone
+                ms.Writer.WriteByte(0); // number of parties in the zone
             }
+
             session.Send(ms);
         }
 
         // Char.changeZone
         public static int ZoneCapacity(int mapId)
         {
-            return (mapId == 3 || mapId == 28 || mapId == 39 || (mapId >= 134 && mapId <= 137) ||
-                (mapId >= 141 && mapId <= 143) || (mapId >= 163 && mapId <= 165)) ? 90 : 20;
+            return (mapId == 3 || mapId == 28 || mapId == 39 || (mapId >= 134 && mapId <= 137) || (mapId >= 141 && mapId <= 143) || (mapId >= 163 && mapId <= 165)) ? 90 : 20;
         }
 
         public void ChangeZone(Message m)
         {
             var tile = me.Zone.Tile;
-            if (tile.IsNotChangeZone) { Dialog("Không thể chuyển khu"); return; }
+            if (tile.IsNotChangeZone)
+            {
+                Dialog("Không thể chuyển khu");
+                return;
+            }
+
             sbyte zoneId = m.Reader.ReadSByte();
-            m.Reader.ReadSByte();   // indexUI
+            m.Reader.ReadSByte(); // indexUI
             var zones = world.GetZones(tile.Id);
-            if (zoneId < 0 || zoneId >= zones.Count) return;
+            if (zoneId < 0 || zoneId >= zones.Count)
+                return;
             int cap = ZoneCapacity(me.MapId);
-            if (zones[zoneId].NumberChar >= cap) return;
+            if (zones[zoneId].NumberChar >= cap)
+                return;
             Join(tile.Id, zoneId);
         }
 
@@ -316,14 +441,18 @@ namespace NsoServer.Net
                 while (grid.TileTypeAt(me.X, me.Y, TileGrid.T_TOP))
                 {
                     me.Y += 24;
-                    if (me.Y > grid.PxH) break;
+                    if (me.Y > grid.PxH)
+                        break;
                 }
             }
+
             while (!grid.TileTypeAt(me.X, me.Y, TileGrid.T_TOP))
             {
                 me.Y += 24;
-                if (me.Y > grid.PxH) break;
+                if (me.Y > grid.PxH)
+                    break;
             }
+
             SendMove();
             ResetPoint();
             me.IsDead = true;
@@ -346,7 +475,8 @@ namespace NsoServer.Net
         // Char.wakeUpFromDead(): full health, "alive" signal, then the client is told where it stands
         private void WakeUp()
         {
-            if (!me.IsDead) return;
+            if (!me.IsDead)
+                return;
             me.IsDead = false;
             me.Hp = me.MaxHp;
             me.Mp = me.MaxMp;
@@ -363,7 +493,8 @@ namespace NsoServer.Net
         // ME_BACK: revive and go back to the save point (Lang Tone) - Char.returnTownFromDead
         public void ReturnTownFromDead()
         {
-            if (!me.IsDead) return;
+            if (!me.IsDead)
+                return;
             WakeUp();
             // back to the saved village (Kamakura's "Lưu tọa độ", Lang Tone by default)
             int home = me.Progress != null ? me.Progress.SaveMap : 22;
@@ -372,21 +503,27 @@ namespace NsoServer.Net
             ChangeMap(home);
             var info = new Message(Cmd.SUB_COMMAND);
             info.Writer.WriteSByte(Cmd.ME_LOAD_INFO);
-            info.Writer.WriteInt(me.Progress != null ? (int)System.Math.Min(int.MaxValue, me.Progress.Xu) : 0);    // xu
-            info.Writer.WriteInt(me.Progress != null ? (int)System.Math.Min(int.MaxValue, me.Progress.Yen) : 0);   // yen
-            info.Writer.WriteInt(PlayerLuong.Get(me));   // luong
+            info.Writer.WriteInt(me.Progress != null ? (int)System.Math.Min(int.MaxValue, me.Progress.Xu) : 0); // xu
+            info.Writer.WriteInt(me.Progress != null ? (int)System.Math.Min(int.MaxValue, me.Progress.Yen) : 0); // yen
+            info.Writer.WriteInt(PlayerLuong.Get(me)); // luong
             info.Writer.WriteInt(me.Hp);
             info.Writer.WriteInt(me.Mp);
-            info.Writer.WriteByte(0);         // captcha
+            info.Writer.WriteByte(0); // captcha
             session.Send(info);
         }
 
         // ME_LIVE: revive on the spot, which costs 1 luong (gold)
         public void ReviveInPlace()
         {
-            if (!me.IsDead) return;
+            if (!me.IsDead)
+                return;
             // Char.wakeUpFromDead(Message)
-            if (PlayerLuong.Get(me) < 1) { Dialog("Cần 1 lượng để hồi sinh tại chỗ."); return; }
+            if (PlayerLuong.Get(me) < 1)
+            {
+                Dialog("Cần 1 lượng để hồi sinh tại chỗ.");
+                return;
+            }
+
             PlayerLuong.Add(me, -1);
             WakeUp();
         }
@@ -426,9 +563,8 @@ namespace NsoServer.Net
             me.Record.MapId = me.MapId;
             me.Record.X = me.X;
             me.Record.Y = me.Y;
-            PlayerItems.Save(me);   // bag, money, quest step, skills -> PlayerRecord.Data
+            PlayerItems.Save(me); // bag, money, quest step, skills -> PlayerRecord.Data
             session.Server.Accounts.Flush();
         }
     }
 }
-

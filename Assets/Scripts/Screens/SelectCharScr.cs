@@ -3,60 +3,37 @@ using Functions.Auto;
 public class SelectCharScr : mScreen, IActionListener
 {
     public static SelectCharScr instance;
-
     public int w1char;
-
     public int h1char;
-
     public int padchar;
-
     public int x;
-
     public int y;
-
     public int indexSelect;
-
     public int[] parthead;
-
     public int[] partleg;
-
     public int[] partbody;
-
     public int[] partWp;
-
     public int[] level;
-
     public string[] name;
-
     public string[] phai;
-
     public sbyte[] gender;
-
     public static bool isPlayMusic;
-
     private Command cmdSelect;
-
     private int waitToPerform;
-
     public bool isNullChar = true;
-
     private int moveUp = GameCanvas.h / 2 - 2;
-
     private int moveDow = GameCanvas.h / 2 + 2;
-
     private bool isstarOpen;
     public static string nameSelect;
-
-
     public SelectCharScr()
     {
-
         w1char = 48;
         h1char = 85;
         if (GameCanvas.w < 160)
         {
             w1char = 32;
         }
+
         padchar = 7;
         x = (GameCanvas.w - 3 * w1char >> 1) - 5;
         y = GameCanvas.hh - (h1char >> 1) + 10;
@@ -73,6 +50,7 @@ public class SelectCharScr : mScreen, IActionListener
                 x = (GameCanvas.w - 3 * w1char >> 1) - 6;
             }
         }
+
         left = null;
         cmdSelect = new Command(mResources.SELECT, this, 1000, null);
         center = new Command(string.Empty, this, 1000, null);
@@ -83,6 +61,7 @@ public class SelectCharScr : mScreen, IActionListener
             center = null;
             left = null;
         }
+
         if (GameCanvas.isTouch && GameCanvas.w >= 320)
         {
             if (Main.isPC)
@@ -91,6 +70,7 @@ public class SelectCharScr : mScreen, IActionListener
                 center.x = GameCanvas.w / 2 - 35;
                 left.y = (center.y = Paint.CmdY);
             }
+
             right.x = GameCanvas.w / 2 + 88;
             right.y = Paint.CmdY;
         }
@@ -102,6 +82,7 @@ public class SelectCharScr : mScreen, IActionListener
         {
             instance = new SelectCharScr();
         }
+
         return instance;
     }
 
@@ -123,6 +104,7 @@ public class SelectCharScr : mScreen, IActionListener
         {
             indexSelect = 0;
         }
+
         GameScr.gI().readPart();
         SmallImage.init();
     }
@@ -148,6 +130,7 @@ public class SelectCharScr : mScreen, IActionListener
         {
             return;
         }
+
         if (GameCanvas.keyPressedz[Key.NUM6] || GameCanvas.keyPressedz[25] || GameCanvas.keyPressedz[22])
         {
             indexSelect++;
@@ -155,8 +138,10 @@ public class SelectCharScr : mScreen, IActionListener
             {
                 indexSelect = 0;
             }
+
             Out.println("update key");
         }
+
         if (GameCanvas.keyPressedz[Key.NUM4] || GameCanvas.keyPressedz[25] || GameCanvas.keyPressedz[23])
         {
             indexSelect--;
@@ -165,6 +150,7 @@ public class SelectCharScr : mScreen, IActionListener
                 indexSelect = 2;
             }
         }
+
         if (GameCanvas.isPointerDown && GameCanvas.isPointerHoldIn(x, y, 3 * (w1char + padchar), h1char))
         {
             int num = (GameCanvas.px - x) / (w1char + padchar);
@@ -172,12 +158,15 @@ public class SelectCharScr : mScreen, IActionListener
             {
                 num = 2;
             }
+
             if (num < 0)
             {
                 num = 0;
             }
+
             indexSelect = num;
         }
+
         if (GameCanvas.isPointerJustRelease)
         {
             if (GameCanvas.isPointerHoldIn(x, y, 3 * (w1char + padchar), h1char))
@@ -190,6 +179,7 @@ public class SelectCharScr : mScreen, IActionListener
                 indexSelect = -1;
             }
         }
+
         GameCanvas.clearKeyHold();
         GameCanvas.clearKeyPressed();
     }
@@ -201,6 +191,7 @@ public class SelectCharScr : mScreen, IActionListener
         {
             GameScr.cmx = 100;
         }
+
         updateOpen();
         if (waitToPerform > 0)
         {
@@ -224,6 +215,7 @@ public class SelectCharScr : mScreen, IActionListener
                 break;
             }
         }
+
         if (isNullChar)
         {
             CreateCharScr.gI().switchToMe();
@@ -243,14 +235,17 @@ public class SelectCharScr : mScreen, IActionListener
             {
                 GameCanvas.paintz.paintFrameInside(x + i * (w1char + padchar), y, w1char, h1char, g);
             }
+
             GameCanvas.paintz.paintFrameBorder(x + i * (w1char + padchar), y, w1char, h1char, g);
         }
+
         for (int j = 0; j < 3; j++)
         {
             if (name[j] == null)
             {
                 continue;
             }
+
             Part part = GameScr.parts[parthead[j]];
             Part part2 = GameScr.parts[partleg[j]];
             Part part3 = GameScr.parts[partbody[j]];
@@ -270,6 +265,7 @@ public class SelectCharScr : mScreen, IActionListener
                     }
                 }
             }
+
             int num = x + j * (w1char + padchar) + w1char / 2;
             int num2 = 0;
             if (!GameCanvas.isTouch)
@@ -301,6 +297,7 @@ public class SelectCharScr : mScreen, IActionListener
                 }
             }
         }
+
         base.paint(g);
     }
 
@@ -312,6 +309,7 @@ public class SelectCharScr : mScreen, IActionListener
             {
                 moveUp -= 4;
             }
+
             if (moveDow < GameCanvas.h)
             {
                 moveDow += 4;

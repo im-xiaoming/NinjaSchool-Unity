@@ -12,12 +12,13 @@ public class NsoPlayerInfo : MonoBehaviour
     public int y;
     public int hp;
     public int maxHp;
-
     private void Update()
     {
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying)
+            return;
         Char me = Char.getMyChar();
-        if (me == null) return;
+        if (me == null)
+            return;
         playerName = me.cName;
         map = TileMap.mapName;
         level = me.clevel;

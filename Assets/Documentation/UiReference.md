@@ -408,3 +408,6 @@ Other characters interpolate rendered positions between sparse movement packets;
 
 ## 2026-11-13 - Visible bot jumping
 Bot positions now arrive in client-sized frames rather than arbitrary 500 ms endpoint lifts. Existing remote rendering interpolation remains active. Expect gradual ascent/descent, stops at walls and landing on platforms. No scene/UI changes. Visual acceptance and frame-time profiling await user gameplay checks.
+
+## 2026-11-13 - Preserve legacy UI with code-owned configuration
+No Canvas/UI Toolkit conversion or visual redesign. Legacy renderer/input/audio and optional overlays remain. GameScr/Char/protocol are split by responsibility into partial files; original fields, GUIDs and command branches remain. NsoUiLayout/NsoGameControl keep their public accessors and serialized fallback fields, while a pure C# configuration model applies optional JSON and supports existing F6 sliders. User Play/screenshot acceptance remains pending; headless test success does not certify visuals.

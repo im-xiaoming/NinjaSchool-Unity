@@ -29,7 +29,7 @@ namespace NsoServer.Store
         public long LastLogout;
         // where the character stands (defaults of the original `players.map`: Lang Tone)
         public int MapId = 22, X = 1741, Y = 264;
-        public int TaskId;   // main quest progress; unlocks maps
+        public int TaskId; // main quest progress; unlocks maps
         // Reserved for later phases: bag, skills, task progress, etc. (JSON, same shape as the Java `players.data`)
         public string Data = "{}";
     }
@@ -41,14 +41,12 @@ namespace NsoServer.Store
     public sealed class AccountStore
     {
         public const string DatabaseFile = "nso.db";
-
-        private readonly object sync = new object();
+        private readonly object sync = new object ();
         private readonly string directory, usersFile, playersFile;
         private readonly List<UserRecord> users = new List<UserRecord>();
         private readonly List<PlayerRecord> players = new List<PlayerRecord>();
         private SqliteSaveDb db;
-        private bool closed;   // after Close nothing is written (a late tick must not fall back to the TSV files)
-
+        private bool closed; // after Close nothing is written (a late tick must not fall back to the TSV files)
         /// <summary>"sqlite", "sqlite (imported TSV)" or "tsv ..." (fallback). </summary>
         public string Backend { get; private set; }
         /// <summary>Why SQLite could not be used, or null.</summary>
@@ -60,8 +58,13 @@ namespace NsoServer.Store
             Directory.CreateDirectory(directory);
             usersFile = Path.Combine(directory, "users.tsv");
             playersFile = Path.Combine(directory, "players.tsv");
-            if (useSqlite) OpenSqlite();
-            if (db == null) { LoadTsv(); Backend = useSqlite ? "tsv (SQLite unavailable)" : "tsv"; }
+            if (useSqlite)
+                OpenSqlite();
+            if (db == null)
+            {
+                LoadTsv();
+                Backend = useSqlite ? "tsv (SQLite unavailable)" : "tsv";
+            }
         }
 
         private void OpenSqlite()
@@ -75,8 +78,10 @@ namespace NsoServer.Store
                     // one-time import of the old save files; they are kept, renamed, as a backup
                     LoadTsv();
                     db.SaveAll(users, players);
-                    if (File.Exists(usersFile)) File.Move(usersFile, usersFile + ".migrated");
-                    if (File.Exists(playersFile)) File.Move(playersFile, playersFile + ".migrated");
+                    if (File.Exists(usersFile))
+                        File.Move(usersFile, usersFile + ".migrated");
+                    if (File.Exists(playersFile))
+                        File.Move(playersFile, playersFile + ".migrated");
                     Backend = "sqlite (imported TSV)";
                 }
                 else
@@ -89,7 +94,19 @@ namespace NsoServer.Store
             {
                 var inner = ex is TypeInitializationException && ex.InnerException != null ? ex.InnerException : ex;
                 BackendError = inner.GetType().Name + ": " + inner.Message;
-                if (db != null) { try { db.Dispose(); } catch (Exception) { } db = null; }
+                if (db != null)
+                {
+                    try
+                    {
+                        db.Dispose();
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    db = null;
+                }
+
                 users.Clear();
                 players.Clear();
             }
@@ -101,7 +118,11 @@ namespace NsoServer.Store
             lock (sync)
             {
                 closed = true;
-                if (db != null) { db.Dispose(); db = null; }
+                if (db != null)
+                {
+                    db.Dispose();
+                    db = null;
+                }
             }
         }
 
@@ -110,7 +131,8 @@ namespace NsoServer.Store
         {
             lock (sync)
             {
-                if (db != null) return db.GetDocument(key);
+                if (db != null)
+                    return db.GetDocument(key);
                 string f = Path.Combine(directory, key + ".json");
                 return File.Exists(f) ? File.ReadAllText(f, Encoding.UTF8) : null;
             }
@@ -120,13 +142,22 @@ namespace NsoServer.Store
         {
             lock (sync)
             {
-                if (closed) return;
-                if (db != null) db.SetDocument(key, json);
-                else WriteAtomic(Path.Combine(directory, key + ".json"), json);
+                if (closed)
+                    return;
+                if (db != null)
+                    db.SetDocument(key, json);
+                else
+                    WriteAtomic(Path.Combine(directory, key + ".json"), json);
             }
         }
 
-        public enum LoginResult { Ok, Created, WrongPassword, BadName }
+        public enum LoginResult
+        {
+            Ok,
+            Created,
+            WrongPassword,
+            BadName
+        }
 
         // Offline mode: an unknown username is registered on first login (there is no web registration page).
         public LoginResult Login(string username, string password, out UserRecord user)
@@ -165,7 +196,8 @@ namespace NsoServer.Store
 
         public bool NameTaken(string name)
         {
-            lock (sync) return players.Exists(p => p.Name == name);
+            lock (sync)
+                return players.Exists(p => p.Name == name);
         }
 
         public PlayerRecord AddPlayer(int userId, string name, sbyte gender, short head)
@@ -189,13 +221,15 @@ namespace NsoServer.Store
         // Persists changes made to PlayerRecord objects (position, progress).
         public void Flush()
         {
-            lock (sync) Save();
+            lock (sync)
+                Save();
         }
 
         private static bool IsAlnum(string s)
         {
             foreach (char c in s)
-                if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) return false;
+                if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                    return false;
             return true;
         }
 
@@ -220,8 +254,10 @@ namespace NsoServer.Store
                     char n = s[++i];
                     sb.Append(n == 't' ? '\t' : n == 'n' ? '\n' : n == 'r' ? '\r' : n);
                 }
-                else sb.Append(s[i]);
+                else
+                    sb.Append(s[i]);
             }
+
             return sb.ToString();
         }
 
@@ -231,14 +267,17 @@ namespace NsoServer.Store
                 foreach (var line in File.ReadAllLines(usersFile, Encoding.UTF8))
                 {
                     var f = line.Split('\t');
-                    if (f.Length < 4) continue;
+                    if (f.Length < 4)
+                        continue;
                     users.Add(new UserRecord { Id = int.Parse(f[0]), Username = Unesc(f[1]), Salt = f[2], PasswordHash = f[3] });
                 }
+
             if (File.Exists(playersFile))
                 foreach (var line in File.ReadAllLines(playersFile, Encoding.UTF8))
                 {
                     var f = line.Split('\t');
-                    if (f.Length < 12) continue;
+                    if (f.Length < 12)
+                        continue;
                     var rec = new PlayerRecord
                     {
                         Id = int.Parse(f[0]),
@@ -254,26 +293,36 @@ namespace NsoServer.Store
                         LastLogout = long.Parse(f[10]),
                         Data = Unesc(f[11])
                     };
-                    if (f.Length >= 15) { rec.MapId = int.Parse(f[12]); rec.X = int.Parse(f[13]); rec.Y = int.Parse(f[14]); }
-                    if (f.Length >= 16) rec.TaskId = int.Parse(f[15]);
+                    if (f.Length >= 15)
+                    {
+                        rec.MapId = int.Parse(f[12]);
+                        rec.X = int.Parse(f[13]);
+                        rec.Y = int.Parse(f[14]);
+                    }
+
+                    if (f.Length >= 16)
+                        rec.TaskId = int.Parse(f[15]);
                     players.Add(rec);
                 }
         }
 
         private void Save()
         {
-            if (closed) return;
-            if (db != null) { db.SaveAll(users, players); return; }
+            if (closed)
+                return;
+            if (db != null)
+            {
+                db.SaveAll(users, players);
+                return;
+            }
+
             var u = new StringBuilder();
             foreach (var x in users)
                 u.Append(x.Id).Append('\t').Append(Esc(x.Username)).Append('\t').Append(x.Salt).Append('\t').Append(x.PasswordHash).Append('\n');
             WriteAtomic(usersFile, u.ToString());
             var p = new StringBuilder();
             foreach (var x in players)
-                p.Append(x.Id).Append('\t').Append(x.UserId).Append('\t').Append(Esc(x.Name)).Append('\t').Append(x.Gender).Append('\t')
-                 .Append(x.Head).Append('\t').Append(x.ClassId).Append('\t').Append(x.Exp).Append('\t').Append(x.Weapon).Append('\t')
-                 .Append(x.Body).Append('\t').Append(x.Leg).Append('\t').Append(x.LastLogout).Append('\t').Append(Esc(x.Data)).Append('\t')
-                 .Append(x.MapId).Append('\t').Append(x.X).Append('\t').Append(x.Y).Append('\t').Append(x.TaskId).Append('\n');
+                p.Append(x.Id).Append('\t').Append(x.UserId).Append('\t').Append(Esc(x.Name)).Append('\t').Append(x.Gender).Append('\t').Append(x.Head).Append('\t').Append(x.ClassId).Append('\t').Append(x.Exp).Append('\t').Append(x.Weapon).Append('\t').Append(x.Body).Append('\t').Append(x.Leg).Append('\t').Append(x.LastLogout).Append('\t').Append(Esc(x.Data)).Append('\t').Append(x.MapId).Append('\t').Append(x.X).Append('\t').Append(x.Y).Append('\t').Append(x.TaskId).Append('\n');
             WriteAtomic(playersFile, p.ToString());
         }
 
@@ -281,7 +330,8 @@ namespace NsoServer.Store
         {
             string tmp = path + ".tmp";
             File.WriteAllText(tmp, text, new UTF8Encoding(false));
-            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(path))
+                File.Delete(path);
             File.Move(tmp, path);
         }
     }

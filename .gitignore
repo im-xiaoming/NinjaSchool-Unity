@@ -117,3 +117,13 @@ InitTestScene*.unity*
 /Tools/Learning/**/__pycache__/
 /Tools/Learning/RlHost/bin/
 /Tools/Learning/RlHost/obj/
+
+# Local Brain service environment and generated checks.
+/Tools/Brain/.venv/
+/Tools/Brain/**/__pycache__/
+/Tools/CodeMaintenance/bin/
+/Tools/CodeMaintenance/obj/
+/Tools/Brain/ContractHost/bin/
+/Tools/Brain/ContractHost/obj/
+!/Tools/Brain/ContractHost/ContractHost.csproj
+!/Tools/CodeMaintenance/CodeMaintenance.csproj
