@@ -12,10 +12,14 @@ namespace NsoServer.Net
     // Port of the item side of com.nsoz.model.Char for ordinary maps:
     //   addItemToBag, removeItem, useItem (equipment, HP/MP potions, food, skill books), itemBodyToBag, buyItem + Store.buy,
     //   requestItem (shop list), requestItemInfo, pickItem, Mob.dropItem (task items, yen, random items, equipment),
-    //   Zone.updateItemMap (items on the ground disappear after 30 s).
+    //   Zone.updateItemMap (shared GroundLootPolicy controls ownership and ground lifetime).
     public static class PlayerItems
     {
         // ItemTemplate types
+        /// <summary>HP each half second for 3 s of an HP potion (effect 21) - Char.useItem values; 0 = not an HP potion.</summary>
+        public static int HpPotionParam(int id) { return id == 13 ? 25 : id == 14 ? 90 : id == 15 ? 230 : id == 16 ? 400 : id == 17 ? 650 : id == 565 ? 1500 : 0; }
+        /// <summary>MP restored at once by an MP potion - Char.useItem values; 0 = not an MP potion.</summary>
+        public static int MpPotionAmount(int id) { return id == 18 ? 150 : id == 19 ? 500 : id == 20 ? 1000 : id == 21 ? 2000 : id == 22 ? 3500 : id == 566 ? 5000 : 0; }
         public const int TypeWeapon = 1, TypeHp = 16, TypeMp = 17, TypeEat = 18, TypeMoney = 19, TypeTaskSave = 23, TypeTaskWait = 24, TypeTask = 25;
         private const int ItemYen = 12, ItemComNam = 23, ItemWoodenSword = 194, ItemSushi = 218;
         private const int MaxYen = 2000000000;
@@ -27,6 +31,18 @@ namespace NsoServer.Net
         private static readonly Random Rng = new Random();
         private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
         private static int NextInt(int min, int max) { return min >= max ? max : Rng.Next(max + 1 - min) + min; }
+
+        // Pure predicates from Java Char.pickItem, shared by the actual handler and all AI feasibility checks.
+        public static bool IsWithinPickupRange(PlayerState me, ItemMapEntry item)
+        {
+            long dx = item.X - me.X, dy = item.Y - me.Y;
+            return dx * dx + dy * dy < 150 * 150;
+        }
+        public static bool CanReceiveGroundItem(PlayerState me, ItemTemplateData template, PlayerItem item)
+        {
+            return template != null && item != null && (template.Type == TypeMoney || item.Id == ItemSushi || SlotNull(me) > 0 ||
+                (template.IsUpToUp && IndexInBag(me, item.Id, item.IsLock) >= 0));
+        }
 
         // Char.receiveWoodenSword: shared quest reward/preview factory, not a new character class.
         public static PlayerItem CreateTaskWoodenSword()
@@ -163,7 +179,7 @@ namespace NsoServer.Net
             if (t.Type == TypeHp)
             {
                 if (me.Hp >= me.MaxHp) { PlayerService.ServerMessage(me, "HP đã đầy."); return; }
-                int param = item.Id == 13 ? 25 : item.Id == 14 ? 90 : item.Id == 15 ? 230 : item.Id == 16 ? 400 : item.Id == 17 ? 650 : item.Id == 565 ? 1500 : 0;
+                int param = HpPotionParam(item.Id);
                 PlayerEffects.SetEffect(me, world, 21, 3000, param);   // "Hiệu ứng bom máu": HP every half second for 3 s
                 RemoveItem(me, indexUI, 1, true);
                 return;
@@ -171,7 +187,7 @@ namespace NsoServer.Net
             if (t.Type == TypeMp)
             {
                 if (me.Mp >= me.MaxMp) PlayerService.ServerMessage(me, "MP đã đầy.");
-                int mp = item.Id == 18 ? 150 : item.Id == 19 ? 500 : item.Id == 20 ? 1000 : item.Id == 21 ? 2000 : item.Id == 22 ? 3500 : item.Id == 566 ? 5000 : 0;
+                int mp = MpPotionAmount(item.Id);
                 me.Mp = Math.Min(me.MaxMp, me.Mp + mp);
                 PlayerService.UpdateMp(me);
                 RemoveItem(me, indexUI, 1, true);
@@ -541,14 +557,12 @@ namespace NsoServer.Net
             foreach (var x in zone.ItemMaps) if (x.Id == id) { it = x; break; }
             if (it == null || it.PickedUp) return;
             if (!TaskMechanics.CanPick(me, it)) return;
-            long dx = it.X - me.X, dy = it.Y - me.Y;
-            if (dx * dx + dy * dy >= 150 * 150) return;
+            if (!IsWithinPickupRange(me, it)) return;
             var item = it.Item;
             var t = world.FindItem(item.Id);
             if (t == null) return;
-            bool canStack = t.IsUpToUp && IndexInBag(me, item.Id, item.IsLock) != -1;
-            if (t.Type != TypeMoney && item.Id != ItemSushi && SlotNull(me) == 0 && !canStack) { PlayerService.ServerDialog(me, "Hành trang không đủ chỗ trống"); return; }
-            if (it.OwnerId != -1 && it.OwnerId != me.Record.Id && Now() - it.CreatedAt < 20000) { PlayerService.ServerMessage(me, "Vật phẩm của người khác"); return; }
+            if (!GroundLootPolicy.HasOwnership(me.Record.Id, it, Now())) { PlayerService.ServerMessage(me, "Vật phẩm của người khác"); return; }
+            if (!CanReceiveGroundItem(me, t, item)) { PlayerService.ServerDialog(me, "Hành trang không đủ chỗ trống"); return; }
             it.PickedUp = true;
             if (item.Id == ItemSushi)
             {
@@ -574,7 +588,7 @@ namespace NsoServer.Net
             TaskMechanics.OnPicked(me, it);   // map piece in the tunnel: leave after 3 s
         }
 
-        // Zone.updateItemMap: items vanish 30 s after they were dropped
+        // Java Zone.updateItemMap / ItemMap.isExpired; offline timing is shared by bots and humans.
         public static void UpdateItemMaps(Zone zone)
         {
             if (zone.ItemMaps.Count == 0) return;
@@ -583,7 +597,7 @@ namespace NsoServer.Net
             {
                 var it = zone.ItemMaps[i];
                 if (it.Fixed) continue;   // quest nodes stay until picked
-                if (now - it.CreatedAt < 30000) continue;
+                if (now - it.CreatedAt < GroundLootPolicy.LifetimeMs) continue;
                 zone.ItemMaps.RemoveAt(i);
                 PlayerService.RemoveItemMap(zone, it.Id);
             }

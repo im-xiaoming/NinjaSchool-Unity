@@ -23,11 +23,29 @@ namespace NsoServer.Net
         public readonly Controller Controller;
         public volatile bool Connected = true;
 
+        /// <summary>Offline AI player (NsoServer.Ai): the account it signs in with, null for a real client.
+        /// A bot session has no stream: the bot calls Controller.OnMessage with the same messages a client sends, and
+        /// replies are dropped (the bot reads the server state directly, as a player reads the screen).</summary>
+        public readonly string BotAccount;
+        public bool IsBot { get { return BotAccount != null; } }
+        /// <summary>Bot sessions only: the last dialog / server message text the "screen" showed (for the AI and its log).</summary>
+        public string LastNotice = "";
+
         public Session(GameServer server, Stream stream, int id)
         {
             Server = server;
             Id = id;
             this.stream = stream;
+            Controller = new Controller(this);
+        }
+
+        /// <summary>A bot session (offline AI player) signed in as <paramref name="botAccount"/>.</summary>
+        public Session(GameServer server, int id, string botAccount)
+        {
+            Server = server;
+            Id = id;
+            BotAccount = botAccount;
+            keyComplete = true;
             Controller = new Controller(this);
         }
 
@@ -127,6 +145,7 @@ namespace NsoServer.Net
         public void Send(Message m)
         {
             if (!Connected || !keyComplete) return;
+            if (IsBot) { BotNotice(m); return; }
             try
             {
                 var data = m.GetData();
@@ -159,12 +178,29 @@ namespace NsoServer.Net
             catch (Exception) { Close(); }
         }
 
+        // the texts a player would read on screen: dialogs, server messages, NPC lines (bot log + AI memory)
+        private void BotNotice(Message m)
+        {
+            sbyte c = m.Command;
+            if (c != PlayerService.SERVER_DIALOG && c != PlayerService.SERVER_MESSAGE && c != PlayerService.OPEN_UI_SAY && c != PlayerService.ALERT_MESSAGE) return;
+            try
+            {
+                var r = new JavaReader(m.GetData());
+                if (c == PlayerService.OPEN_UI_SAY) r.ReadShort();
+                string text = r.ReadUTF();
+                if (c == PlayerService.ALERT_MESSAGE && r.Remaining > 0) text += ": " + r.ReadUTF();
+                LastNotice = text;
+                PlayerLog.BotLine(this, "MSG", text);
+            }
+            catch (Exception) { }
+        }
+
         public void Close()
         {
             if (!Connected) return;
             Connected = false;
             try { Controller.OnDisconnected(); } catch (Exception) { }
-            try { stream.Close(); } catch (Exception) { }
+            try { if (stream != null) stream.Close(); } catch (Exception) { }
             Server.Remove(this);
         }
     }

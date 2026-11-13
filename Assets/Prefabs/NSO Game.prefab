@@ -45,14 +45,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NsoServerControl
   _saveSubfolder: NsoData
+  _useSqlite: 1
   _staticSubfolder: NsoStatic
   _wikiEnabled: 1
   _wikiPort: 8787
   _wikiOpenBrowser: 0
+  _playerLogEnabled: 1
+  _playerLogToDatabase: 1
+  _playerLogToFile: 0
+  _playerLogOutgoing: 1
+  _playerLogSnapshotSeconds: 5
+  _playerLogPayloadBytes: 48
+  _playerLogKeepFiles: 20
+  _agentsEnabled: 1
+  _agentCount: 3
+  _agentDamagePercent: 200
+  _agentHpPercent: 200
+  _agentMinDecisionSeconds: 15
+  _agentReviewSeconds: 300
+  _llmEnabled: 1
+  _llmEndpoint: http://127.0.0.1:11434/v1/chat/completions
+  _llmModel: qwen3.5:4b
+  _llmReasoningEffort: none
+  _llmLocalOnly: 1
+  _llmJsonMode: 1
+  _llmTimeoutSeconds: 40
+  _llmBackoffSeconds: 60
+  _llmTemperature: 0.7
   status: Not running
   address: 
   dataFolder: 
   wikiUrl: 
+  playerLogFile: 
 --- !u!1 &702956166129786051
 GameObject:
   m_ObjectHideFlags: 0
@@ -278,6 +302,7 @@ MonoBehaviour:
   bottomButtons:
     bottomGap: 8
     sidePadding: 8
+    popupSideInset: -2
   potionButtons:
     bottomGap: 6
   npcMenu:

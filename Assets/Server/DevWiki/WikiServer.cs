@@ -63,8 +63,11 @@ namespace NsoServer.DevWiki
                 {
                     try
                     {
+                        if (p == firstPort) ReclaimOrphan(p);
                         var l = new TcpListener(IPAddress.Loopback, p);
                         l.Start();
+                        NotInherited(l.Server);
+                        Remember(p, l.Server.Handle);
                         listener = l;
                         Url = "http://127.0.0.1:" + p + "/";
                     }
@@ -83,7 +86,7 @@ namespace NsoServer.DevWiki
         {
             running = false;
             var l = listener;
-            try { if (l != null) l.Stop(); } catch { }
+            try { if (l != null) { Forget(l.Server.Handle); l.Stop(); } } catch { }
         }
 
         // the database text; rebuilt on demand
@@ -119,12 +122,64 @@ namespace NsoServer.DevWiki
             }
         }
 
+        // Windows: child processes started with UseShellExecute = false (the RL trainer, RlBridge) inherit every
+        // inheritable handle, sockets included. A trainer that outlives the Play session then keeps the wiki port
+        // listening and the next session moves to port + 1. Clearing HANDLE_FLAG_INHERIT keeps the port ours alone.
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool SetHandleInformation(IntPtr handle, uint mask, uint flags);
+        internal static void NotInherited(Socket s)
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
+            try { SetHandleInformation(s.Handle, 1, 0); } catch { }   // best effort (HANDLE_FLAG_INHERIT = 1)
+        }
+
+        // An Editor domain reload (scripts recompiled, Play entered/exited) can leave the previous domain's listener open
+        // in the same Unity process: nobody answers on it, yet the port stays taken and every later session moves to
+        // port + 1. The listening socket handle is remembered in a process environment variable (it survives domain
+        // reloads); the next start closes that handle when it is still a socket bound to the wanted port.
+        private const string HandleVariable = "NSO_DEVWIKI_LISTENER";
+        [System.Runtime.InteropServices.DllImport("ws2_32.dll")]
+        private static extern int closesocket(IntPtr s);
+        [System.Runtime.InteropServices.DllImport("ws2_32.dll")]
+        private static extern int getsockname(IntPtr s, byte[] name, ref int length);
+
+        private static void Remember(int port, IntPtr handle)
+        {
+            try { Environment.SetEnvironmentVariable(HandleVariable, port + ":" + handle.ToInt64()); } catch { }
+        }
+        private static void Forget(IntPtr handle)
+        {
+            try { if (Environment.GetEnvironmentVariable(HandleVariable) == null) return;
+                  string v = Environment.GetEnvironmentVariable(HandleVariable);
+                  if (v.EndsWith(":" + handle.ToInt64())) Environment.SetEnvironmentVariable(HandleVariable, null); } catch { }
+        }
+        private static void ReclaimOrphan(int port)
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
+            try
+            {
+                string v = Environment.GetEnvironmentVariable(HandleVariable);
+                if (string.IsNullOrEmpty(v)) return;
+                Environment.SetEnvironmentVariable(HandleVariable, null);
+                string[] parts = v.Split(':');
+                long h;
+                if (parts.Length != 2 || parts[0] != port.ToString() || !long.TryParse(parts[1], out h)) return;
+                var handle = new IntPtr(h);
+                // only a socket still bound to 127.0.0.1:port (sockaddr_in: family, port big-endian, address)
+                var addr = new byte[16]; int len = addr.Length;
+                if (getsockname(handle, addr, ref len) != 0 || len < 8) return;
+                if (((addr[2] << 8) | addr[3]) != port || addr[4] != 127) return;
+                closesocket(handle);
+            }
+            catch { }   // best effort; the next free port is used otherwise
+        }
+
         private void AcceptLoop()
         {
             while (running)
             {
                 TcpClient c;
-                try { c = listener.AcceptTcpClient(); }
+                try { c = listener.AcceptTcpClient(); NotInherited(c.Client); }
                 catch { break; }   // listener stopped
                 ThreadPool.QueueUserWorkItem(_ => Handle(c));
             }
@@ -174,7 +229,7 @@ namespace NsoServer.DevWiki
                     if (method == "POST")
                     {
                         string token, origin, contentType, length;
-                        if ((path != "/control/rules" && path != "/control/combat" && path != "/control/dashboard") || Control == null)
+                        if ((path != "/control/rules" && path != "/control/combat" && path != "/control/dashboard" && path != "/control/learning") || Control == null)
                         { Send(stream, 404, "application/json", "{\"error\":\"Unknown write route\"}"); return; }
                         if (!headers.TryGetValue("X-Nso-Control", out token) || token != Control.Token ||
                             (headers.TryGetValue("Origin", out origin) && origin != "http://" + authority && origin != "http://" + local))
@@ -203,7 +258,7 @@ namespace NsoServer.DevWiki
                         else Send(stream, 200, asset.ContentType, asset.Data, "public, max-age=3600");
                         return;
                     }
-                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js" || path == "/dashboard.js" || path == "/progression.js" || path == "/sprites.js" || path == "/effects.js" || path == "/effect-usage.json")
+                    if (path == "/" || path == "/index.html" || path == "/app.css" || path == "/app.js" || path == "/dashboard.js" || path == "/progression.js" || path == "/sprites.js" || path == "/effects.js" || path == "/effect-usage.json" || path == "/agents.html" || path == "/agents.js")
                     {
                         string name = path == "/" ? "index.html" : path.Substring(1);
                         string file = Path.Combine(folder, name);
@@ -221,6 +276,10 @@ namespace NsoServer.DevWiki
                     else Send(stream, 404, "application/json", "{\"error\":\"Not found\"}");
                 }
                 catch (ArgumentException ex) { var r = WikiControl.Reply(400, WikiControl.Obj("error", ex.Message)); Send(stream, r.Key, "application/json", r.Value); }
+                // Browsers open spare (pre-)connections and leave them idle; the 5 s read timeout then fires, or the
+                // browser drops the socket. Neither is an error worth a Console warning.
+                catch (IOException) { }
+                catch (ObjectDisposedException) { }
                 catch (Exception ex) { Logger("Dev wiki request error: " + ex.Message); }
             }
         }

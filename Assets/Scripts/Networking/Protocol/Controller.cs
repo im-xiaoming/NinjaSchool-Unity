@@ -2841,6 +2841,7 @@ public class Controller : IMessageHandler
                                 GameCanvas.debug("SA8x2y" + num65, 2);
                                 char7.cxMoveLast = msg.reader().readShort();
                                 char7.cyMoveLast = msg.reader().readShort();
+                                RemoteMotion.Receive(char7, char7.cxMoveLast, char7.cyMoveLast);
                                 char7.moveTo(char7.cxMoveLast, char7.cyMoveLast);
                                 char7.lastUpdateTime = mSystem.getCurrentTimeMillis();
                                 break;
@@ -2862,6 +2863,7 @@ public class Controller : IMessageHandler
                                 {
                                     ServerEffect.addServerEffect(60, char6.cx, char6.cy, 1);
                                 }
+                                RemoteMotion.Forget(char6);
                                 GameScr.vCharInMap.removeElementAt(num64);
                                 Party.clear(num63);
                                 return;
@@ -3169,7 +3171,12 @@ public class Controller : IMessageHandler
                 case -23:
                     {
                         GameCanvas.debug("SA91", 2);
-                        // speech bubbles of other players: there are none offline
+                        // MapService.chat: int char id, UTF text -> speech bubble over that character.
+                        // Offline: only the autonomous agents (Server/Ai) speak.
+                        int chatCharId = msg.reader().readInt();
+                        string chatText = msg.reader().readUTF();
+                        Char chatChar = GameScr.findCharInMap(chatCharId);
+                        if (chatChar != null) ChatPopup.addChatPopup(chatText, 100, chatChar);
                         break;
                     }
                 case 25:

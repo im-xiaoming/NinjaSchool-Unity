@@ -15,6 +15,15 @@ public class NsoGameControl : MonoBehaviour
     [Tooltip("Fractional world/camera/projectile placement at render rate. Disable for legacy integer interpolation.")]
     [SerializeField] private bool _smoothWorldMotion = true;
     public static bool SmoothWorldMotion { get { return Active == null || Active._smoothWorldMotion; } }
+    [Tooltip("Render remote characters continuously between sparse network positions. Presentation only; includes all other players.")]
+    [SerializeField] private bool _smoothRemoteCharacters = true;
+    [SerializeField, Range(0.06f, 1f)] private float _remoteInitialMoveSeconds = 0.5f;
+    [SerializeField, Range(0.06f, 1f)] private float _remoteMaximumMoveSeconds = 0.75f;
+    [SerializeField, Range(90f, 1000f)] private float _remoteTeleportDistance = 180f;
+    public static bool SmoothRemoteCharacters { get { return SmoothWorldMotion && (Active == null || Active._smoothRemoteCharacters); } }
+    public static float RemoteMaximumMoveSeconds { get { return Active != null ? Mathf.Clamp(Active._remoteMaximumMoveSeconds, .06f, 1f) : .75f; } }
+    public static float RemoteInitialMoveSeconds { get { return Active != null ? Mathf.Clamp(Active._remoteInitialMoveSeconds, .06f, RemoteMaximumMoveSeconds) : .5f; } }
+    public static float RemoteTeleportDistance { get { return Active != null ? Mathf.Clamp(Active._remoteTeleportDistance, 90f, 1000f) : 180f; } }
     [Tooltip("Smooth damage numbers, hit splashes and menu movement between logic ticks.")]
     [SerializeField] private bool _smoothEffects = true;
     [Tooltip("Seconds for the visible monster HP bar to reach its actual HP. Zero makes it instant.")]

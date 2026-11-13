@@ -34,20 +34,96 @@ namespace NsoServer.Store
         public string Data = "{}";
     }
 
-    // Local replacement for the MySQL `users` / `players` tables. Tab-separated files, rewritten after each change.
+    // Local replacement for the MySQL `users` / `players` tables. The records live in memory; every change is written
+    // back in full. Storage: the SQLite save database nso.db (SqliteSaveDb, default). The former tab-separated files
+    // users.tsv / players.tsv are imported once into a new database (then renamed *.tsv.migrated) and remain the
+    // fallback when SQLite cannot be opened (missing native library, locked or corrupt file); Backend tells which.
     public sealed class AccountStore
     {
+        public const string DatabaseFile = "nso.db";
+
         private readonly object sync = new object();
-        private readonly string usersFile, playersFile;
+        private readonly string directory, usersFile, playersFile;
         private readonly List<UserRecord> users = new List<UserRecord>();
         private readonly List<PlayerRecord> players = new List<PlayerRecord>();
+        private SqliteSaveDb db;
+        private bool closed;   // after Close nothing is written (a late tick must not fall back to the TSV files)
 
-        public AccountStore(string directory)
+        /// <summary>"sqlite", "sqlite (imported TSV)" or "tsv ..." (fallback). </summary>
+        public string Backend { get; private set; }
+        /// <summary>Why SQLite could not be used, or null.</summary>
+        public string BackendError { get; private set; }
+
+        public AccountStore(string directory, bool useSqlite = true)
         {
+            this.directory = directory;
             Directory.CreateDirectory(directory);
             usersFile = Path.Combine(directory, "users.tsv");
             playersFile = Path.Combine(directory, "players.tsv");
-            Load();
+            if (useSqlite) OpenSqlite();
+            if (db == null) { LoadTsv(); Backend = useSqlite ? "tsv (SQLite unavailable)" : "tsv"; }
+        }
+
+        private void OpenSqlite()
+        {
+            try
+            {
+                db = new SqliteSaveDb(Path.Combine(directory, DatabaseFile));
+                bool hasTsv = File.Exists(usersFile) || File.Exists(playersFile);
+                if (db.IsEmpty && hasTsv)
+                {
+                    // one-time import of the old save files; they are kept, renamed, as a backup
+                    LoadTsv();
+                    db.SaveAll(users, players);
+                    if (File.Exists(usersFile)) File.Move(usersFile, usersFile + ".migrated");
+                    if (File.Exists(playersFile)) File.Move(playersFile, playersFile + ".migrated");
+                    Backend = "sqlite (imported TSV)";
+                }
+                else
+                {
+                    db.Load(users, players);
+                    Backend = "sqlite";
+                }
+            }
+            catch (Exception ex)
+            {
+                var inner = ex is TypeInitializationException && ex.InnerException != null ? ex.InnerException : ex;
+                BackendError = inner.GetType().Name + ": " + inner.Message;
+                if (db != null) { try { db.Dispose(); } catch (Exception) { } db = null; }
+                users.Clear();
+                players.Clear();
+            }
+        }
+
+        /// <summary>Closes the database (server shutdown).</summary>
+        public void Close()
+        {
+            lock (sync)
+            {
+                closed = true;
+                if (db != null) { db.Dispose(); db = null; }
+            }
+        }
+
+        /// <summary>A named JSON document saved with the game (SQLite kv table; fallback: &lt;key&gt;.json), or null.</summary>
+        public string GetDocument(string key)
+        {
+            lock (sync)
+            {
+                if (db != null) return db.GetDocument(key);
+                string f = Path.Combine(directory, key + ".json");
+                return File.Exists(f) ? File.ReadAllText(f, Encoding.UTF8) : null;
+            }
+        }
+
+        public void SetDocument(string key, string json)
+        {
+            lock (sync)
+            {
+                if (closed) return;
+                if (db != null) db.SetDocument(key, json);
+                else WriteAtomic(Path.Combine(directory, key + ".json"), json);
+            }
         }
 
         public enum LoginResult { Ok, Created, WrongPassword, BadName }
@@ -149,7 +225,7 @@ namespace NsoServer.Store
             return sb.ToString();
         }
 
-        private void Load()
+        private void LoadTsv()
         {
             if (File.Exists(usersFile))
                 foreach (var line in File.ReadAllLines(usersFile, Encoding.UTF8))
@@ -186,6 +262,8 @@ namespace NsoServer.Store
 
         private void Save()
         {
+            if (closed) return;
+            if (db != null) { db.SaveAll(users, players); return; }
             var u = new StringBuilder();
             foreach (var x in users)
                 u.Append(x.Id).Append('\t').Append(Esc(x.Username)).Append('\t').Append(x.Salt).Append('\t').Append(x.PasswordHash).Append('\n');

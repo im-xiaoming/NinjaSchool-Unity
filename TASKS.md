@@ -45,6 +45,7 @@ Older completed tasks (online removal, title menu, fonts, mob art, performance p
 - [x] **Handoff documents** created in `C:\My project`: AGENTS, PROJECT_STATUS, TASKS, DECISIONS, HANDOFF, `docs/`.
 
 ## Remaining (suggested order)
+- [ ] Play mode: watch AI players from the player client (smooth walking, no left/right turning); confirm rules restock potions; let the 256-wide RL model clone and pass evaluation (2026-11-13).
 1. [ ] **Play the new gameplay by hand in the real client** (Editor Play mode):
    - create a character;
    - play quests 0–5;
@@ -396,3 +397,81 @@ Corrected corrupted Vietnamese copy-path and missing-sprite labels in NsoWiki/ap
 - Changed: InventoryGrouping.cs, PlayerItems.cs, PlayerService.cs, PlayerStorage.cs, PlayerUpgrade.cs, server Controller.cs; Char.cs, GameScr.cs, GameCanvas.cs, client Service.cs/Controller.cs; four root docs, architecture/UI/server docs and wiki notes. Offline extensions of Java Char.bagSort/boxSort and existing inputNumSplit. Existing packet namespace extended; no save-schema/scene/package changes.
 - Validation: Unity refreshed and compiled; compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0 (2026-11-12T14:58:33Z); diff check passed. Read-only reflection confirmed CanStack and SplitStack are in the loaded assembly; no Play, sorting/splitting/crafting execution or save mutation per user compile-only preference.
 - Next: user presses Sort on duplicate food/crystals in bag/box; checks one-cell quantities, locked/expiring separation and equipment unchanged. Split e.g. 3 from 10 -> 7+3; reject 0/10/bad input/full container; split one crystal then upgrade/refine, cancel without loss; eat once from a food stack, transfer/sell/reload and compare totals. Commands: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+## 2026-11-12 - Hybrid AI agents (MVP)
+- [x] Strategic layer: local LLM planner (OpenAI-compatible), shared worker, JSON decisions, validation, rule-planner fallback, event-driven + throttled.
+- [x] Tactical layer: travel through waypoints, hunt, collect own drops, rest/retreat reflex, explore, idle; background simulation.
+- [x] Presence: PLAYER_ADD/MOVE/REMOVE/DIE, monsters fight agents, speech bubbles (CHAT_MAP), persistence (save database document `agents`).
+- [x] Debug: /agents.html, /control/agents, /agents, /replan, [ai] log lines. Inspector settings.
+- [ ] Play-mode test by the user (compile only so far).
+- [ ] Next: shops/trading with yen, quests, agent-to-agent conversation, equipment, PvP rules.
+
+## 2026-11-13 - SQLite storage
+- [x] Save data (accounts, characters with bag/quest/progress, AI agents) in NsoData/nso.db; TSV import + fallback.
+- [x] Player log in Logs/PlayerLog/player_log.db; text file optional.
+- [x] Migrated the existing save and the 5 old text logs.
+- [ ] Play-mode check by the user.
+- [ ] Other platforms: add their e_sqlite3 native library if the game is ever built for them.
+
+## 2026-11-13 - AI players (real characters)
+- [x] 13 AI players on bot sessions, player rules for everything, start at level 1 / quest 0.
+- [x] Characters see each other in a zone (Presence).
+- [x] Quest play through NPC menus (quests 0-3 seen in the probe), potions, shop, gear, points, school admission (untested).
+- [x] Gameplay memory (AgentKnowledge) + full context and beginner's guide for the LLM.
+- [x] Bot log (bot_entries, 20 days); bots cannot use the dev terminal.
+- [x] New agents.html (cards, filters, detail drawer).
+- [ ] Play-mode check by the user (13 AI players in Làng Tone at start).
+- [ ] Watch later quests (8-12) and add tactics where an AI gets stuck.
+
+
+## 2026-11-13 - Guided online reinforcement learning
+- [x] Versioned observations/candidates/masks/experience, teacher fallback and retained NPC/quest macros.
+- [x] MaskablePPO trainer, behavioural cloning, policy-version/source separation, CPU C# model interchange and validation.
+- [x] uv project/lock/local venv, CUDA installation and RTX 3060 tensor check (user authorised downloads and GPU).
+- [x] Learning dashboard, protected control route, configurable rewards, opt-in human demonstrations, budget pause, candidate promotion/rollback.
+- [x] Standalone scratch-only real-time evaluator and short synthetic contract checks (passed).
+- [ ] User Play/browser check; verify rules behaviour, spool and trainer startup with 13 agents.
+- [ ] Enable isolated long evaluation explicitly; confirm quests 0-3, model transitions and later tiers in gameplay.
+- [ ] Profile total 13-bot inference p95 and game frame time; judge human likeness. No trained strong model is claimed yet.
+
+
+Final validation (2026-11-13): Unity refresh and current Console passed at 2026-11-12T19:01:12Z: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (only the pre-existing unused Controller.zoomLevel warning). Seven short synthetic CUDA contracts passed; JS syntax, Python byte-compilation, uv lock and changed-file whitespace checks passed. No Play/browser/live training/long evaluation run; production saves unchanged. The earlier dirty NSO Game.prefab has a pre-existing trailing-space warning and was not edited for this change.
+
+
+## 2026-11-13 - Shared ground loot and less competitive AI hunting
+
+- [x] One shared ownership/range/bag/capacity path for human and bot characters; 30 s exclusive / 60 s lifetime, configurable.
+- [x] Wider AI foraging, bounded stalled-item retries and courteous target/loot selection.
+- [x] Population-based zone selection through NPC 13 and regular Controller messages, with reservations/cooldown.
+- [x] RL evaluator receives/fingerprints the same ground timing; headless build and Python syntax pass.
+- [ ] User checks live pickup before/after 30 s, expiry at 60 s, full bags/quest gates, zone spreading and NPC walking. No gameplay test run by the agent.
+
+
+Final compile-only validation for this update: Unity at 2026-11-12T19:21:56Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build, Python syntax, wiki JSON and changed-file whitespace checks passed; the host retains its pre-existing unused zoomLevel warning. No post-fix Play/gameplay tests or long training were run. User starts the next Play to apply the shared timing and observe foraging/zone changes.
+
+
+## 2026-11-13 - Item/NPC reward shaping
+- [x] Observe successful item/shop/NPC/storage/upgrade/zone outcomes without changing gameplay handlers.
+- [x] Persistent template/NPC novelty, objective keys and useful-use cooldown; no spam/open/cancel reward.
+- [x] Configurable weights/thresholds on AI dashboard; per-transition components and per-bot session counters.
+- [ ] User checks denied actions, first/repeated uses/purchases, useful potion/food/book/gear use, NPC/quest/quiz/storage/upgrade/zone outcomes, and relog history. No gameplay execution by the agent.
+
+
+Final compile-only validation (2026-11-13, action rewards): Unity current Console at 2026-11-12T19:40:48Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (pre-existing unused zoomLevel warning); agents.js syntax, wiki JSON, meta presence and changed-file whitespace checks passed. No gameplay/Play/browser/learning-session tests were run; user validation is pending.
+
+
+## 2026-11-13 - AI follow-up acceptance
+- Implemented, user runtime check pending: required LLM steps schema, separate format backoff/raw failure diagnostics; remote character render smoothing between sparse movement packets.
+- Pending: shared human/bot movement collision parity; isolated candidate evaluation on the current balance; per-personality regression and 13-bot performance checks before enabling RL-primary. Do not promote the unevaluated candidate.
+
+
+## 2026-11-13 - Bot movement collision follow-up
+- Implemented (compile-only acceptance): swept terrain traversal, grounded jumps, ceiling/landing handling, input release and cancellation on correction/death/map/zone change. Both rule and RL movement use this executor.
+- User checks pending: approach wood/rock from both sides, low/high walls, ceiling, one-way platforms, walking off a ledge, stop during jump, loot/NPC approaches and map/zone changes. Confirm visible movement and no new stalls. This is not a complete obstacle-route/pathfinding system.
+- RL primary remains pending isolated evaluation; previous movement evaluations are invalidated by the new execution fingerprint.
+
+## 2026-11-13 - Path finding / port / LLM leads
+- [x] Platform path finding with jump and double jump; unreachable targets are dropped.
+- [x] Wiki port not inherited by the RL trainer.
+- [x] LLM leads the plan (configurable).
+- [ ] Unity compile check after Play mode; watch bots climb in Play mode; check Vách Ichidai reachability.

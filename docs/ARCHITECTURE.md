@@ -16,13 +16,15 @@ Embedded C# server (Assets/Server; started by ServerBootstrap at AfterSceneLoad,
       │                  MobBrain, Message/Cmd, LocalPipe, FileStaticData
       ├─ World/          GameWorld (partial: World.cs + GameData.cs): maps, zones, mobs, items, skills, exp table, quests,
       │                  shops, effects; TileGrid (terrain); MapUnlock (maps opened by quest progress)
-      ├─ Store/          AccountStore (users.tsv, players.tsv); PlayerInventory and PlayerProgress (JSON in PlayerRecord.Data)
+      ├─ Store/          AccountStore over SqliteSaveDb (nso.db; TSV fallback); PlayerInventory and PlayerProgress (JSON in PlayerRecord.Data)
       ├─ Data/           TableFile (tables.txt reader/writer), SqlDump (dump parser for the export tool), Json (reader)
       └─ DevWiki/        WikiData (builds the lookup database), WikiApi (/api), WikiServer (HTTP on 127.0.0.1:8787)
 Static data: Assets/StreamingAssets/NsoStatic (tables.txt with 25 static tables, *.bin blobs captured from Java, Data/Map,
              Data/Img/{Object,Small,Mob})
 Dev wiki assets: Assets/StreamingAssets/NsoWiki (index.html, notes.json)
-Save data: Application.persistentDataPath/NsoData (users.tsv, players.tsv)
+Save data: Application.persistentDataPath/NsoData/nso.db (SQLite: users, players, kv documents such as `agents`, meta)
+Player log: Logs/PlayerLog/player_log.db (SQLite: sessions, entries), separate from the save
+Native library: Assets/Plugins/Sqlite (Microsoft.Data.Sqlite + SQLitePCLRaw e_sqlite3, Windows x64)
 ```
 Nothing in `Assets/Server` depends on UnityEngine except `ServerBootstrap.cs`. `Tools/ServerTests` therefore compiles the same files with `dotnet` (net8.0) and drives the server through the same pipe.
 
@@ -146,3 +148,39 @@ WikiSprites is a read-only asset adapter wired by ServerBootstrap. Strict templa
 - Changed: InventoryGrouping.cs, PlayerItems.cs, PlayerService.cs, PlayerStorage.cs, PlayerUpgrade.cs, server Controller.cs; Char.cs, GameScr.cs, GameCanvas.cs, client Service.cs/Controller.cs; four root docs, architecture/UI/server docs and wiki notes. Offline extensions of Java Char.bagSort/boxSort and existing inputNumSplit. Existing packet namespace extended; no save-schema/scene/package changes.
 - Validation: Unity refreshed and compiled; compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0 (2026-11-12T14:58:33Z); diff check passed. Read-only reflection confirmed CanStack and SplitStack are in the loaded assembly; no Play, sorting/splitting/crafting execution or save mutation per user compile-only preference.
 - Next: user presses Sort on duplicate food/crystals in bag/box; checks one-cell quantities, locked/expiring separation and equipment unchanged. Split e.g. 3 from 10 -> 7+3; reject 0/10/bad input/full container; split one crystal then upgrade/refine, cancel without loss; eat once from a food stack, transfer/sell/reload and compare totals. Commands: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+## Autonomous agents (Assets/Server/Ai, 2026-11-12)
+```
+AgentManager.Tick (GameServer.TickLoop, after the zones, under SyncRoot)
+  ├─ DrainResults: decisions from StrategicService (LLM worker thread) -> validate -> plan
+  ├─ AgentTactics.Update per agent (every tick when players watch, every BackgroundEveryTicks otherwise)
+  │    reports StepDone / StepFailed / events -> memory + NeedsDecision
+  └─ MaybeDecide: event-driven, throttled; LLM queue or RulePlanner (fallback)
+StrategicService: one background thread "nso-agent-llm", queue (one request per agent), backoff after errors.
+MobBrain: monsters notice/attack agents (AgentManager.AgentsIn / FindAgent / MobAttack).
+Client sees agents through PLAYER_ADD on zone entry (PlayerActions.JoinZone, Controller.SelectCharacter).
+```
+The LLM never touches game objects: it receives an AgentSnapshot (copied on the tick thread) and returns a Decision.
+
+## AI players (Assets/Server/Ai)
+AgentManager logs each AI player in on a bot session (GameServer.ConnectBot, Session.IsBot) and drives it with BotClient, which
+sends the game client's messages to Controller.OnMessage. The character is an ordinary PlayerState saved in nso.db, so all server
+rules apply. AgentTactics (game AI, every tick) plays the plan step; StrategicService + LlmPlanner / RulePlanner decide the plan
+on events. AgentKnowledge is the long-term memory (document `ai_players`). Net/Presence sends the zone's characters to each other.
+Bot actions go to PlayerLog.Bot (table bot_entries).
+
+
+## Guided RL (2026-11-13; supersedes LLM-primary planning)
+AgentManager owns RlRuntime lifecycle. RulePlanner supplies strategic demonstrations; BotClient interception supplies tactical demonstrations and executes masked-policy alternatives through the normal Controller. Existing navigation/NPC/quest macros are shared, not reimplemented. LLM results are advice/risk/speech inputs, never direct plan installation. RlCandidates builds detached versioned observations; RlPolicy performs CPU MLP inference; RlBridge owns bounded IO/model publication and the hidden trainer process. Tools/Learning trains maintained MaskablePPO in a uv/CUDA environment, evaluates releases on scratch-only server processes, then publishes hashed immutable JSON policies. Human capture is opt-in. All gameplay authority, character saves and 500 ms ticks remain unchanged. See AI_LEARNING.md for the full contract and rollout gates.
+
+
+## Ground-item and zone behaviour (2026-11-13)
+GroundLootPolicy owns shared protection/lifetime; PlayerItems owns pure pickup-range and bag-acceptance predicates; PlayerActions owns normal zone capacity. No human/bot branch exists in those rules. AgentForaging and AgentZoneSelection are decision policies over those common rules; movement and pickup/zone changes go through BotClient/Controller. Temporary courtesy claims, retry state and zone intents live only in NinjaAgent, not saves or server item locks. RL evaluator fingerprints/passes the same ground timing. No schema or protocol change.
+
+
+## Confirmed action rewards (2026-11-13)
+Controller wraps supported item/NPC/service commands with a read-only ActionReceipt. ActionRewards classifies authoritative post-state changes, with no gameplay mutation. RlRuntime owns reward ledgers and per-transition weighted baselines; components.actions preserves category attribution. AgentManager saves optional rewardHistory in bot minds, separate from the evictable knowledge cache; optional human reward-history documents are flushed through normal save/logout. Observer failures are isolated from command handling. Policy dimensions/schema stay unchanged.
+
+
+## Headless client movement (2026-11-13)
+BotClient accepts policy destination intents; BotMovement owns transient client input/vertical velocity and uses pure TileMotion geometry. GameServer runs a separate ~24 Hz client-frame loop under World.SyncRoot, calling AgentManager.TickMovement. It sends ordinary movement frames via BotClient/Controller without policy interception. AI/world updates, rewards, skills, effects and cooldowns retain their existing 500 ms/real-time scheduling. No new authoritative stat/movement state is introduced: PlayerState still changes only through normal handlers. New revision and movement configuration invalidate old release evaluations. No Unity API dependency in the server executor.

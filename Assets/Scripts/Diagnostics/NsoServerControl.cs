@@ -7,6 +7,9 @@ public class NsoServerControl : MonoBehaviour
     [Header("Server paths — apply on next Play")]
     [Tooltip("Relative folder under Application.persistentDataPath. Changing it does not migrate or delete saves.")]
     [SerializeField] private string _saveSubfolder = "NsoData";
+    [Tooltip("Save accounts, characters (bag, quests, progress) and AI agents in the SQLite database nso.db. Off: the former users.tsv / players.tsv files. Old TSV saves are imported into a new database once.")]
+    [SerializeField] private bool _useSqlite = true;
+    public static bool UseSqlite { get { return Active == null || Active._useSqlite; } }
     [Tooltip("Relative folder under StreamingAssets containing tables.txt and Data.")]
     [SerializeField] private string _staticSubfolder = "NsoStatic";
     [Header("Dev wiki (Editor / development builds) — apply on next Play")]
@@ -19,14 +22,164 @@ public class NsoServerControl : MonoBehaviour
     [Header("Player log (debug) — apply on next Play")]
     [Tooltip("Write every player action (client message), server reply, server trace line and periodic state snapshot to a text file. Editor: <project>/Logs/PlayerLog; build: <persistentDataPath>/Logs/PlayerLog.")]
     [SerializeField] private bool _playerLogEnabled = true;
+    [Tooltip("Write the log into the SQLite database Logs/PlayerLog/player_log.db (one session per Play; table entries).")]
+    [SerializeField] private bool _playerLogToDatabase = true;
+    [Tooltip("Also write the classic text file player_<time>.log.")]
+    [SerializeField] private bool _playerLogToFile = false;
     [Tooltip("Also log every server-to-client message (much larger files).")]
     [SerializeField] private bool _playerLogOutgoing = true;
     [Tooltip("Seconds between two full state snapshots of the character (0 = none).")]
     [SerializeField, Range(0, 60)] private int _playerLogSnapshotSeconds = 5;
     [Tooltip("Payload bytes written in hex per message.")]
     [SerializeField, Range(0, 512)] private int _playerLogPayloadBytes = 48;
-    [Tooltip("Number of log files kept (one per Play session); older ones are deleted.")]
+    [Tooltip("Number of log sessions kept in the database / text files kept (one per Play session); older ones are deleted.")]
     [SerializeField, Range(1, 200)] private int _playerLogKeepFiles = 20;
+    [Header("Ground drops — shared by every character, next Play")]
+    [SerializeField, Range(0, 600)] private int _groundLootOwnerSeconds = 30;
+    [SerializeField, Range(1, 3600)] private int _groundLootLifetimeSeconds = 60;
+    public static void ApplyGroundLoot()
+    {
+        NsoServer.World.GroundLootPolicy.Configure(Active != null ? Active._groundLootOwnerSeconds : 30,
+            Active != null ? Active._groundLootLifetimeSeconds : 60);
+    }
+
+    [Header("AI players — apply on next Play")]
+    [Tooltip("Movement intent distance per 500 ms; execution is also capped by the character's normal speed and terrain collision.")]
+    [SerializeField, Range(12, 120)] private int _aiMoveStepPx = 60;
+    [Tooltip("AI players: real characters (own account in the save database) that log in and play by the player's rules; a local LLM decides goals, game AI plays them.")]
+    [SerializeField] private bool _agentsEnabled = true;
+    [Tooltip("Number of AI players (at most 13 personalities). They start as new characters (level 1, quest 0).")]
+    [SerializeField, Range(0, 13)] private int _aiPlayerCount = 13;
+    [Tooltip("Behaviour preferences only. Ownership, bag capacity and NPC/zone access still use normal player rules.")]
+    [SerializeField, Range(150, 2000)] private int _aiLootScanRadius = 600;
+    [SerializeField, Range(24, 600)] private int _aiLootVerticalRange = 144;
+    [SerializeField, Range(1, 30)] private int _aiLootStallSeconds = 4;
+    [SerializeField, Range(1, 60)] private int _aiLootRetrySeconds = 8;
+    [SerializeField] private bool _aiSpreadHuntingZones = true;
+    [SerializeField, Range(1, 120)] private int _aiZoneCheckSeconds = 10;
+    [SerializeField, Range(5, 300)] private int _aiZoneChangeCooldownSeconds = 45;
+    [SerializeField, Range(5, 120)] private int _aiZoneApproachTimeoutSeconds = 30;
+    [SerializeField, Range(2, 20)] private int _aiZoneCrowdingThreshold = 3;
+    [SerializeField, Range(1, 10)] private int _aiZonePopulationImprovement = 2;
+    [Tooltip("Days the AI players' log lines (table bot_entries of player_log.db) are kept.")]
+    [SerializeField, Range(1, 365)] private int _botLogKeepDays = 20;
+    [Tooltip("Write the AI players' actions, screen messages, decisions and states to the log database.")]
+    [SerializeField] private bool _botLogEnabled = true;
+    [Tooltip("Seconds between two strategic decisions of one agent (decisions are event-driven; this is the throttle).")]
+    [SerializeField, Range(5, 300)] private int _agentMinDecisionSeconds = 15;
+    [Tooltip("Seconds after which a running plan is reviewed even without an event (0 = never).")]
+    [SerializeField, Range(0, 1800)] private int _agentReviewSeconds = 300;
+    [Tooltip("Ask the local LLM for advice and speech. RL and its rule teacher continue if it is off or unreachable.")]
+    [SerializeField] private bool _llmEnabled = true;
+    [Tooltip("The LLM leads: its plan is what the AI player does; rules/RL only fill in while it thinks or when it is unavailable.")]
+    [SerializeField] private bool _llmLeads = true;
+    [Tooltip("Seconds after which the LLM reviews a running plan when it leads.")]
+    [SerializeField, Min(30)] private int _llmReviewSeconds = 120;
+    [Tooltip("AI players report their position at most this often while moving (Char.sendMove: 250 ms).")]
+    [SerializeField, Range(42, 1000)] private int _aiMoveSendMilliseconds = 250;
+    [Tooltip("AI rules restock HP potions before fighting when they carry fewer than this (shop open and affordable).")]
+    [SerializeField, Range(0, 20)] private int _aiMinPotionsToFight = 3;
+    [Tooltip("HP percent at which an AI player without potions, but with money, turns back to buy some.")]
+    [SerializeField, Range(0, 95)] private int _aiNoPotionFleeHpPercent = 55;
+    [Tooltip("Long-term memory of the AI players in a local Qdrant collection; the LLM gets only the relevant memories. Off or unreachable: all knowledge goes into the prompt.")]
+    [SerializeField] private bool _ragEnabled = true;
+    [Tooltip("Food servings (Tabemono) an AI player keeps; it eats whenever no food effect runs. 0 = never buys food.")]
+    [SerializeField, Range(0, 10)] private int _aiFoodStock = 2;
+    [Tooltip("Yen/xu an AI player keeps for potions: food is bought only with the money above this.")]
+    [SerializeField, Min(0)] private int _aiFoodMoneyReserve = 300;
+    [Tooltip("Free bag slots an AI player keeps: below this it sells stones and gear it will not wear (finishing quests and joining a school need free slots). 0 = never sells.")]
+    [SerializeField, Range(0, 10)] private int _aiBagReserveSlots = 3;
+    [Tooltip("AI fast travel (carriage NPC Umayaki, Khả di lệnh scrolls) only when it saves at least this many map changes over walking. 0 = never.")]
+    [SerializeField, Range(0, 20)] private int _aiFastTravelMinSavedHops = 2;
+    [Tooltip("Extra map changes a single-use Khả di lệnh counts as (it is consumed; the unlimited scroll is not).")]
+    [SerializeField, Range(0, 20)] private int _aiFastTravelScrollCostHops = 2;
+    [Tooltip("Put the whole game (items, how to get them, what using them does, monsters, maps, NPCs, shops, quests, skills) into the RAG memory.")]
+    [SerializeField] private bool _ragGameKnowledge = true;
+    [Tooltip("Game-knowledge documents recalled into each LLM prompt (besides the AI player's own memories).")]
+    [SerializeField, Range(0, 12)] private int _ragKnowledgeTopK = 4;
+    [Tooltip("Longest recalled memory in the prompt, in characters (long documents are cut to fit the context).")]
+    [SerializeField, Range(80, 3000)] private int _ragMemoryChars = 600;
+    [Tooltip("Minutes the LLM's priorities (quest/hunt/shop/explore/collect/idle weights) steer the rule planner; 0 = the LLM cannot set them.")]
+    [SerializeField, Range(0, 120)] private int _llmPriorityMinutes = 15;
+    [Tooltip("Local Qdrant URL (the collection nso_agent_memory is created there).")]
+    [SerializeField] private string _qdrantUrl = "http://127.0.0.1:6333";
+    [Tooltip("Ollama embedding model for the memories (bge-m3: multilingual).")]
+    [SerializeField] private string _embedModel = "bge-m3";
+    [Tooltip("Context window of the LLM server in tokens (Ollama default 4096). Older events are summarised when the prompt would not fit.")]
+    [SerializeField, Min(1024)] private int _llmContextTokens = 4096;
+    [Tooltip("OpenAI-compatible chat completions URL. Ollama: http://127.0.0.1:11434/v1/chat/completions; LM Studio: http://127.0.0.1:1234/v1/chat/completions.")]
+    [SerializeField] private string _llmEndpoint = "http://127.0.0.1:11434/v1/chat/completions";
+    [Tooltip("Model name as the local server knows it (ollama list), for example qwen3.5:4b.")]
+    [SerializeField] private string _llmModel = "qwen3.5:4b";
+    [Tooltip("reasoning_effort sent to the LLM. \"none\" turns off the thinking of Qwen3-style models (needed: otherwise the answer is empty). Empty = not sent.")]
+    [SerializeField] private string _llmReasoningEffort = "none";
+    [Tooltip("Refuse endpoints that are not on this machine.")]
+    [SerializeField] private bool _llmLocalOnly = true;
+    [Tooltip("Send response_format json_object (Ollama, llama.cpp). Turn off if the server rejects it (some LM Studio versions).")]
+    [SerializeField] private bool _llmJsonMode = true;
+    [Tooltip("Constrain the model with JSON Schema (Ollama). Disable if the local server rejects json_schema.")]
+    [SerializeField] private bool _llmStructuredOutputs = true;
+    [SerializeField, Range(0, 60)] private int _llmFormatBackoffSeconds = 5;
+    [Tooltip("Seconds before an LLM request is abandoned.")]
+    [SerializeField, Range(5, 180)] private int _llmTimeoutSeconds = 40;
+    [Tooltip("After a failed request the LLM is not asked again for this many seconds.")]
+    [SerializeField, Range(0, 600)] private int _llmBackoffSeconds = 60;
+    [Tooltip("Sampling temperature of the LLM.")]
+    [SerializeField, Range(0f, 1.5f)] private float _llmTemperature = 0.7f;
+    [Tooltip("Basic instructions given to the LLM at the start (a beginner's guide to the game, added to the system prompt). Empty = none.")]
+    [SerializeField, TextArea(4, 14)] private string _llmGuide = NsoServer.Ai.AgentConfig.DefaultGuide;
+
+    /// <summary>Copies the agent settings into the server (ServerBootstrap, before AgentManager.Start).</summary>
+    public static void ApplyAgents()
+    {
+        if (Active == null) return;
+        NsoServer.Ai.AgentConfig.Enabled = Active._agentsEnabled;
+        NsoServer.Ai.AgentConfig.AgentCount = Active._aiPlayerCount;
+        NsoServer.Ai.AgentConfig.MoveStepPx = Active._aiMoveStepPx;
+        NsoServer.Ai.AgentConfig.LootScanRadiusPx = Active._aiLootScanRadius;
+        NsoServer.Ai.AgentConfig.LootVerticalRangePx = Active._aiLootVerticalRange;
+        NsoServer.Ai.AgentConfig.LootStallSeconds = Active._aiLootStallSeconds;
+        NsoServer.Ai.AgentConfig.LootRetrySeconds = Active._aiLootRetrySeconds;
+        NsoServer.Ai.AgentConfig.SpreadHuntingZones = Active._aiSpreadHuntingZones;
+        NsoServer.Ai.AgentConfig.ZoneCheckSeconds = Active._aiZoneCheckSeconds;
+        NsoServer.Ai.AgentConfig.ZoneChangeCooldownSeconds = Active._aiZoneChangeCooldownSeconds;
+        NsoServer.Ai.AgentConfig.ZoneApproachTimeoutSeconds = Active._aiZoneApproachTimeoutSeconds;
+        NsoServer.Ai.AgentConfig.ZoneCrowdingThreshold = Active._aiZoneCrowdingThreshold;
+        NsoServer.Ai.AgentConfig.ZonePopulationImprovement = Active._aiZonePopulationImprovement;
+        NsoServer.Ai.AgentConfig.MinDecisionSeconds = Active._agentMinDecisionSeconds;
+        NsoServer.Ai.AgentConfig.ReviewSeconds = Active._agentReviewSeconds;
+        NsoServer.Ai.AgentConfig.LlmEnabled = Active._llmEnabled;
+        NsoServer.Ai.AgentConfig.LlmLeads = Active._llmLeads;
+        NsoServer.Ai.AgentConfig.LlmReviewSeconds = Active._llmReviewSeconds;
+        NsoServer.Ai.AgentConfig.MoveSendMilliseconds = Active._aiMoveSendMilliseconds;
+        NsoServer.Ai.AgentConfig.MinPotionsToFight = Active._aiMinPotionsToFight;
+        NsoServer.Ai.AgentConfig.NoPotionFleeHpPercent = Active._aiNoPotionFleeHpPercent;
+        NsoServer.Ai.AgentConfig.RagEnabled = Active._ragEnabled;
+        NsoServer.Ai.AgentConfig.FoodStock = Active._aiFoodStock;
+        NsoServer.Ai.AgentConfig.FoodMoneyReserve = Active._aiFoodMoneyReserve;
+        NsoServer.Ai.AgentConfig.BagReserveSlots = Active._aiBagReserveSlots;
+        NsoServer.Ai.AgentConfig.FastTravelMinSavedHops = Active._aiFastTravelMinSavedHops;
+        NsoServer.Ai.AgentConfig.FastTravelScrollCostHops = Active._aiFastTravelScrollCostHops;
+        NsoServer.Ai.AgentConfig.RagGameKnowledge = Active._ragGameKnowledge;
+        NsoServer.Ai.AgentConfig.RagKnowledgeTopK = Active._ragKnowledgeTopK;
+        NsoServer.Ai.AgentConfig.RagMemoryChars = Active._ragMemoryChars;
+        NsoServer.Ai.AgentConfig.LlmPriorityMinutes = Active._llmPriorityMinutes;
+        NsoServer.Ai.AgentConfig.QdrantUrl = Active._qdrantUrl;
+        NsoServer.Ai.AgentConfig.EmbedModel = Active._embedModel;
+        NsoServer.Ai.AgentConfig.LlmContextTokens = Active._llmContextTokens;
+        NsoServer.Ai.AgentConfig.LlmEndpoint = Active._llmEndpoint;
+        NsoServer.Ai.AgentConfig.LlmModel = Active._llmModel;
+        NsoServer.Ai.AgentConfig.LlmReasoningEffort = Active._llmReasoningEffort;
+        NsoServer.Ai.AgentConfig.LlmLocalOnly = Active._llmLocalOnly;
+        NsoServer.Ai.AgentConfig.LlmJsonMode = Active._llmJsonMode;
+        NsoServer.Ai.AgentConfig.LlmStructuredOutputs = Active._llmStructuredOutputs;
+        NsoServer.Ai.AgentConfig.LlmFormatBackoffSeconds = Active._llmFormatBackoffSeconds;
+        NsoServer.Ai.AgentConfig.LlmTimeoutSeconds = Active._llmTimeoutSeconds;
+        NsoServer.Ai.AgentConfig.LlmBackoffSeconds = Active._llmBackoffSeconds;
+        NsoServer.Ai.AgentConfig.LlmTemperature = Active._llmTemperature;
+        NsoServer.Ai.AgentConfig.LlmGuide = Active._llmGuide;
+    }
+
     /// <summary>Copies the player log settings into the server (ServerBootstrap, before the log opens).</summary>
     public static void ApplyPlayerLog()
     {
@@ -36,6 +189,10 @@ public class NsoServerControl : MonoBehaviour
         NsoServer.Net.PlayerLog.SnapshotSeconds = Active._playerLogSnapshotSeconds;
         NsoServer.Net.PlayerLog.MaxPayloadBytes = Active._playerLogPayloadBytes;
         NsoServer.Net.PlayerLog.KeepFiles = Active._playerLogKeepFiles;
+        NsoServer.Net.PlayerLog.ToDatabase = Active._playerLogToDatabase;
+        NsoServer.Net.PlayerLog.ToFile = Active._playerLogToFile;
+        NsoServer.Net.PlayerLog.BotKeepDays = Active._botLogKeepDays;
+        NsoServer.Net.PlayerLog.LogBots = Active._botLogEnabled;
     }
     public static string PlayerLogFolder
     {
@@ -73,13 +230,23 @@ public class NsoServerControl : MonoBehaviour
     }
     private void OnDestroy() { if (Active == this) Active = null; }
 
+    private float _learningFrames, _learningSeconds;
     private void Update()
     {
+        _learningFrames++;
+        _learningSeconds += UnityEngine.Time.unscaledDeltaTime;
+        if (_learningSeconds >= 5f)
+        {
+            NsoServer.Ai.Rl.RlRuntime.Fps(_learningFrames / _learningSeconds);
+            _learningFrames = _learningSeconds = 0;
+        }
         NsoServer.GameServer server = ServerBootstrap.Server;
         status = server != null ? "Running" : "Not running";
         address = server != null ? "in-process (no network)" : "";
         wikiUrl = ServerBootstrap.WikiUrl ?? "";
-        playerLogFile = NsoServer.Net.PlayerLog.FilePath ?? "";
+        playerLogFile = NsoServer.Net.PlayerLog.DatabasePath != null
+            ? NsoServer.Net.PlayerLog.DatabasePath + " (session " + NsoServer.Net.PlayerLog.SessionId + ")" + (NsoServer.Net.PlayerLog.FilePath != null ? " + " + NsoServer.Net.PlayerLog.FilePath : "")
+            : NsoServer.Net.PlayerLog.FilePath ?? "";
         if (ServerBootstrap.TakeWikiOpenRequest()) Application.OpenURL(wikiUrl);   // the wiki itself runs on its own thread
     }
 

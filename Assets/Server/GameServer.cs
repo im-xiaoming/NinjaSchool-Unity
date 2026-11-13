@@ -11,6 +11,8 @@ namespace NsoServer
     {
         public int ServerId = 1;
         public string DataDirectory = "NsoData";
+        /// <summary>Save to the SQLite database nso.db (false: the former users.tsv / players.tsv files).</summary>
+        public bool UseSqlite = true;
     }
 
     // In-process replacement for the Java server. The client connects through an in-memory pipe (Connect), no socket or port.
@@ -30,7 +32,7 @@ namespace NsoServer
         public GameServer(ServerConfig config)
         {
             Config = config;
-            Accounts = new AccountStore(config.DataDirectory);
+            Accounts = new AccountStore(config.DataDirectory, config.UseSqlite);
         }
 
         public string RulesPath { get { return Path.Combine(Config.DataDirectory, "game-rules.json"); } }
@@ -56,8 +58,27 @@ namespace NsoServer
                 catch (Exception ex) { Log("balance load error (defaults retained): " + ex.Message); }
             }
             running = true;
+            Log("save storage: " + Accounts.Backend + " in " + Config.DataDirectory + (Accounts.BackendError != null ? " (SQLite error: " + Accounts.BackendError + ")" : ""));
             new Thread(TickLoop) { IsBackground = true, Name = "nso-tick" }.Start();
+            new Thread(ClientMovementLoop) { IsBackground = true, Name = "nso-client-movement" }.Start();
             Log("Server started");
+        }
+
+        // Offline headless clients need the same small collision/jump steps as a graphical client.
+        // Keep Zone.run, AI decisions, cooldowns and effects on their existing 500 ms clock.
+        private void ClientMovementLoop()
+        {
+            while (running)
+            {
+                try
+                {
+                    var w = World;
+                    if (w != null) lock (w.SyncRoot)
+                        NsoServer.Ai.AgentManager.TickMovement(w, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                }
+                catch (Exception ex) { Log("client movement error: " + ex.Message); }
+                Thread.Sleep(NsoServer.World.TileMotion.StepMilliseconds); // no accelerated catch-up after a stall
+            }
         }
 
         // Zone.run: every half second the monsters of zones that have players act
@@ -75,7 +96,7 @@ namespace NsoServer
                             {
                                 PlayerCombat.UpdateRecovery(z, World);   // dead monsters come back (Zone.updateRecovery)
                                 PlayerEffects.UpdateMobEffects(z);       // burn / freeze / stun end (Mob.update)
-                                PlayerItems.UpdateItemMaps(z);           // items on the ground vanish after 30 s
+                                PlayerItems.UpdateItemMaps(z);           // shared ground lifetime for all characters
                                 if (!NsoServer.Net.Gymnasium.UpdateZone(z, World, now))   // NV Thách đấu room: headmaster AI, time limit
                                     TaskMechanics.UpdateZone(z, now);    // quest nodes (ore, ice crystal) come back
                                 for (int i = z.Players.Count - 1; i >= 0; i--)
@@ -87,6 +108,7 @@ namespace NsoServer
                                 }
                                 MobBrain.UpdateZone(z, now);
                             }
+                        lock (World.SyncRoot) NsoServer.Ai.AgentManager.Tick(World, now);   // autonomous agents (offline AI); no-op unless started
                     }
                 }
                 catch (Exception ex) { Log("tick error: " + ex.Message); }
@@ -107,6 +129,16 @@ namespace NsoServer
             return clientSide;
         }
 
+        /// <summary>An offline AI player (NsoServer.Ai): a session without a stream, signed in as <paramref name="account"/>.
+        /// The bot drives it with Controller.OnMessage, exactly the messages a game client sends.</summary>
+        public Session ConnectBot(string account)
+        {
+            if (!running) throw new IOException("Server not running");
+            var s = new Session(this, Interlocked.Increment(ref nextId), account);
+            lock (sync) sessions.Add(s);
+            return s;
+        }
+
         public void Remove(Session s)
         {
             lock (sync) sessions.Remove(s);
@@ -118,6 +150,7 @@ namespace NsoServer
             Session[] copy;
             lock (sync) copy = sessions.ToArray();
             foreach (var s in copy) s.Close();
+            Accounts.Close();   // flushes the SQLite write-ahead log
             Log("Server stopped");
         }
 

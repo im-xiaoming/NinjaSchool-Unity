@@ -146,6 +146,95 @@ static partial class Program
             Console.WriteLine(ok + " grids loaded, " + fail + " failed");
             return fail;
         }
+        // dev wiki port: a listener orphaned in this process (Editor domain reload) is reclaimed by the next start
+        if (args.Length > 0 && args[0] == "portcheck")
+        {
+            int wikiPort = 8797;
+            var orphan = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, wikiPort); orphan.Start();
+            Environment.SetEnvironmentVariable("NSO_DEVWIKI_LISTENER", wikiPort + ":" + orphan.Server.Handle.ToInt64());
+            var started = new System.Threading.ManualResetEvent(false); string url = null;
+            var wiki = new NsoServer.DevWiki.WikiServer(Path.GetTempPath(), wikiPort, () => "{}", null);
+            wiki.Logger = Console.WriteLine;
+            wiki.Started = u => { url = u; started.Set(); };
+            wiki.Start(); started.WaitOne(10000); wiki.Stop();
+            Console.WriteLine("wiki url " + url + (url != null && url.Contains(":" + wikiPort + "/") ? " OK (orphan reclaimed)" : " FAIL"));
+            return url != null && url.Contains(":" + wikiPort + "/") ? 0 : 1;
+        }
+        // AI path finding (BotNavigation): random standing spots on real maps, reachability, replay and search cost
+        // `navprobe <map> <x> <y>`: terrain around a spot where a bot is stuck and whether each exit is reachable from it
+        if (args.Length > 3 && args[0] == "navprobe")
+        {
+            string bk = Path.GetFullPath(@"C:\My project\Assets\StreamingAssets\NsoStatic");
+            var w = new NsoServer.World.GameWorld(NsoServer.Data.TableFile.Load(Path.Combine(bk, "tables.txt")), Path.Combine(bk, "Data"));
+            var t = w.FindMap(int.Parse(args[1])); var g = w.GetGrid(t);
+            int px = int.Parse(args[2]), py = int.Parse(args[3]);
+            Console.WriteLine("map " + t.Id + " " + t.Name + " " + g.PxW + "x" + g.PxH + ", spot (" + px + "," + py + ") standable " + NsoServer.Ai.BotNavigation.Standable(g, px, py));
+            for (int r = Math.Max(0, py / 24 - 8); r < Math.Min(g.Tmh, py / 24 + 4); r++)
+            {
+                var sb = new System.Text.StringBuilder((r * 24).ToString().PadLeft(5) + " ");
+                for (int c = Math.Max(0, px / 24 - 10); c < Math.Min(g.Tmw, px / 24 + 14); c++)
+                {
+                    int x = c * 24 + 12, y = r * 24; char ch = '.';
+                    if (g.TileTypeAt(x, y + 1, NsoServer.World.TileGrid.T_SOLIDGROUND)) ch = '#';
+                    if (g.IsWood(x, y + 1) || g.IsRock(x, y + 1)) ch = 'w';
+                    if (NsoServer.Ai.BotNavigation.Standable(g, x, y)) ch = 'S';
+                    else if (g.TileTypeAt(x, y, NsoServer.World.TileGrid.T_TOP)) ch = '=';
+                    if (c == px / 24 && r == py / 24) ch = '@';
+                    sb.Append(ch);
+                }
+                Console.WriteLine(sb);
+            }
+            while (!NsoServer.Ai.BotNavigation.Ready(g, 5)) System.Threading.Thread.Sleep(5);
+            foreach (var wp in t.Waypoints)
+            {
+                bool ok; int wx = (wp.MinX + wp.MaxX) / 2, wy = wp.MaxY;
+                var path = NsoServer.Ai.BotNavigation.Find(g, px, py, wx, wy, 5, out ok);
+                Console.WriteLine("exit to map " + wp.Next + " at (" + wp.MinX + "-" + wp.MaxX + "," + wp.MinY + "-" + wp.MaxY + "): reachable " + ok + ", " + path.Count + " edges");
+            }
+            return 0;
+        }
+        if (args.Length > 0 && args[0] == "navcheck")
+        {
+            string bk = Path.GetFullPath(@"C:\My project\Assets\StreamingAssets\NsoStatic");
+            var w = new NsoServer.World.GameWorld(NsoServer.Data.TableFile.Load(Path.Combine(bk, "tables.txt")), Path.Combine(bk, "Data"));
+            var rng = new Random(7); int bad = 0;
+            foreach (int id in new[] { 22, 1, 2, 21, 23, 26, 71, 27, 72, 6 })
+            {
+                var t = w.FindMap(id); if (t == null) continue;
+                var g = w.GetGrid(t);
+                var spots = new List<int[]>();
+                if (args.Length > 1 && args[1] == id.ToString()) NavDebug.Dump(g);
+                for (int x = 36; x < g.PxW - 36; x += 24)
+                    for (int y = 24; y < g.PxH - 24; y += 24)
+                        if (NsoServer.Ai.BotNavigation.Standable(g, x, y)) spots.Add(new[] { x, y });
+                int reach = 0, pairs = 0, jumps = 0, doubles = 0; long worst = 0;
+                var build = System.Diagnostics.Stopwatch.StartNew();
+                while (!NsoServer.Ai.BotNavigation.Ready(g, 5)) System.Threading.Thread.Sleep(5);
+                long built = build.ElapsedMilliseconds;
+                for (int i = 0; i < 60 && spots.Count > 1; i++)
+                {
+                    var s = spots[rng.Next(spots.Count)]; var d = spots[rng.Next(spots.Count)];
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+                    bool ok;
+                    var path = NsoServer.Ai.BotNavigation.Find(g, s[0], s[1], d[0], d[1], 5, out ok);
+                    worst = Math.Max(worst, sw.ElapsedMilliseconds);
+                    pairs++; if (ok) reach++;
+                    int cx = s[0], cy = s[1];
+                    foreach (var e in path)
+                    {
+                        if (e.FromX != NsoServer.Ai.BotNavigation.Centre(cx) || e.FromY != cy) { bad++; Console.WriteLine("map " + id + ": path not continuous"); break; }
+                        NsoServer.Ai.BotNavigation.Edge again;
+                        if (!NsoServer.Ai.BotNavigation.Simulate(g, e.FromX, cy, e.Dir, e.Kind, 5, out again) || again.ToX != e.ToX || again.ToY != e.ToY)
+                        { bad++; Console.WriteLine("map " + id + ": replay differs"); break; }
+                        if (e.Kind == 1) jumps++; if (e.Kind == 2) doubles++;
+                        cx = e.ToX; cy = e.ToY;
+                    }
+                }
+                Console.WriteLine("map " + id + " " + t.Name + ": " + spots.Count + " spots, reached " + reach + "/" + pairs +
+                    ", jumps " + jumps + ", double jumps " + doubles + ", worst search " + worst + " ms, graph " + built + " ms");
+            }
+            return bad;
+        }
         // dev wiki without Unity: `wiki` builds and checks db.json, writes it to <project>/NsoWiki/db.json;
         // `wiki serve [port]` also serves the website until Enter is pressed
         if (args.Length > 0 && args[0] == "wiki")
@@ -185,6 +274,76 @@ static partial class Program
             return bad;
         }
         if (args.Length > 5 && args[0] == "walkcheck") return WalkCheck(args[1], int.Parse(args[2]), int.Parse(args[3]), int.Parse(args[4]), int.Parse(args[5]));
+        // rules: restock potions before fighting; no monsters above the level + 1 without potions
+        if (args.Length > 0 && args[0] == "rulecheck")
+        {
+            int bad = 0;
+            var s = new NsoServer.Ai.AgentSnapshot { Level = 6, QuestId = 3, HpPercent = 100, CanShop = true, CanAffordPotions = true, HpPotions = 0, Caution = 0.1f, Aggression = 0.9f };
+            s.Hunts.Add(new NsoServer.Ai.HuntOption { MapId = 23, MobId = 4, MobName = "Thỏ xám", MobLevel = 8, MapName = "Vách Ichidai" });
+            s.Hunts.Add(new NsoServer.Ai.HuntOption { MapId = 21, MobId = 3, MobName = "Nhím đá", MobLevel = 6, MapName = "Đồi Fumimen" });
+            var d = new NsoServer.Ai.RulePlanner().Decide(s);
+            Console.WriteLine("0 potions, can shop: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Shop) { bad++; Console.WriteLine("FAIL: did not restock first"); }
+            s.CanShop = false; s.CanAffordPotions = false; s.QuestId = -1;
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            Console.WriteLine("0 potions, no shop: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            if (d.Steps.Exists(x => x.Goal == NsoServer.Ai.GoalType.Hunt && x.MobId == 4)) { bad++; Console.WriteLine("FAIL: hunts 2 levels above without potions"); }
+            // potions stocked but no food and none running: a food trip comes before the quest
+            s.CanShop = true; s.CanAffordPotions = true; s.QuestId = 3; s.HpPotions = 10; s.WantsFood = true;
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            Console.WriteLine("potions ok, no food: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Shop) { bad++; Console.WriteLine("FAIL: no food trip"); }
+            s.WantsFood = false; s.Fed = true;
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            if (d.Steps.Count > 0 && d.Steps[0].Goal == NsoServer.Ai.GoalType.Shop) { bad++; Console.WriteLine("FAIL: shops while fed and stocked"); }
+            // Play mode 2026-11-13: an aggressive bot with a doable quest step trained on Thỏ xám instead
+            Console.WriteLine("stocked, fed, quest open: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Quest) { bad++; Console.WriteLine("FAIL: trains instead of the quest"); }
+            // the LLM's priorities steer the rules: hunt 3, quest 0.3 -> train; the potion restock stays mandatory
+            s.Priorities = new[] { 0.3f, 3f, 1f, 0f, 1f, 1f };
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            Console.WriteLine("LLM priorities hunt 3, quest 0.3: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Hunt) { bad++; Console.WriteLine("FAIL: priorities ignored"); }
+            s.HpPotions = 0; s.Priorities = new[] { 1f, 1f, 0f, 1f, 1f, 1f };
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Shop) { bad++; Console.WriteLine("FAIL: shop 0 skipped the mandatory restock"); }
+            // item ledger: a curious character between quests tries an unknown item; an open quest still comes first
+            s.HpPotions = 10; s.Priorities = null; s.Curiosity = 1f; s.TryItemId = 18; s.TryItemText = "Bình MP tiểu (30 yen)";
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Quest) { bad++; Console.WriteLine("FAIL: tries an item instead of the quest"); }
+            s.QuestId = -1; s.Hunts.Clear();
+            d = new NsoServer.Ai.RulePlanner().Decide(s);
+            Console.WriteLine("curious, no quest, unknown item: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            if (d.Steps.Count == 0 || d.Steps[0].Goal != NsoServer.Ai.GoalType.Shop || d.Steps[0].MobId != 18) { bad++; Console.WriteLine("FAIL: did not try the unknown item"); }
+            // spending style: the thrifty character carries fewer potions and keeps more money than the spender
+            var thrifty = new NsoServer.Ai.NinjaAgent { P = new NsoServer.Ai.AgentPersonality { Greed = 1f } };
+            var spender = new NsoServer.Ai.NinjaAgent { P = new NsoServer.Ai.AgentPersonality { Greed = 0f } };
+            var middle = new NsoServer.Ai.NinjaAgent { P = new NsoServer.Ai.AgentPersonality { Greed = 0.5f } };
+            Console.WriteLine("potions thrifty/middle/spender " + NsoServer.Ai.AgentTactics.PotionTarget(thrifty) + "/" + NsoServer.Ai.AgentTactics.PotionTarget(middle) + "/" + NsoServer.Ai.AgentTactics.PotionTarget(spender)
+                + ", reserve " + NsoServer.Ai.AgentTactics.MoneyReserve(thrifty) + "/" + NsoServer.Ai.AgentTactics.MoneyReserve(middle) + "/" + NsoServer.Ai.AgentTactics.MoneyReserve(spender));
+            if (!(NsoServer.Ai.AgentTactics.PotionTarget(thrifty) < NsoServer.Ai.AgentTactics.PotionTarget(spender)) || NsoServer.Ai.AgentTactics.PotionTarget(middle) != NsoServer.Ai.AgentConfig.PotionStock
+                || !(NsoServer.Ai.AgentTactics.MoneyReserve(thrifty) > NsoServer.Ai.AgentTactics.MoneyReserve(spender)) || NsoServer.Ai.AgentTactics.MoneyReserve(middle) != NsoServer.Ai.AgentConfig.FoodMoneyReserve)
+            { bad++; Console.WriteLine("FAIL: spending style"); }
+            s.Greed = 1f; float thriftyTry = 0; d = new NsoServer.Ai.RulePlanner().Decide(s);
+            if (d.Steps.Count > 0 && d.Steps[0].MobId == 18) thriftyTry = 1;
+            Console.WriteLine("thrifty curious, unknown item: " + d.Reason + " -> " + string.Join("; ", d.Steps));
+            s.Greed = 0f;
+            string err;
+            var pd = NsoServer.Ai.DecisionParser.Parse("{\"reason\":\"r\",\"say\":\"\",\"fleeHp\":30,\"priorities\":{\"quest\":2.5,\"hunt\":0.5,\"shop\":1,\"explore\":0,\"collect\":1,\"idle\":0.2},\"steps\":[{\"goal\":\"quest\"}]}", out err);
+            Console.WriteLine("parsed priorities: " + NsoServer.Ai.Priority.Text(pd != null ? pd.Priorities : null));
+            if (pd == null || pd.Priorities == null || Math.Abs(pd.Priorities[0] - 2.5f) > 0.001f || Math.Abs(pd.Priorities[5] - 0.2f) > 0.001f) { bad++; Console.WriteLine("FAIL: priorities not parsed " + err); }
+            Console.WriteLine(bad == 0 ? "rulecheck OK" : bad + " FAILURES");
+            return bad;
+        }
+        if (args.Length > 0 && args[0] == "movecheck") { if (args.Length > 3) NsoServer.Ai.AgentConfig.MoveSendMilliseconds = int.Parse(args[3]); return MoveCheck.Run(args.Length > 1 ? int.Parse(args[1]) : 90, args.Length > 2 ? int.Parse(args[2]) : 6); }
+        if (args.Length > 0 && args[0] == "foodcheck") return FoodCheck.Run();
+        if (args.Length > 0 && args[0] == "bagcheck") return BagCheck.Run();
+        if (args.Length > 0 && args[0] == "ledgercheck") return LedgerCheck.Run();
+        if (args.Length > 0 && args[0] == "stuckcheck") return StuckCheck.Run();
+        if (args.Length > 0 && args[0] == "upgradecheck") return UpgradeCheck.Run();
+        if (args.Length > 0 && args[0] == "knowledgecheck") return KnowledgeCheck.Run();
+        if (args.Length > 0 && args[0] == "ragknowledge") return RagKnowledgeCheck.Run();
+        if (args.Length > 0 && args[0] == "promptcheck") return PromptCheck.Run(args.Length > 1 && args[1] == "rag");
         if (args.Length > 0 && args[0] == "regencheck") return RegenCheck();
         if (args.Length > 0 && args[0] == "webcheck") return WebCheck();
         if (args.Length > 0 && args[0] == "lootcheck") return LootCheck();

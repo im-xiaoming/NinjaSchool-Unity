@@ -71,6 +71,24 @@ namespace NsoServer.DevWiki
                         return Reply(200, Obj("token", Token, "revision", revision, "rules", server.World.LootRules.ToObject(),
                             "defaults", new LootRules().ToObject(), "persistence", "game-rules.json", "runtime", Runtime()));
                 }
+                if (path == "/control/agents" && method == "GET")   // autonomous agents: goals, plans, decisions, LLM status
+                {
+                    lock (server.World.SyncRoot) return Reply(200, NsoServer.Ai.AgentManager.DebugObject());
+                }
+                if (path == "/control/learning" && (method == "GET" || method == "POST"))
+                {
+                    lock (server.World.SyncRoot)
+                    {
+                        if (method == "POST")
+                        {
+                            var input = Json.Parse(body) as Dictionary<string, object>;
+                            if (input == null) throw new ArgumentException("Expected learning settings");
+                            if (input.TryGetValue("command", out var command)) NsoServer.Ai.Rl.RlRuntime.Request(Convert.ToString(command));
+                            else NsoServer.Ai.Rl.RlRuntime.Configure(input);
+                        }
+                        return Reply(200, NsoServer.Ai.Rl.RlRuntime.Debug());
+                    }
+                }
                 if (path == "/control/status" && method == "GET")
                 {
                     lock (server.World.SyncRoot) return Reply(200, Runtime());
@@ -125,6 +143,7 @@ namespace NsoServer.DevWiki
                 zones++; mobs += zone.Mobs.Count; groundItems += zone.ItemMaps.Count;
                 foreach (PlayerState p in zone.Players)
                 {
+                    if (p.Session != null && p.Session.IsBot) continue;   // AI players have their own page (/control/agents)
                     var task = server.World.FindTask(p.Record.TaskId);
                     int index = p.Progress == null ? 0 : p.Progress.TaskIndex;
                     string step = task != null && index >= 0 && index < task.SubNames.Length ? task.SubNames[index] : null;

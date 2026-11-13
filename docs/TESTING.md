@@ -100,3 +100,11 @@ Only compile/Console and JavaScript syntax checks, per user request. No dashboar
 
 ## Character progression refactor validation (2026-11-12)
 Compile/Console and node --check only, per user instruction. No actual preview request, browser, save/restart or Play tests were run. Manual matrix and equations are in CHARACTER_PROGRESSION.md. Required user checks: default parity, native classed allocation, version-1 configuration reload, inherited/shared/specific reset, independent native growth/base inputs, negative/fractional growth clamping, comparison ranges, stale preview rejection, no save mutation during previews and no compounding during gameplay recalculation.
+
+
+## Guided RL contract checks (2026-11-13)
+`uv run --project Tools/Learning --locked python Tools/Learning/check_contracts.py` passed on CUDA: teacher cloning; actual C#/Python masked MLP parity with nonzero inputs; empty-mask rejection; PPO excludes demonstrations; saved checkpoint reload and another PPO update; regression-gate rejection; partial JSONL recovery. This is synthetic data only and starts no game server, Play mode or real training session. `dotnet build Tools/Learning/RlHost/RlHost.csproj -c Release` passes with the pre-existing unused zoomLevel warning. The user's long isolated gameplay evaluation remains opt-in; no quests or 13-bot frame-time acceptance was run for this RL change. See AI_LEARNING.md.
+
+
+## Bot collision manual acceptance (2026-11-13)
+Current validation is compile-only at the user's request. In Play, observe a bot approaching wood/rock from both directions, a low jumpable obstacle, an unjumpable wall, a low ceiling, a one-way platform and a ledge. Expect a visible grounded jump or stop, no arbitrary vertical lift, no wall/ceiling crossing and landing/falling. Interrupt movement during a jump and verify gravity continues. Check death/respawn, correction, map/zone switches and loot/NPC/waypoint approaches for stale input or new stalls. Compare unchanged human walking and ensure combat/cooldowns/effects still run at normal speed. Special mount/flight and full route solving are not certified. Do not execute this checklist automatically without changing the user's compile-only preference.

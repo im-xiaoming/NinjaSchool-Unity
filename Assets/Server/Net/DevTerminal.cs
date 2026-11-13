@@ -6,7 +6,7 @@ namespace NsoServer.Net
     // Offline deviation: CHAT_MAP (-23) is not public chat here. The client's chat box is a dev terminal and
     // every line is a command run against the local player. Replies use SERVER_MESSAGE (-24) prefixed with
     // ReplyMarker, so the client puts them in the terminal window instead of the yellow InfoMe lines.
-    // Commands: /help, /goto, /next, /skip, /lv, /tolv n (/clear is client-side). Add cases to Run.
+    // Commands: /help, /goto, /next, /skip, /lv, /tolv n, /agents, /replan [name] (/clear is client-side). Add cases to Run.
     using Math = System.Math;
 
     public static class DevTerminal
@@ -31,7 +31,12 @@ namespace NsoServer.Net
             if (cmd.StartsWith("tolv") && cmd.Length > 4) { cmdFull = cmd; cmd = "tolv"; }
             switch (cmd)
             {
-                case "help": Say(me, "/help - danh sách lệnh"); Say(me, "/clear - xoá màn hình terminal"); Say(me, "/goto - tới đầu map làm nhiệm vụ chính hiện tại"); Say(me, "/next - sang bước tiếp theo của nhiệm vụ đang nhận"); Say(me, "/skip - hoàn thành nhiệm vụ hiện tại"); Say(me, "/lv - lên 1 cấp"); Say(me, "/tolv n - lên tới cấp n (0.." + MaxTargetLevel + ")"); Say(me, "Gõ không có / là chat công cộng."); break;
+                case "help": Say(me, "/help - danh sách lệnh"); Say(me, "/clear - xoá màn hình terminal"); Say(me, "/goto - tới đầu map làm nhiệm vụ chính hiện tại"); Say(me, "/next - sang bước tiếp theo của nhiệm vụ đang nhận"); Say(me, "/skip - hoàn thành nhiệm vụ hiện tại"); Say(me, "/lv - lên 1 cấp"); Say(me, "/tolv n - lên tới cấp n (0.." + MaxTargetLevel + ")"); Say(me, "/agents - trạng thái các ninja AI"); Say(me, "/replan [tên] - bắt ninja AI quyết định lại"); Say(me, "Gõ không có / là chat công cộng."); break;
+                case "agents": foreach (var l in NsoServer.Ai.AgentManager.Summary()) Say(me, l); break;   // offline AI debug
+                case "replan":
+                    int changed = NsoServer.Ai.AgentManager.ForceReplan(a.Length > 1 ? a[1] : null);
+                    Say(me, changed > 0 ? changed + " ninja AI sẽ quyết định lại." : "Không có ninja AI nào (sai tên, đang chết hoặc đang chờ LLM).");
+                    break;
                 case "next": Say(me, PlayerTasks.NextTaskStep(me, world)); break;
                 case "goto": Say(me, QuestTravel.GoToObjective(me, world)); break;
                 case "skip": Say(me, PlayerTasks.SkipTask(me, world)); break;

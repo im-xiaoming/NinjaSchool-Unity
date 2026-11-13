@@ -111,3 +111,9 @@ InitTestScene*.unity*
 .env
 # Embedded copy of the Unity AI Assistant package (607 MB, files over GitHub's 100 MB limit)
 /Packages/com.unity.ai.assistant/
+
+# Local learning environment, build products and Python caches (models/data live outside Assets).
+/Tools/Learning/.venv/
+/Tools/Learning/**/__pycache__/
+/Tools/Learning/RlHost/bin/
+/Tools/Learning/RlHost/obj/

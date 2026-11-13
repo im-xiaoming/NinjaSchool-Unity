@@ -392,3 +392,19 @@ Bottom Buttons.popupSideInset (default -2 logical pixels) aligns the left/right 
 - Changed: InventoryGrouping.cs, PlayerItems.cs, PlayerService.cs, PlayerStorage.cs, PlayerUpgrade.cs, server Controller.cs; Char.cs, GameScr.cs, GameCanvas.cs, client Service.cs/Controller.cs; four root docs, architecture/UI/server docs and wiki notes. Offline extensions of Java Char.bagSort/boxSort and existing inputNumSplit. Existing packet namespace extended; no save-schema/scene/package changes.
 - Validation: Unity refreshed and compiled; compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0 (2026-11-12T14:58:33Z); diff check passed. Read-only reflection confirmed CanStack and SplitStack are in the loaded assembly; no Play, sorting/splitting/crafting execution or save mutation per user compile-only preference.
 - Next: user presses Sort on duplicate food/crystals in bag/box; checks one-cell quantities, locked/expiring separation and equipment unchanged. Split e.g. 3 from 10 -> 7+3; reject 0/10/bad input/full container; split one crystal then upgrade/refine, cancel without loss; eat once from a food stack, transfer/sell/reload and compare totals. Commands: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+
+## AI learning dashboard (2026-11-13)
+The existing /agents.html has an initially collapsed learning panel: Rules/Guided/RL, learning, opt-in human capture, automatic accepted release application, opt-in long isolated evaluation, CPU/CUDA, enabled tier, guidance probability, expandable rewards, apply and rollback. Status shows trainer/GPU, candidate/evaluation, model tier, FPS, inference p95, PPO steps and queue drops. Per-agent details show source/version/fallback and action distribution. Polling preserves dirty form edits but otherwise reflects automatic tier changes. All writes use the existing token/origin-protected local control mechanism. Browser/visual testing remains with the user.
+
+
+## Item/NPC RL rewards (2026-11-13)
+/agents.html > Learning > Rewards adds five weights and HP/MP/useful-use cooldown/free-slot thresholds. The five action weights allow 0..5. Integer thresholds use integer inputs. Expanded explanation distinguishes discovery, useful outcomes and rejected/cancelled/spam actions. A bot's Plan pane shows confirmed category counts/reward totals for the current session, in Vietnamese. Normal polling preserves dirty form input; settings persist via the existing protected learning endpoint. Browser/gameplay checks remain with the user.
+
+
+## 2026-11-13 - Remote motion and failed LLM diagnostics
+Other characters interpolate rendered positions between sparse movement packets; logical gameplay remains untouched. Teleports snap and removed/dead actors discard smoothing state. Visual behaviour needs user verification. AI Plan diagnostics expose the last malformed full reply (bounded) and timestamp so reason-only outputs can be inspected. No browser/Play validation performed.
+
+
+## 2026-11-13 - Visible bot jumping
+Bot positions now arrive in client-sized frames rather than arbitrary 500 ms endpoint lifts. Existing remote rendering interpolation remains active. Expect gradual ascent/descent, stops at walls and landing on platforms. No scene/UI changes. Visual acceptance and frame-time profiling await user gameplay checks.

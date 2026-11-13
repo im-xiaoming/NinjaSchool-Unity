@@ -39,7 +39,8 @@ public static class ServerBootstrap
         {
             server = new GameServer(new ServerConfig
             {
-                DataDirectory = NsoServerControl.DataFolder
+                DataDirectory = NsoServerControl.DataFolder,
+                UseSqlite = NsoServerControl.UseSqlite
             });
             // only problems reach the Console; the per-command trace is too noisy
             server.Logger = text => { if (text.IndexOf("error", System.StringComparison.OrdinalIgnoreCase) >= 0) Debug.LogWarning("[NsoServer] " + text); };
@@ -49,7 +50,19 @@ public static class ServerBootstrap
             server.World = new NsoServer.World.GameWorld(tables, System.IO.Path.Combine(staticDir, "Data"));
             NsoServerControl.ApplyPlayerLog();
             NsoServer.Net.PlayerLog.Open(NsoServerControl.PlayerLogFolder);   // offline debug log of the player's actions/state
+            NsoServerControl.ApplyGroundLoot(); // same timing for human and bot characters, applied before the tick starts
             server.Start();
+            NsoServerControl.ApplyAgents();
+            NsoServer.Ai.Rl.RlRuntime.TrainerScript = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../Tools/Learning/trainer.py"));
+            NsoServer.Ai.Rl.RlRuntime.PythonExecutable = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../Tools/Learning/.venv/Scripts/python.exe"));
+            // the whole game as shared RAG memory of the AI players (GameKnowledge): built from the dev wiki records on the
+            // RAG worker thread, also when the wiki itself is turned off
+            {
+                var knowledgeTables = tables; var knowledgeWorld = server.World;
+                string knowledgeNotes = System.IO.Path.Combine(Application.streamingAssetsPath, "NsoWiki", "notes.json");
+                NsoServer.Ai.GameKnowledge.Source = () => NsoServer.DevWiki.WikiData.Build(knowledgeTables, knowledgeWorld, knowledgeNotes);
+            }
+            NsoServer.Ai.AgentManager.Start(server);   // autonomous agents (hybrid LLM + game AI), see Assets/Server/Ai
             StartWiki(tables, server.World);
         }
         catch (System.Exception ex)
@@ -111,6 +124,7 @@ public static class ServerBootstrap
         Session_ME.gI().close();
         GameServer stoppingServer = server;
         server = null;
+        NsoServer.Ai.AgentManager.Stop();   // saves the agents (save database), stops the LLM worker
         stoppingServer.Stop();
         NsoServer.Net.PlayerLog.Close();
     }

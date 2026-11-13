@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NSO AI players</title>
+<style>
+  :root {
+    --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2030; --mute:#687085; --line:#e2e5ec; --soft:#f6f7fa;
+    --accent:#3559d6; --hp:#d64545; --mp:#3a7bd5; --exp:#d99a1e; --ok:#1f8a4c; --warn:#b26b00; --bad:#c0392b;
+    --shadow:0 1px 2px rgba(20,30,60,.06), 0 4px 16px rgba(20,30,60,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151b; --panel:#1b1f27; --ink:#e8ebf1; --mute:#98a1b2; --line:#2b313c; --soft:#222731;
+      --accent:#8aa2ff; --hp:#ef6b6b; --mp:#6ea2ef; --exp:#e8b04a; --ok:#4cc27e; --warn:#e0a03a; --bad:#ef6f61; --shadow:none; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 16px; }
+  .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:18px; margin:0; margin-right:auto; }
+  .stats { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:6px 12px; min-width:110px; }
+  .stat b { display:block; font-size:18px; }
+  .stat small { color:var(--mute); }
+  .llm { font-size:12px; color:var(--mute); max-width:520px; }
+  .llm.bad { color:var(--bad); }
+  .evaluation { margin:16px 0; padding:16px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+  .evaluation h2 { font-size:18px; margin:0 0 10px; }
+  .evaluation .result { font-size:18px; font-weight:700; }
+  .evaluation .pass { color:var(--ok); } .evaluation .fail { color:var(--bad); } .evaluation .pending { color:var(--warn); }
+  .evaluation .muted { color:var(--mute); }
+  .evaluation .scroll { overflow-x:auto; }
+  .evaluation table { width:100%; border-collapse:collapse; font-size:14px; }
+  .evaluation th, .evaluation td { padding:10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .evaluation .pbar { height:10px; background:var(--soft); border-radius:5px; overflow:hidden; margin:6px 0 10px; }
+  .evaluation .pbar i { display:block; height:100%; background:var(--accent); transition:width .4s; }
+  .evaluation h3 { font-size:15px; margin:14px 0 4px; }
+  .evaluation caption { text-align:left; padding:10px 0; color:var(--mute); }
+  input, select, button { font:inherit; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 10px; }
+  button { cursor:pointer; }
+  button.on { border-color:var(--accent); color:var(--accent); }
+  main { padding:16px; display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; box-shadow:var(--shadow); cursor:pointer; min-width:0; }
+  .card:hover { border-color:var(--accent); }
+  .card.off { opacity:.6; }
+  .head { display:flex; gap:10px; align-items:center; }
+  .ava { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-weight:700; color:#fff; flex:none; }
+  .who { min-width:0; flex:1; }
+  .who b { font-size:15px; }
+  .bid { color:var(--mute); font-weight:600; font-size:12px; font-variant-numeric:tabular-nums; }
+  .who div { color:var(--mute); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lv { text-align:right; flex:none; }
+  .lv b { font-size:20px; }
+  .lv small { display:block; color:var(--mute); font-size:11px; }
+  .bars { margin:10px 0 8px; display:grid; gap:4px; }
+  .bar { display:grid; grid-template-columns:28px 1fr 70px; align-items:center; gap:6px; font-size:11px; color:var(--mute); }
+  .bar .t { height:7px; background:var(--soft); border-radius:4px; overflow:hidden; }
+  .bar .t i { display:block; height:100%; border-radius:4px; }
+  .bar span:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+  .row { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0; }
+  .chip { font-size:12px; padding:2px 8px; border-radius:999px; background:var(--soft); border:1px solid var(--line); white-space:nowrap; }
+  .chip.green { color:var(--ok); } .chip.red { color:var(--bad); } .chip.amber { color:var(--warn); } .chip.blue { color:var(--accent); }
+  .doing { font-size:13px; margin-top:6px; padding:6px 8px; background:var(--soft); border-radius:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .quest { font-size:12px; color:var(--mute); margin-top:6px; }
+  .quest b { color:var(--ink); font-weight:600; }
+  .qbar { height:4px; background:var(--soft); border-radius:2px; margin-top:4px; overflow:hidden; }
+  .qbar i { display:block; height:100%; background:var(--accent); }
+  .empty { color:var(--mute); padding:30px; text-align:center; grid-column:1/-1; }
+  /* detail drawer */
+  .shade { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:10; }
+  .shade.open { display:block; }
+  aside { position:fixed; top:0; right:0; bottom:0; width:min(560px, 100%); background:var(--panel); border-left:1px solid var(--line);
+    transform:translateX(100%); transition:transform .18s ease; z-index:11; display:flex; flex-direction:column; }
+  aside.open { transform:none; }
+  aside .dh { padding:14px 16px; border-bottom:1px solid var(--line); }
+  aside .tabs { display:flex; gap:6px; padding:8px 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  aside .body { padding:14px 16px; overflow:auto; flex:1; }
+  .kv { display:grid; grid-template-columns:140px 1fr; gap:4px 10px; font-size:13px; }
+  .kv dt { color:var(--mute); }
+  .kv dd { margin:0; overflow-wrap:anywhere; }
+  ul.list { margin:0; padding-left:18px; }
+  ul.list li { margin:3px 0; overflow-wrap:anywhere; }
+  .fact { padding:6px 8px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; font-size:13px; }
+  .fact small { color:var(--mute); }
+  ol.steps { margin:6px 0; padding-left:20px; }
+  ol.steps li.cur { color:var(--accent); font-weight:600; }
+  pre { white-space:pre-wrap; word-break:break-word; font-size:12px; background:var(--soft); padding:8px; border-radius:8px; }
+  .x { float:right; }
+  h3 { font-size:13px; margin:14px 0 6px; color:var(--mute); text-transform:uppercase; letter-spacing:.04em; }
+  @media (max-width:520px) { main { padding:10px; grid-template-columns:1fr; } .kv { grid-template-columns:110px 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Người chơi AI</h1>
+    <input id="q" type="search" placeholder="Tìm tên, map, việc đang làm…">
+    <select id="sort">
+      <option value="level">Sắp theo cấp</option>
+      <option value="quest">Sắp theo nhiệm vụ</option>
+      <option value="name">Sắp theo tên</option>
+      <option value="map">Sắp theo map</option>
+    </select>
+    <button id="near" title="Chỉ hiện AI đang ở cùng khu với bạn">Cùng khu</button>
+    <button id="pause">Tạm dừng</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="llm" id="llm">Đang tải…</div>
+  <details id="learning-panel" style="margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px">
+    <summary style="cursor:pointer;font-weight:650;font-size:17px">Học tăng cường · <span id="learning-summary">Đang tải…</span></summary>
+    <p id="learning-status" style="white-space:pre-wrap"></p>
+    <section id="learning-train" class="evaluation" aria-label="Tiến độ huấn luyện"></section>
+    <section id="learning-report" class="evaluation" aria-label="Kết quả đánh giá model"></section>
+    <div class="top" style="flex-wrap:wrap;gap:12px">
+      <label>Điều khiển <select id="learning-mode"><option value="RL">RL (rules khi chưa có model đạt)</option><option value="Rules">Chỉ rules</option></select></label>
+      <label><input id="learning-enabled" type="checkbox"> Vừa chơi vừa học</label>
+      <label><input id="learning-human" type="checkbox"> Ghi thao tác của tôi</label>
+      <label><input id="learning-auto" type="checkbox"> Tự áp dụng model đạt kiểm tra</label>
+      <label><input id="learning-evaluation" type="checkbox"> Chạy đánh giá dài trên server thử riêng</label>
+      <label>Train trên <select id="learning-device"><option value="cuda">GPU (CUDA)</option><option value="cpu">CPU</option></select></label>
+    </div>
+    <details style="margin-top:12px"><summary>Phần thưởng · thay đổi chỉ ảnh hưởng dữ liệu thu sau khi lưu</summary>
+      <div id="learning-rewards" class="top" style="flex-wrap:wrap;margin-top:10px"></div>
+      <p>Dùng/mua loại vật phẩm mới và khám phá NPC chỉ thưởng lần đầu, có lưu qua các phiên. Dùng đúng lúc cần kết quả thực tế, theo ngưỡng HP/MP và thời gian giãn thưởng. Tính năng NPC hữu ích gồm tiến triển nhiệm vụ/quiz, nhập học, mua đồ đang thiếu, dùng rương khi túi chật, nâng cấp thành công hoặc đổi sang khu vắng hơn. Hủy/mở lại menu không được thưởng hữu ích.</p>
+    </details>
+    <p>Model chỉ điều khiển đến tầng (mục tiêu → chiến đấu → di chuyển) đã vượt kiểm tra. Chưa có model đạt thì rules điều khiển và làm mẫu cho model học. Dữ liệu học lưu riêng trên máy; ghi thao tác mặc định tắt. Train tạm dừng khi dưới 60 FPS và chờ ổn định 30 giây. Đánh giá dài chạy 3 lượt rules và 3 lượt model, mỗi lượt 10 phút (khoảng 60 phút); mặc định tắt.</p>
+    <div class="top"><button id="learning-save">Lưu tùy chọn</button><button id="learning-apply">Áp dụng bản đạt kiểm tra</button><button id="learning-rollback">Quay về model trước</button><span id="learning-feedback" role="status"></span></div>
+  </details>
+</header>
+<main id="list"></main>
+<div class="shade" id="shade"></div>
+<aside id="drawer" aria-hidden="true">
+  <div class="dh" id="dh"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="body" id="dbody"></div>
+</aside>
+<script src="/agents.js"></script>
+</body>
+</html>

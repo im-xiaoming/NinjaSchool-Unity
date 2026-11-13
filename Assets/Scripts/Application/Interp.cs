@@ -48,6 +48,7 @@ public static class Interp
         prevCmy = GameScr.cmy;
         havePrevCamera = true;
         previousMap = TileMap.mapID;
+        RemoteMotion.Prune(GameScr.vCharInMap);
         prev.Clear();
         Remember(Char.getMyChar());
         Collect(GameScr.vCharInMap);
@@ -122,6 +123,13 @@ public static class Interp
         if (!prev.TryGetValue(o, out p)) return;
         int x, y;
         if (!TryGet(o, out x, out y)) return;
+        if (o is Char remote && RemoteMotion.TryPosition(remote, out Vector2 networkVisual))
+        {
+            // Sparse 500 ms network packets need packet-cadence smoothing, not only the last 24 Hz logic tick.
+            saved.Add(new Saved { o = o, x = x, y = y });
+            int rx = Mathf.RoundToInt(networkVisual.x), ry = Mathf.RoundToInt(networkVisual.y);
+            Set(o, rx, ry); residual[o] = networkVisual - new Vector2(rx, ry); return;
+        }
         if (Mathf.Abs(x - p.x) > TeleportDistance || Mathf.Abs(y - p.y) > TeleportDistance) return;
         if (x == p.x && y == p.y) return;
         Vector2 visual = new Vector2(Mathf.Lerp(p.x, x, t), Mathf.Lerp(p.y, y, t));

@@ -35,10 +35,12 @@ public static class BasicSkillGrowth
 
 	/// <summary>Max point shown in the skill panel. The template keeps max_point 0 (so point 0 can still fight and
 	/// points cannot be added by hand); the panel shows the grown maximum instead.</summary>
+#if UNITY_5_3_OR_NEWER // Presentation-only: keep the shared progression usable by the headless server trainer.
 	public static int DisplayMaxPoint(SkillTemplate tpl)
 	{
 		return tpl.id == TemplateId && tpl.maxPoint == 0 && tpl.skills != null && tpl.skills.Length > 1 ? tpl.skills.Length - 1 : tpl.maxPoint;
 	}
+#endif
 
 	/// <summary>Skill row id of a point (point 0 keeps its original id).</summary>
 	public static short SkillId(int originalId, int point)

@@ -60,11 +60,24 @@ namespace NsoServer.World
             LoadSkillTemplates(tables["skill_template"]);
             LoadStores(tables["store_data"]);
             int eid = tables["effect"].Col("id"), etype = tables["effect"].Col("type");
-            foreach (var r in tables["effect"].Rows) effectTypes[int.Parse(r[eid])] = int.Parse(r[etype]);
+            int ename = tables["effect"].Col("name");
+            foreach (var r in tables["effect"].Rows)
+            {
+                effectTypes[int.Parse(r[eid])] = int.Parse(r[etype]);
+                if (ename >= 0) effectNames[int.Parse(r[eid])] = r[ename];
+            }
         }
 
         // `effect` table: effect template id -> effect type (0 food, 1 burn, 2 freeze, 3 stun, 4/17 HP over time...)
         private readonly Dictionary<int, int> effectTypes = new Dictionary<int, int>();
+        private readonly Dictionary<int, string> effectNames = new Dictionary<int, string>();
+
+        /// <summary>Display name of an effect template (`effect.name`), "#id" when unknown (debug views only).</summary>
+        public string EffectName(int templateId)
+        {
+            string n;
+            return effectNames.TryGetValue(templateId, out n) ? n : "#" + templateId;
+        }
 
         public int EffectType(int templateId)
         {

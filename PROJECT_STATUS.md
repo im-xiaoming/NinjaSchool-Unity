@@ -339,3 +339,45 @@ Corrected corrupted Vietnamese copy-path and missing-sprite labels in NsoWiki/ap
 - Changed: InventoryGrouping.cs, PlayerItems.cs, PlayerService.cs, PlayerStorage.cs, PlayerUpgrade.cs, server Controller.cs; Char.cs, GameScr.cs, GameCanvas.cs, client Service.cs/Controller.cs; four root docs, architecture/UI/server docs and wiki notes. Offline extensions of Java Char.bagSort/boxSort and existing inputNumSplit. Existing packet namespace extended; no save-schema/scene/package changes.
 - Validation: Unity refreshed and compiled; compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0 (2026-11-12T14:58:33Z); diff check passed. Read-only reflection confirmed CanStack and SplitStack are in the loaded assembly; no Play, sorting/splitting/crafting execution or save mutation per user compile-only preference.
 - Next: user presses Sort on duplicate food/crystals in bag/box; checks one-cell quantities, locked/expiring separation and equipment unchanged. Split e.g. 3 from 10 -> 7+3; reject 0/10/bad input/full container; split one crystal then upgrade/refine, cancel without loss; eat once from a food stack, transfer/sell/reload and compare totals. Commands: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+## Hybrid AI agents (2026-11-12)
+Autonomous NPC ninjas (Assets/Server/Ai): local LLM strategy + game-AI tactics + rule fallback. MVP compiled, not yet played. See DECISIONS / HANDOFF.
+
+## SQLite storage (2026-11-13)
+Saves in NsoData/nso.db, player log in Logs/PlayerLog/player_log.db (existing data migrated, backups kept). Compiled and probed in the Editor; not yet played.
+
+## AI players (2026-11-13)
+13 AI players are real characters that play by the player's rules (quests unlock maps, potions, shops, drops). Quests 0-3 verified in an Editor probe; Play mode not yet seen.
+
+
+## Guided RL AI players (2026-11-13)
+Implemented the hierarchical masked-PPO integration, teacher/human experience capture, pure C# inference, separate trainer, evaluated release/rollback pipeline and dashboard controls. Existing rules remain the teacher/fallback; LLM is advisory. uv environment installed with CUDA PyTorch; RTX 3060 computation and short synthetic contracts passed. No live training, Play, browser, long evaluation or 13-bot performance certification. Details: docs/AI_LEARNING.md. Long evaluation and human recording are opt-in.
+
+
+Final validation (2026-11-13): Unity refresh and current Console passed at 2026-11-12T19:01:12Z: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (only the pre-existing unused Controller.zoomLevel warning). Seven short synthetic CUDA contracts passed; JS syntax, Python byte-compilation, uv lock and changed-file whitespace checks passed. No Play/browser/live training/long evaluation run; production saves unchanged. The earlier dirty NSO Game.prefab has a pre-existing trailing-space warning and was not edited for this change.
+
+
+## 2026-11-13 - Shared ground loot and less competitive AI hunting
+
+Shared pickup ownership is now 30 seconds, default ground lifetime 60 seconds, for humans and bots alike. AI now has opportunistic foraging, stalled-item retries, contested-target avoidance and normal NPC-mediated quieter-zone selection. Code/host builds; runtime acceptance remains with the user. See the matching HANDOFF entry for files and exact checks.
+
+
+Final compile-only validation for this update: Unity at 2026-11-12T19:21:56Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build, Python syntax, wiki JSON and changed-file whitespace checks passed; the host retains its pre-existing unused zoomLevel warning. No post-fix Play/gameplay tests or long training were run. User starts the next Play to apply the shared timing and observe foraging/zone changes.
+
+
+## 2026-11-13 - Confirmed item/NPC learning rewards
+Added five configurable RL reward categories (new item use, new purchase, timely needed use, NPC discovery, useful NPC services), authoritative action receipts, saved novelty history and dashboard counters. No gameplay EXP/currency change. Old settings/minds remain compatible. Compile-only checks; live reward accuracy and learning quality remain with the user. See docs/AI_LEARNING.md.
+
+
+Final compile-only validation (2026-11-13, action rewards): Unity current Console at 2026-11-12T19:40:48Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (pre-existing unused zoomLevel warning); agents.js syntax, wiki JSON, meta presence and changed-file whitespace checks passed. No gameplay/Play/browser/learning-session tests were run; user validation is pending.
+
+
+## 2026-11-13 - RL readiness and current AI fixes
+RL-primary is not ready: local settings are Guided/stage 0; candidate v1794510524833 has no evaluation.json and no active.json release. Long evaluation is disabled. Keep collecting teacher data until isolated evaluation passes. Unity compilation is clean; gameplay quality/performance remain unverified.
+LLM schema-constrained replies and packet-cadence remote character presentation are implemented, compile-only. Physical bot obstacle traversal remains unresolved; visual smoothing does not fix collision.
+
+
+## 2026-11-13 - Bot obstacle traversal correction
+Implemented a headless movement executor instead of applying the planner's endpoint directly. Rules and RL share BotClient -> BotMovement -> normal Controller move validation. Terrain is swept at pixel resolution; jumping uses grounded launch/gravity and cannot lift the bot six tiles instantly. Small client frames run separately from unchanged 500 ms gameplay/decision ticks. Compiled only; user gameplay verification is pending. Difficult routes can still stall rather than bypass terrain.
+
+- 2026-11-13: AI bots report their position at the client cadence (250 ms, smooth for watching players), rules restock potions before fighting, RL trainer uses a 256x256 network with more data and epochs, agents.html trimmed. Tested by movecheck/rulecheck/check_contracts and a Unity compile; not seen in Play mode.

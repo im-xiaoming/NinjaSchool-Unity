@@ -727,22 +727,25 @@ namespace NsoServer.Net
         {
             NpcTalk(me, Umayaki, TaskChaoLang, 5, "Nhà bạn muốn đi đâu?", "Ngựa của ta rất khỏe có thể chạy ngàn dặm.", "Đi xe kéo của ta an toàn số một.");
             if (!IsVillage(me.MapId)) return;
-            Add(me, "Làng Kojin", () => Teleport(me, world, 10));
-            Add(me, "Làng Sanzu", () => Teleport(me, world, 17));
-            Add(me, "Làng Tone", () => Teleport(me, world, 22));
-            Add(me, "Làng chài", () => Teleport(me, world, 32));
-            Add(me, "Làng Chakumi", () => Teleport(me, world, 38));
-            Add(me, "Làng Echigo", () => Teleport(me, world, 43));
-            Add(me, "Làng Oshin", () => Teleport(me, world, 48));
+            foreach (var dest in UmayakiVillages) { int map = dest.Key; Add(me, dest.Value, () => Teleport(me, world, map)); }
         }
+
+        /// <summary>Char.npcUmayaki / npcUmayaki_2 carriage destinations (map, menu label), in menu order.</summary>
+        public static readonly KeyValuePair<int, string>[] UmayakiVillages = {
+            new KeyValuePair<int, string>(10, "Làng Kojin"), new KeyValuePair<int, string>(17, "Làng Sanzu"), new KeyValuePair<int, string>(22, "Làng Tone"),
+            new KeyValuePair<int, string>(32, "Làng chài"), new KeyValuePair<int, string>(38, "Làng Chakumi"), new KeyValuePair<int, string>(43, "Làng Echigo"),
+            new KeyValuePair<int, string>(48, "Làng Oshin") };
+        public static readonly KeyValuePair<int, string>[] UmayakiSchools = {
+            new KeyValuePair<int, string>(1, "Trường Hirosaki"), new KeyValuePair<int, string>(27, "Trường Haruna"), new KeyValuePair<int, string>(72, "Trường Ookaza") };
+        public const int NpcUmayakiId = Umayaki, NpcUmayaki2Id = Umayaki2;
+        public static bool IsVillageMap(int map) { return IsVillage(map); }
+        public static bool IsSchoolMap(int map) { return IsVillageOrSchool(map) && !IsVillage(map); }
 
         // Char.npcUmayaki_2: the carriage at the three schools
         private static void NpcUmayaki2(PlayerState me, GameWorld world)
         {
             if (!IsVillageOrSchool(me.MapId) || IsVillage(me.MapId)) return;   // Char.isSchool
-            Add(me, "Trường Hirosaki", () => Teleport(me, world, 1));
-            Add(me, "Trường Haruna", () => Teleport(me, world, 27));
-            Add(me, "Trường Ookaza", () => Teleport(me, world, 72));
+            foreach (var dest in UmayakiSchools) { int map = dest.Key; Add(me, dest.Value, () => Teleport(me, world, map)); }
             NpcTalk(me, Umayaki2, TaskChaoLang, 5, "Nhà bạn muốn đi đâu?", "Ngựa của ta rất khỏe có thể chạy ngàn dặm.", "Đi xe kéo của ta an toàn số một.");
         }
 

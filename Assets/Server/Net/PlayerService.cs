@@ -16,7 +16,7 @@ namespace NsoServer.Net
         public const sbyte OPEN_UI_SAY = 38, OPEN_UI_CONFIRM = 39, OPEN_UI_MENU = 40, OPEN_UI_NEWMENU = 63, OPEN_UI = 30, OPEN_UI_SHOP = 33;
         public const sbyte TASK_GET = 47, TASK_NEXT = 48, TASK_FINISH = 49, TASK_UPDATE = 50;
         public const sbyte ITEM_BAG_ADD = 8, ITEM_USE = 11, ITEM_BUY = 13, ITEM_BODY_TO_BAG = 15, ITEM_USE_UPTOUP = 18, REQUEST_ITEM_INFO = 42;
-        public const sbyte ITEMMAP_ADD = 6, ITEMMAP_MYPICK = -14, ITEMMAP_REMOVE = -15;
+        public const sbyte ITEMMAP_ADD = 6, ITEMMAP_MYPICK = -14, ITEMMAP_REMOVE = -15, ITEMMAP_PLAYERPICK = -13;
         public const sbyte ME_UP_COIN_LOCK = -8, ME_UP_COIN_BAG = 95;
         public const sbyte NPC_IS_DISABLE = 85, NPC_IS_MOVE = 86, NPC_IS_FIRE = 89, NPC_IS_ICE = 90, NPC_IS_WIND = 91;
         // sub commands (under SUB_COMMAND -30)
@@ -471,6 +471,13 @@ namespace NsoServer.Net
             m.Writer.WriteShort(t != null && t.Type == PlayerItems.TypeMoney
                 ? System.Math.Max(0, System.Math.Min(ushort.MaxValue, it.Item.Quantity)) : QuantityDisplay(it.Item, t));
             me.Session.Send(m);
+            // MapService.pickItem -> Service.playerPickItem: the other characters of the zone see it picked up and
+            // drop it from their screen (without this a human kept seeing items an AI player had taken; picking
+            // them did nothing, as Char.pickItem ignores unknown ids).
+            var others = new Message(ITEMMAP_PLAYERPICK);
+            others.Writer.WriteShort(it.Id);
+            others.Writer.WriteInt(me.Record.Id);
+            foreach (PlayerState p in me.Zone.Players) if (p != me) p.Session.Send(others);
         }
 
         // MapService.setFire / setIce / setWind / setDisable / setMove

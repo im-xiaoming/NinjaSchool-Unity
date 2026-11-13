@@ -153,6 +153,7 @@ namespace NsoServer.Net
             ms.Writer.WriteShort(me.X);
             ms.Writer.WriteShort(me.Y);
             session.Send(ms);
+            Presence.Moved(me);
         }
 
         private bool IsSoftBlock(short cx, short cy)
@@ -248,11 +249,13 @@ namespace NsoServer.Net
             int mapId = target.Tile.Id;
             var old = me.Zone;
             me.Zone.Players.Remove(me);
+            Presence.Left(me, old);
             if (old.IsInstance && old.Players.Count == 0) world.RemoveInstance(old);   // ChikatoyaTunnels.update: close when empty
             session.Send(new Message(Cmd.MAP_CLEAR));
             me.Zone = target;
             target.Players.Add(me);
             session.Send(EnterWorld.MapInfo(mapId, me.X, me.Y, target, me));
+            Presence.Joined(me);   // Zone.join: the other characters of the zone see each other
             TaskMechanics.RefreshVisible(me);
             session.Send(EnterWorld.MapItems(target.Tile, world, session.ZoomLevel));
             me.IsChangeMap = false;
@@ -282,6 +285,12 @@ namespace NsoServer.Net
         }
 
         // Char.changeZone
+        public static int ZoneCapacity(int mapId)
+        {
+            return (mapId == 3 || mapId == 28 || mapId == 39 || (mapId >= 134 && mapId <= 137) ||
+                (mapId >= 141 && mapId <= 143) || (mapId >= 163 && mapId <= 165)) ? 90 : 20;
+        }
+
         public void ChangeZone(Message m)
         {
             var tile = me.Zone.Tile;
@@ -290,8 +299,7 @@ namespace NsoServer.Net
             m.Reader.ReadSByte();   // indexUI
             var zones = world.GetZones(tile.Id);
             if (zoneId < 0 || zoneId >= zones.Count) return;
-            int cap = (me.MapId == 3 || me.MapId == 28 || me.MapId == 39 || (me.MapId >= 134 && me.MapId <= 137) ||
-                       (me.MapId >= 141 && me.MapId <= 143) || (me.MapId >= 163 && me.MapId <= 165)) ? 90 : 20;
+            int cap = ZoneCapacity(me.MapId);
             if (zones[zoneId].NumberChar >= cap) return;
             Join(tile.Id, zoneId);
         }
@@ -332,6 +340,7 @@ namespace NsoServer.Net
             wait.Writer.WriteShort(me.X);
             wait.Writer.WriteShort(me.Y);
             session.Send(wait);
+            Presence.Died(me);
         }
 
         // Char.wakeUpFromDead(): full health, "alive" signal, then the client is told where it stands
@@ -348,6 +357,7 @@ namespace NsoServer.Net
             ret.Writer.WriteShort(me.X);
             ret.Writer.WriteShort(me.Y);
             session.Send(ret);
+            Presence.Revived(me);
         }
 
         // ME_BACK: revive and go back to the save point (Lang Tone) - Char.returnTownFromDead
@@ -412,6 +422,7 @@ namespace NsoServer.Net
             PlayerLog.Event(me, "leave game");
             PlayerLog.Forget(me);
             me.Zone.Players.Remove(me);
+            Presence.Left(me, me.Zone);
             me.Record.MapId = me.MapId;
             me.Record.X = me.X;
             me.Record.Y = me.Y;

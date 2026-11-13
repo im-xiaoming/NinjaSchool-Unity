@@ -18,6 +18,86 @@ The handoff history before this project is in `C:\NSO_OFFLINE\HANDOFF.md`. It is
   - `README.md` and the handoff documents.
 
 ## 2. Completed in this project (latest sessions)
+0. **2026-11-13 (latest, newest): bots play NV nâng cấp trang bị; all bots reset to level 1.**
+   - Every bot stopped at quest 12 step "Nâng cấp vũ khí" ("does not know how to do"). `QuestPlay.UpgradeStep` (Ai/TacticalLayer.cs): for steps 1-3 (weapon / adornment / clothing) it takes a worn piece of level 10+ (else one from the bag it can wear), walks to Kenshinto, sends Char.upgradeItem (cmd 21, `BotClient.Upgrade`: not careful, bag index, crystal indexes) with crystals worth the success cap, then wears the upgraded piece (the step advances in PlayerTasks.OnEquipUpgraded). A worn piece is taken off and upgraded in the same tick so the wear habit cannot put it back first. No piece or no crystals: it trains for drops (equipment shops need xu, which bots do not have).
+   - `SellJunk` keeps crystals and upgradable gear (level 10+, own gender) until quest 12 is done; `bagcheck` now sets quest 13.
+   - Test `upgradecheck` (new): steps 1-3 done in one run, weapon/charm/shoes +1 and worn, then "walking to Toyotomi" - OK. bagcheck, rulecheck, foodcheck, ledgercheck, questcheck, stuckcheck OK. Unity refreshed: compilationFailed=false.
+   - User request: all 13 bot characters deleted from nso.db (accounts ai*) and the `ai_players` document removed (memory, knowledge, item ledger, reward history); they are created again at level 1 on the next Play. Backup: `%USERPROFILE%/AppData/LocalLow/DefaultCompany/My project/NsoData/nso.db.before-bot-reset-20261113-2`. The admin character is untouched. Qdrant RAG memories of the bots were not cleared.
+0. **2026-11-13 (latest, newest): bots #7/#8 stuck on map 6's bottom row - two navigation fixes.**
+   - Cause 1: map 6 Thác Kitajima's last tile row (y 1920) is ground and holds the exit to map 20; bots arrive there from map 20. The server lets them stand there (IsCrossMap deviation: T_TOP in the last row is safe), but `BotNavigation.Standable/Simulate` treated y >= PxH-24 as always lethal, so the spot had no graph node, every exit was "unreachable" and the bots stood still. New `BotNavigation.FallsOut` mirrors the server rule (also map tile 4's two last rows).
+   - Cause 2: `WalkTo(..., waypoint: true)` reported arrival on x alone, so bots asked to change map at (40,1238) under the exit at y 96-120 and were refused silently. Now a waypoint counts as reached within 90 px of height (server box: 100 px).
+   - Debug tool: `ServerTests.dll navprobe <map> <x> <y>` prints the terrain around a spot and whether each exit is reachable. Test `stuckcheck` (new): a bot at (155,1920) on map 6 travelling to Làng Tone leaves by map 21 on the first try - OK. navcheck (map 6 added: 59/60 reached), movecheck, questcheck, lootcheck, foodcheck, ledgercheck, rulecheck, bagcheck OK. Unity refreshed: compilationFailed=false (console errors are leftovers of the previous Play session). Not seen in Play mode.
+0. **2026-11-13 (latest, newest): RL plan steps 2-5 - spending style, real death cost, stronger items when needed, fast travel.**
+   - Step 2, spending style: the greed trait is the thrift trait. `AgentTactics.PotionTarget(a)` (greed 0/0.5/1 -> 13/10/7 potions with PotionStock 10) and `MoneyReserve(a)` (120/300/480 with FoodMoneyReserve 300) drive the potion shop, food and item tries; the rules try-item score drops with greed; the prompt has a "SPENDING STYLE" line. The RL money reward was already greed-scaled.
+   - Step 3, death cost: monsters take no exp here (Java takes exp only in PK), so a death costs time. `RlRuntime.DeathCost` = `deathPenalty` (now 0.5, revive wait) + `deathHopPenalty` (0.4) x maps between the save village and the place of death; only the wait when the plan needs the village anyway (shop/rest step, recovering, under MinPotionsToFight). Exp lost now counts (exp reward may be negative). `RlSettings.DefaultsVersion` 3 resets a saved flat deathPenalty once. Learning panel field "Phạt chết mỗi map phải đi lại".
+   - Step 4, stronger items: `AgentTactics.ChoosePotion` takes the cheapest potion that covers the missing HP/MP, the strongest when urgent (HP under half the flee level, a boss attacking) or when none covers it. Heal values moved to `PlayerItems.HpPotionParam` / `MpPotionAmount` (same numbers). RL tactical slots 43/44 = strongest HP/MP potion (33/34 = the fitting one). Observation.Schema not bumped: only empty slots got actions, existing models still load.
+   - Step 5, fast travel: in `Travel`, `PlanFastTravel` compares walking map changes with a teleport scroll (Vô hạn khả di lệnh / Khả di lệnh, cmd 12, `BotClient.UseItemChangeMap`) or the carriage NPC Umayaki / Umayaki2 in villages and schools (`PlayerTasks.UmayakiVillages/UmayakiSchools`, menu unchanged); used only when it saves `FastTravelMinSavedHops` (2, Inspector `_aiFastTravelMinSavedHops`); a single-use scroll counts `FastTravelScrollCostHops` (2) extra. Failure: walk for 5 min.
+   - Tests: `ledgercheck` now also checks death cost (village 0.5, map 23 0.9, shopping 0.5), potion choice, fast travel (22 -> 38 by scroll saving 16, back by carriage) - OK; rulecheck (spending style) OK; promptcheck, foodcheck, bagcheck, questcheck, lootcheck, combatcheck OK; default suite only the 2 known login failures. Unity refreshed after Play stopped: compilationFailed=false, 0 console errors (covers steps 1-5 and the junk selling). Not seen in Play mode.
+   - Not done: RL does not choose fast travel itself (it is the travel executor's judgement); rules never die on purpose (the RL death cost lets a policy learn it).
+0. **2026-11-13 (latest, newest): item ledger - try unknown items, remember what they do (RL plan step 1 of 5).** User plan, in order: (1) item ledger + rewards from real outcomes, (2) thrift/spending trait, (3) death priced by its real cost instead of a flat penalty, (4) use stronger items when needed, (5) fast travel (NPC/item) when worth it. Step 1 done:
+   - `ItemNote` / `ActionRewardHistory.Ledger` (Ai/Rl/ActionRewards.cs): per item bought, used, useful (any visible effect), wasted, money spent, last effect; saved with the reward history; verdict written to knowledge key `ledger:<id>` (prompt + RAG); shown on /agents.html ("Sổ vật phẩm").
+   - Rewards: new kind `wastefulPurchase` (-`wastefulPurchasePenalty` 0.3) when buying an item used `ledgerUselessAfter` (3) times without any effect; the first-purchase reward stays for unknown items. Both settings on the learning panel.
+   - Trying: `AgentTactics.PickTryItem` (cheapest never-used Kiriko/Tabemono item, affordable above FoodMoneyReserve, only with enough HP potions, only when it can show its effect: HP potion below max HP, MP potion below max MP, food without food effect). Shop step with `MobId` = item id runs `TryItem` (buy one, use once). Rules option `tryItem` = 0.3 + curiosity*0.9 (below the quest), scaled by the LLM shop priority; prompt line "UNKNOWN ITEM YOU COULD TRY"; RL strategy slot 5 "try item"; the validator drops item ids not sold in the village.
+   - Tests: `ledgercheck` (new) OK, `rulecheck` (new case) OK, promptcheck/foodcheck/bagcheck OK; default suite only the 2 known login failures.
+0. **2026-11-13 (latest, newest): bots sell junk when the bag is full.** Play mode showed raiden choosing "Hoàn thành nhiệm vụ" at Kiriko and mikasa "Nhập học" at Kazeto with "no visible effect" forever: the bags were full of loose stones and spare gear, and Char.finishTask (Hái thuốc) / admission need 2 free slots. `AgentTactics.SellJunk` (Ai/TacticalLayer.cs, in Habits) sells one item per check via `BotClient.Sell` (Char.saleItem, cmd 14) while fewer than `AgentConfig.BagReserveSlots` (Inspector `_aiBagReserveSlots`, default 3) are free: stones first, then gear it will never wear; potions, food, quest and "other" items are kept. Test: `dotnet Tools/ServerTests/bin/Debug/net8.0/ServerTests.dll bagcheck` (new, OK); rulecheck/promptcheck/foodcheck OK. Unity not refreshed (Play running). Still open: akane and renji stand at (204,1920) on map 6 "approaching Thảo dược" without reaching it (unreachable spawn?); LLM goto plans for joining a school (hanabi) stall until the step timeout.
+0. **2026-11-13 (latest): bots stuck beside their quest; the LLM steers the rules with priorities.**
+   - Seen live: bots trained (e.g. renji on Thỏ xám) while the herb quest step was open, because the rules' quest
+     score (0.9-1.2) lost to the hunt score (up to ~1.75). Quest base is now 1.8 (+ up to 0.3).
+   - The LLM guessed goto coordinates for "report to Kiriko" steps: the prompt now has `QUEST NEXT:` (what the quest
+     goal does: NPC + map + position, monster + map, dropped item, map to reach; `AgentTactics.QuestGuide`).
+   - Dynamic priorities: every LLM answer carries `priorities` {quest,hunt,shop,explore,collect,idle} 0..3
+     (structured output); `RulePlanner` multiplies its scores by them for the plans it makes while the LLM is busy
+     (13 bots, one 4B model: ~60 s between answers per bot). The mandatory potion restock is never weighted.
+     They expire after `LlmPriorityMinutes` (Inspector `_llmPriorityMinutes`, 15). Shown on /agents.html and in the prompt.
+   - Map change refusal reported the stale login dialog ("Tên nhân vật đã tồn tại!") and learned it as a lock: the
+     notice is now cleared before `ChangeMap`; a silent refusal is reported as "no reason given" and not learned.
+   - Tests: `rulecheck` OK (quest beats hunt; priorities steer; restock stays mandatory; priorities parsed),
+     `promptcheck` OK (QUEST NEXT + priorities in the prompt), `foodcheck` OK; one live qwen3.5:4b request with the new
+     schema returned priorities. Unity NOT recompiled (Play mode was running): refresh after stopping Play.
+0. **2026-11-13 (latest, last): AI players eat food; whole game knowledge in RAG; every interaction reported.**
+   - Food: `AgentTactics.Eat` (habit) eats whenever no food effect runs; the shop step buys potions at Kiriko, then
+     `FoodStock` servings at Tabemono (`BuyFood`, keeps `FoodMoneyReserve`); `RulePlanner` plans a food trip (score 2.5)
+     when the bot has no food, none running and can afford it (`AgentSnapshot.WantsFood`). The LLM prompt shows food.
+   - Game knowledge: `Ai/GameKnowledge.cs` turns the dev wiki records (`WikiData.Build`) into 1 885 shared ("*") RAG
+     documents: items (how to get: shop + NPC + price, drops, quest pickups; what using it does; whether usable
+     offline, from `PlayerItems.UseItem` and its handlers), monsters, maps, NPCs, shops, quests, skills. Injected on the
+     RAG worker at start (`ServerBootstrap` sets `GameKnowledge.Source`). Unchanged points are not embedded again
+     (`AgentRag.Unchanged` reads the stored text from Qdrant). Recall searches the bot's own memories (`RagTopK`) and the
+     shared knowledge (`RagKnowledgeTopK`) separately; recalled lines are cut to `RagMemoryChars` and dropped from the
+     end if the prompt does not fit.
+   - Interactions: `BotClient.Observed` wraps item use, purchase, pickup, NPC talk, menu choice, quest talk, map/zone
+     change and return to town; it writes "action -> outcome" (HP/MP, money, bag, effects, equipment, map, quest, menu,
+     server notice) to the bot's memory (prompt, RAG events, player log; same key at most once per 60 s) and updates
+     knowledge (`item:<id>`, `npc:<id>:<map>` for the bot; `seen:*` "observed" documents shared by all bots).
+   - /agents.html: food chip, "Trí nhớ RAG" stat. Inspector: `_aiFoodStock`, `_aiFoodMoneyReserve`,
+     `_ragGameKnowledge`, `_ragKnowledgeTopK`, `_ragMemoryChars`.
+   - Tests: `foodcheck` OK (bought 10 potions, then 2 Cơm nắm, ate one: food effect 1800 s); `rulecheck` OK (food trip);
+     `knowledgecheck` OK (1 885 documents); `ragknowledge` OK (live Qdrant + bge-m3, scratch collection deleted after: 1 885 documents embedded in about 30 s, questions about food / quest items / potion sellers / skill books recall the right documents, a restart embeds 0 documents again); `promptcheck` OK; Unity compiled clean (0 errors).
+     NOT seen in Play mode.
+0. **2026-11-13 (latest, later): bot ids and consumables on /agents.html, live training progress, learning-file race fix.**
+   - Each bot card shows its id (`#n`, also searchable); the drawer shows bot id and character id. "Đang dùng" shows the
+     running effects (`effect.name`, seconds left) or the consumable used in the last 60 s (`BotClient.UseItem` records the
+     last non-equipment item; debug only).
+   - "Tiến độ huấn luyện" panel: phase + progress bar + ETA; behaviour cloning per-epoch loss/accuracy with a 10 %
+     held-out validation split; PPO rollout progress and SB3 statistics (loss, policy/value loss, entropy, KL, clip
+     fraction, explained variance, mean reward); live per-run scores of the isolated evaluation; history of the last 100
+     rounds (`NsoLearning/training-history.json`).
+   - Fixed "Unable to remove the file to be replaced": `RlBridge.Atomic` and `policy_io.atomic` retry when the other
+     process has the file open (Windows); a transient poll error clears itself on the next successful poll.
+   - Files: `Ai/BotClient.cs`, `Ai/AgentManager.cs`, `World/GameData.cs` (`EffectName`), `Ai/Rl/RlBridge.cs`,
+     `Tools/Learning/trainer.py|evaluation.py|policy_io.py`, `NsoWiki/agents.html|agents.js|notes.json`.
+   - Tests: `check_contracts.py` PASS (CUDA); tracker smoke test (3 clone epochs wrote metrics/history); ServerTests
+     build OK; Unity compile (see below). NOT seen in Play mode.
+0. **2026-11-13 (latest): bot movement, rules accuracy, RL capacity, agents.html cleanup** (see DECISIONS.md, same date).
+   - Files: `Assets/Server/Ai/BotMovement.cs`, `BotClient.cs`, `AgentConfig.cs`, `StrategicLayer.cs` (RulePlanner),
+     `TacticalLayer.cs`, `Rl/RlPolicy.cs`, `Assets/Scripts/Diagnostics/NsoServerControl.cs`, `Tools/Learning/trainer.py`,
+     `Tools/Learning/check_contracts.py`, `Assets/StreamingAssets/NsoWiki/agents.html|agents.js|notes.json`,
+     `Tools/ServerTests/MoveCheck.cs` (new), `Program.cs` (`movecheck`, `rulecheck`), `ServerTests.csproj`.
+   - Tests: `movecheck 120 13` OK (3.1 position reports/s per bot instead of about 14-16, 0.6 short reversals per
+     bot-minute); `rulecheck` OK; `check_contracts.py` PASS on CUDA (256-wide C#/Python parity); full ServerTests: only the
+     2 known login failures; Unity compiled clean (0 errors). NOT seen in Play mode.
+   - Next: watch a bot from the player's client; leave Play running with learning on so the 256-wide model is cloned and
+     evaluated (enable "Chạy đánh giá dài", about 60 min at >= 60 FPS).
 1. **Gameplay port from Java** (per-file details in `Assets/Documentation/ServerPort.md`):
    - combat (`PlayerCombat`), skills (`PlayerSkills`), effects and regeneration (`PlayerEffects`);
    - items, shops and drops (`PlayerItems`);
@@ -864,3 +944,162 @@ Corrected corrupted Vietnamese copy-path and missing-sprite labels in NsoWiki/ap
 ## 2026-11-12 - Skill animation too short (fixed, compile only)
 - Cause: Char.paintCharWithSkill advanced the animation on every paint (60-144 fps) instead of every logic tick (24/s).
 - Fix: Main.LogicTick + per-tick gating in Char.paintCharWithSkill (wrapper around paintCharWithSkillStep). Test: use several skills (melee, arrow/ranged, buff) and watch other players' skills; length should match the original; hits and arrows land once.
+
+## 2026-11-12 - Hybrid AI agents (MVP, compile only)
+- What: 3 autonomous ninjas (Raiden, Hanabi, Sora; up to 6) live in the world from Làng Tone: hunt, pick up their yen, rest, explore, travel, idle and talk (speech bubbles). Local LLM decides plans; rule planner (utility AI) when the LLM is off/unreachable.
+- Files: New: Assets/Server/Ai/{AgentConfig,AgentModel,WorldKnowledge,StrategicLayer,TacticalLayer,AgentManager}.cs, Assets/StreamingAssets/NsoWiki/agents.html. Changed: GameServer.cs (tick), ServerBootstrap.cs (start/stop), Net/MobBrain.cs (monsters notice/attack agents), Net/PlayerCombat.cs (AgentHit), Net/PlayerActions.cs + Net/Controller.cs (agents shown on zone entry), Net/Cmd.cs (CHAT_MAP), Net/DevTerminal.cs (/agents, /replan), DevWiki/WikiControl.cs (/control/agents), DevWiki/WikiServer.cs (/agents.html), Scripts/Diagnostics/NsoServerControl.cs (Inspector), client Scripts/Networking/Protocol/Controller.cs (CHAT_MAP bubble).
+- Tests: Unity compiled clean (compilationFailed=false, consoleErrors=0). Editor probe: DecisionParser parses a chatty answer with JSON, rejects text without JSON; RulePlanner picks hunt at full HP and rest at 20 % HP; prompt builds. dotnet ServerTests build still fails only on the pre-existing BasicSkillGrowth (client type) errors, none from Ai. Not run in Play mode.
+- Setup for the LLM (optional; without it the rules decide): install Ollama, model `qwen3.5:2b` (installed by the user, 2.7 GB; reasoning_effort "none" is required, else the answer is empty), keep it running. Settings: NSO Server Control > Autonomous agents.
+- Debug: dev wiki `http://127.0.0.1:8787/agents.html` (goals, plan steps, progress, memory, decision history with source llm/rules, LLM status), JSON `/control/agents`, terminal `/agents`, `/replan [name]`, player log lines `[ai]`.
+- Next: user plays: agents appear in Làng Tone, walk to hunting maps, fight with skill animation, monsters hit them, they rest/die/respawn; bubbles show. Then: shops (buy potions with yen), quests, agent-to-agent chat.
+
+## 2026-11-13 - SQLite for saves and the player log (compiled, probed in the Editor)
+- Files: New: Assets/Plugins/Sqlite/ (Microsoft.Data.Sqlite 8.0.11, SQLitePCLRaw core/provider/batteries 2.1.10, x86_64/e_sqlite3.dll for Editor + Windows x64), Assets/Server/Store/SqliteSaveDb.cs, Assets/Server/Net/PlayerLogDb.cs. Changed: Store/AccountStore.cs (SQLite backend, TSV import + fallback, documents), GameServer.cs (UseSqlite, storage log line, close), Ai/AgentManager.cs (agents saved as document 'agents'), Net/PlayerLog.cs (database destination), Scripts/Diagnostics/NsoServerControl.cs (_useSqlite, _playerLogToDatabase, _playerLogToFile), ServerBootstrap.cs, Tools/ServerTests/ServerTests.csproj (local, gitignored: SQLite package references).
+- Data migrated: save folder backed up to `C:\Users\PC\AppData\LocalLow\DefaultCompany\My project\NsoData_backup_before_sqlite_20261113_000309`, then users/players.tsv -> NsoData/nso.db (TSV kept as *.tsv.migrated). Old text logs -> Logs/PlayerLog/player_log.db (files kept).
+- Tests: Unity compiled clean (compilationFailed=false, consoleErrors=0). Editor probes: AccountStore on a scratch folder imports TSV (Vietnamese name intact), reopens, stores/reads a document, Login create/ok/wrong password; PlayerLogDb on a copy of the log DB appends a session and prunes to KeepFiles. dotnet ServerTests build: only the pre-existing BasicSkillGrowth errors. Not run in Play mode.
+- Read the log: `python -c "import sqlite3; d=sqlite3.connect(r'C:\My project\Logs\PlayerLog\player_log.db'); print(d.execute(\"select time,kind,text from entries where session_id=(select max(id) from sessions) order by id desc limit 50\").fetchall())"` or any SQLite viewer (DB Browser for SQLite).
+- Next: user plays once; the Console/log should show `save storage: sqlite`; character loads as before; Inspector "playerLogFile" shows the DB path and session.
+
+## 2026-11-13 - Local LLM checked (qwen3.5:2b in Ollama)
+- Default model qwen3.5:2b. It is a thinking model: without `reasoning_effort: "none"` (AgentConfig.LlmReasoningEffort, Inspector `_llmReasoningEffort`) it spent all 400 tokens thinking and returned empty content. With it: ~1 s per decision in the Editor probe (LlmPlanner.Decide on a sample snapshot -> "hunt 1 mob 5 @map 23", Vietnamese line). Parser also strips `</think>` and accepts goal synonyms (hit/attack/kill/farm, move/walk).
+- Note: the Inspector keeps a saved value if the scene was saved with the old default; check NSO Server Control > `_llmModel` = qwen3.5:2b.
+
+## 2026-11-13 - Default LLM switched to qwen3.5:4b
+- User installed qwen3.5:4b (3.3 GB); defaults changed in AgentConfig.LlmModel and NsoServerControl._llmModel. curl test with reasoning_effort none: valid JSON plan + Vietnamese line, ~5.9 s first call (model load), ~1.6 s after. qwen3.5:2b still works if set in the Inspector.
+- Check NSO Server Control > `_llmModel` = qwen3.5:4b (a scene saved with the old value keeps it).
+
+## 2026-11-13 - Workbench: AI agents on the overview; quiet idle wiki connections
+- NsoWiki/app.js: overview panel "Ninja AI" (name, level, map, zone, x/y, HP, activity, badge when in the player zone), refreshed with the 2 s status poll from GET /control/agents; link to /agents.html for plans and LLM. Syntax checked with node --check; not yet seen in a browser.
+- WikiServer.Handle: IOException / ObjectDisposedException (browser pre-connections idle past the 5 s read timeout, thread abort on stop) are ignored instead of logging "Dev wiki request error". Unity compiled clean.
+- agents.html stayed on "loading..." because the wiki CSP (script-src self) blocks inline scripts: script moved to NsoWiki/agents.js, served by WikiServer (route added).
+
+## 2026-11-13 - AI players as real characters (compiled; Editor probe run; not seen in Play mode)
+- Files: New: Assets/Server/Ai/BotClient.cs, Ai/AgentKnowledge.cs, Net/Presence.cs, StreamingAssets/NsoWiki/agents.js. Rewritten: Ai/AgentConfig.cs, AgentModel.cs, TacticalLayer.cs, AgentManager.cs, StrategicLayer.cs (snapshot, prompt, guide, rules), WorldKnowledge.cs (MapUnlock-aware routes, FindNpc, FindMobMap), NsoWiki/agents.html. Changed: Net/Session.cs (bot sessions), GameServer.cs (ConnectBot), Net/Controller.cs (bot account sign-in, Actions, Presence on select, dev terminal blocked for bots), Net/PlayerActions.cs (Presence hooks), Net/PlayerLog.cs + PlayerLogDb.cs (bot_entries, 20 days), DevWiki/WikiControl.cs (bots not in player cards), NsoWiki/app.js (overview table), Scripts/Diagnostics/NsoServerControl.cs (_aiPlayerCount 13, _botLogKeepDays, _botLogEnabled, _llmGuide). Reverted to HEAD: Net/MobBrain.cs, Net/PlayerCombat.cs (the old agent exceptions).
+- Tests: Unity compiled clean after every change. Editor probe (no Play mode, scratch save folder in %TEMP%, deleted afterwards):
+  a separate GameServer with 3 AI players, rules only (LLM off), about 10 minutes in total over several runs. Seen: log-in and
+  character creation, quest 0 (talks), quest 1 (quiz solved by trying), wooden sword equipped, quest 2 (10 Bù nhìn), quest 3
+  (bought 2 Cơm nắm for 400 yen, ate, 20 Ốc sên, 10 Cóc xanh) finished by one AI; maps 21 / 23 unlocked and travelled; HP
+  potions bought at Kiriko; one death by Ốc sên remembered; gear (Dơi đen) worn from the bag. Fixed during the probe: wood tile
+  blocking the walk (jump over), attack position out of vertical range (ApproachPoint), wandering off while a quest monster respawns.
+- Not tested: the LLM path with the new prompt, quests after 4 (school admission, quest 9 book/points), 13 players at once,
+  the human client seeing them in Play mode, the new agents.html in a browser.
+- Look at an AI player's history: `SELECT time, kind, text FROM bot_entries WHERE bot = 'airaiden' ORDER BY id DESC LIMIT 100;` in
+  Logs/PlayerLog/player_log.db. Live: http://127.0.0.1:8787/agents.html (cards + detail drawer), Workbench overview table, /agents.
+- Known limits: kill credit is "the monster I was hitting died"; quest 12 (upgrade) and other hand-made mechanics may stop an AI
+  (it then trains and the LLM decides); NPC names come from a small table in TacticalLayer.
+
+
+## 2026-11-13 - Guided RL implementation and uv/CUDA setup
+- Implemented: two-domain masked policy/teacher integration, structured experience, pure C# MLP inference, bounded disk bridge, local trainer, supervised cloning from existing rules/opt-in human actions, version-matched PPO, candidate export/parity, isolated real-time baseline evaluation and hash-checked model application/rollback. LLM now provides advice/speech without blocking plans. Rules and existing quest/menu executors retained.
+- New files: Assets/Server/Ai/Rl/{RlContracts,RlCandidates,RlPolicy,RlBridge,RlRuntime}.cs (+ Unity metas); Tools/Learning/{pyproject.toml,uv.lock,trainer.py,policy_io.py,evaluation.py,check_contracts.py,RlHost/RlHost.csproj,RlHost/Program.cs}; docs/AI_LEARNING.md. Modified: Ai/{AgentManager,AgentModel,BotClient,TacticalLayer}.cs, server Net/Controller.cs, ServerBootstrap.cs, DevWiki/{WikiControl,WikiServer}.cs, NsoServerControl.cs, shared BasicSkillGrowth.cs, agents.html/js, .gitignore and documentation/wiki notes. Preserve all unrelated pre-existing dirty files; no commit/save edits.
+- User explicitly authorised dependency downloads, uv venv and GPU: installed .venv with torch 2.9.1+cu128 (official CUDA 12.8 Windows wheel about 2.7 GiB), SB3/sb3-contrib 2.7.1, Gymnasium 1.2.2 and locked dependencies. RTX 3060 12 GB detected; CUDA tensor succeeded. Bootstrap uses this venv directly; it never downloads dependencies at runtime.
+- Checks: .NET host Release build passed (existing unused Controller.zoomLevel warning); short synthetic CUDA checks passed: teacher imitation, actual C#/Python masked parity on nonzero observations, all-masked rejection, PPO exclusion of demonstrations, checkpoint reload/PPO update, regression gate and partial JSONL recovery. Python byte-compilation and agents.js syntax checks passed. Unity final compile/Console evidence is recorded below when complete.
+- Not run: Play, browser UI, real/save-affecting training, one-hour isolated evaluation, 13-bot performance or later quest acceptance. No strong trained model exists yet. A candidate waits until the user enables long evaluation; initial gameplay uses rules and records demonstrations. Some handmade quest steps still lack AI executors; RL does not supply missing mechanics. Checkpoints/evaluation scratch folders are retained and need manual disk management.
+- Next: start Play manually; open /agents.html -> learning panel; verify CUDA trainer/rules collection and optional human capture. Enable the separate long-evaluation checkbox when convenient (3 trials x 2 arms x 600 s). Review per-personality results, source/version/fallback, tiers and action distribution; profile inferenceTickP95Ms (<5 ms target, not yet measured with 13 bots). See docs/AI_LEARNING.md for all defaults and limitations.
+- Commands: uv sync --project Tools/Learning --locked; uv run --project Tools/Learning --locked python Tools/Learning/check_contracts.py; dotnet build Tools/Learning/RlHost/RlHost.csproj -c Release; unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json. Do not run gameplay probes/long evaluation on behalf of the user by default.
+
+
+Final validation (2026-11-13): Unity refresh and current Console passed at 2026-11-12T19:01:12Z: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (only the pre-existing unused Controller.zoomLevel warning). Seven short synthetic CUDA contracts passed; JS syntax, Python byte-compilation, uv lock and changed-file whitespace checks passed. No Play/browser/live training/long evaluation run; production saves unchanged. The earlier dirty NSO Game.prefab has a pre-existing trailing-space warning and was not edited for this change.
+
+
+## 2026-11-13 - Shared ground loot and less competitive AI hunting
+
+User decisions: humans and bots follow the same gameplay rules with no bot exceptions. Ground items remain owner-only for 30 seconds, then anyone may pick them; earlier attempts receive the original "Vat pham cua nguoi khac" Vietnamese server message. Because the old 30-second expiry left no public window, default lifetime is now 60 seconds, configurable with protection in NSO Server Control. Java references: Char.pickItem, ItemMap.isCanPickup/isExpired, Zone.updateItemMap. The 30/60 timing is an explicit offline deviation from Java's 20/30.
+
+Shared implementation: World/GroundLootPolicy.HasOwnership; PlayerItems.IsWithinPickupRange/CanReceiveGroundItem; PlayerActions.ZoneCapacity. Actual server handlers, AI selection and RL pickup masks reuse those predicates. No IsBot privilege branch, private Join, free inventory slots or quest bypass. Source ownership refusal precedes bag-full refusal for an otherwise reachable/visible item. Fixed quest nodes keep their existing non-expiring behaviour.
+
+AI behaviour: AgentForaging scans 600 px (vertical limit 144), prefers required/own loot, uses normal pickup requests, handles valid existing stacks/money/sushi when the bag is full, and retries stalled items after a bounded cooldown (4 s no progress / 8 s retry; up to 32 avoided references). Opportunistic pickup now also runs outside hunts, except busy menu/timed/recovery actions; Collect retains its counter. Kill bookkeeping happens before hunt loot/zone selection. Bots prefer unclaimed targets and courteously avoid another bot's current loot target without placing a server lock on anything.
+
+AgentZoneSelection uses public population counts, pending-move reservations and rotated equal-count choices. During hunting, at a safe break it walks to the nearest real zone NPC (template 13), then sends OPEN_UI_ZONE / ZONE_CHANGE through BotClient/Controller. Defaults: check 10 s, cooldown 45 s, approach timeout 30 s, crowd threshold 3, improvement >=2 characters. Instances/single-zone/no-NPC maps are skipped; full-zone capacity is the same helper used by the human handler. No increase to the existing five-zone cap.
+
+Changed: new GroundLootPolicy.cs, AgentForaging.cs, AgentZoneSelection.cs (+ Unity metas); PlayerItems.cs, PlayerActions.cs, GameServer.cs (comment), ServerBootstrap.cs, NsoServerControl.cs; Ai/AgentConfig.cs, AgentModel.cs, AgentManager.cs, BotClient.cs, TacticalLayer.cs, StrategicLayer.cs; Ai/Rl/RlCandidates.cs, RlBridge.cs; Tools/Learning/evaluation.py, trainer.py, RlHost/Program.cs; project/architecture/Inspector/server documentation and wiki notes. Ground timings are passed to the isolated RL evaluator and added to the model environment fingerprint, so a model evaluated with older loot timing is not silently accepted.
+
+Validation: inspected the existing live dashboard read-only before stopping Play: bots were in zone 0, had free bag slots and some quest pickups already counted. This confirms missing zone behaviour and limited pickup selection, not total absence of pickup code. Stopped Play normally to save before edits. Release headless host builds (only pre-existing unused zoomLevel warning); Python syntax checks passed. No new Play, simulated gameplay, long training, save editing or automatic user-input testing. Final Unity Console result is recorded below. Runtime acceptance remains with the user.
+
+Next: start Play; watch bots collect accessible own/quest loot, abandon unreachable targets, share maps across zones by visiting NPC 13, and avoid rapid switching. Try another character's drop before 30 s (other-owner message), at/after 30 s (pickup if within range/space/quest rules), and expiry at 60 s. Check own/free/fixed quest items and full bags with existing stacks/currency. Inspect configurable values under NSO Server Control. Compile commands: dotnet build Tools/Learning/RlHost/RlHost.csproj -c Release; unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+
+Final compile-only validation for this update: Unity at 2026-11-12T19:21:56Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build, Python syntax, wiki JSON and changed-file whitespace checks passed; the host retains its pre-existing unused zoomLevel warning. No post-fix Play/gameplay tests or long training were run. User starts the next Play to apply the shared timing and observe foraging/zone changes.
+
+
+## 2026-11-13 - Confirmed item/NPC action rewards
+- Added five RL categories: first successful use of an item template (0.2), first successful purchase (0.1), timely needed use (0.3), first meaningful NPC discovery (0.1), useful NPC service (0.3). Weights and HP/MP/cooldown/free-slot thresholds are editable in the existing /agents.html reward panel.
+- Evidence comes from pre/post Controller receipts: inventory changes, exact equipped instance, active positive effects, real MP restoration, learned/improved skills, forward quest/quiz progress, class admission, a less populated zone, storage creating needed room/withdrawing needed supplies and actual upgrade growth. Item-origin menus retain their item identity until confirmation; merely opening an item menu does not count as use. Teleport/fishing/auto-play activation can confirm non-consuming item use. Failed/cancelled actions do not grant useful-service reward. Mere item/NPC discovery is finite rather than repeatable.
+- Novelty persists in optional ai_players.rewardHistory for bots. Opted-in human demonstrations use the same classifier and optional rl_reward_history_<characterId> document, flushed at normal saves/logout. Session counts/totals reset, novelty survives. Reward events are weighted when they occur; pending strategic/tactical transitions receive their own interval deltas under components.actions. No gameplay EXP/currency, authority, character schema or policy tensor shape changes.
+- Files: new Assets/Server/Ai/Rl/ActionRewards.cs (+ meta); changed RlContracts.cs, RlRuntime.cs, Net/Controller.cs, Ai/AgentManager.cs, agents.html/js; root status/tasks/decisions/handoff, architecture/server/UI/learning documentation and wiki notes.
+- Validation is compilation/static checks only this turn (user preference). No Play, server scenario, browser interaction, live training or manual save edits. Older models/data remain structurally compatible but need new experiences to learn the new rewards. Existing tactical/quest executors still determine what the bots can actually do; these rewards do not implement missing NPC mechanics. Human NPC actions without a supported pending policy transition are not fabricated into PPO samples.
+- Next user checks: first/repeated item uses and purchases (including stacks), failed use/buy, HP/MP above/below threshold, active effect renewal, first NPC menu vs repeat/cancel, quest/quiz/admission, useful storage/upgrade/zone choice, item-menu confirmation, relog novelty and reward settings persistence. Open a bot's Plan tab for session action-reward counters; inspect experience JSONL components.actions. Compile commands: dotnet build Tools/Learning/RlHost/RlHost.csproj -c Release; node --check Assets/StreamingAssets/NsoWiki/agents.js; unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+
+Final compile-only validation (2026-11-13, action rewards): Unity current Console at 2026-11-12T19:40:48Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (pre-existing unused zoomLevel warning); agents.js syntax, wiki JSON, meta presence and changed-file whitespace checks passed. No gameplay/Play/browser/learning-session tests were run; user validation is pending.
+
+
+## 2026-11-13 - LLM formatting, remote presentation and RL readiness
+Files: new Assets/Server/Ai/LlmReplyFormat.cs and Assets/Scripts/Application/RemoteMotion.cs (+ metas); changed Ai/{AgentConfig,StrategicLayer,AgentManager}.cs, Diagnostics/{NsoServerControl,NsoGameControl}.cs, Application/Interp.cs, client Networking/Protocol/Controller.cs and agents.js. Required steps schema prevents reason-only replies when supported; full bounded failed replies appear in the Plan diagnostics and LLM_ERROR logs. Remote movement presentation interpolates packet targets with adaptive timing, default 0.5 s / maximum 0.75 s; >=180 px snaps. Removal/map/death cleanup is included. No bot movement authority changes.
+Validation: Release RlHost build and node --check agents.js passed; incremental build reported 0 warnings/errors. Unity Console current groundTruth at 2026-11-12T19:50:53Z: compilationFailed=false, compiling=false, errors=0, warnings=0 (historic buffer counts are not current errors). No Play, LLM request, visual/performance or gameplay evaluation performed. User checks runtime.
+Readiness inspection: settings Guided, stage0, CUDA, learning on, long evaluation off; trainer stopped after leaving Play; candidate v1794510524833 not evaluated, no evaluation.json or active.json. Keep Guided. Next: user validates LLM and smoothing, then enables isolated long evaluation; inspect per-personality gates and timing before promoting strategy, combat and movement incrementally. No training/download or save modification performed for this assessment.
+Known unresolved issue: TacticalLayer.WalkTo/OverObstacle chooses endpoints and can lift Y; server Move checks destination rather than reproducing local client jump/collision trajectory. Humans/bots use the same handler but this is not complete movement-model parity. A physical fix is still required; do not mark it solved by interpolation.
+Commands: dotnet build Tools/Learning/RlHost/RlHost.csproj -c Release --nologo --verbosity quiet; node --check Assets/StreamingAssets/NsoWiki/agents.js; unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+
+## 2026-11-13 - Bot obstacle movement fix implementation
+Cause: WalkTo/OverObstacle and same-column hunt submitted remote endpoints directly, so endpoint-only server checks could not enforce the human client's path. Replaced execution with client-sized frames, leaving target selection intact.
+Files: new Assets/Server/World/TileMotion.cs and Assets/Server/Ai/BotMovement.cs (+ Unity metas); changed Ai/{BotClient,AgentManager,TacticalLayer,AgentConfig}.cs, Ai/Rl/{RlBridge,RlRuntime}.cs, GameServer.cs, Diagnostics/NsoServerControl.cs, Tools/Learning/{evaluation.py,RlHost/Program.cs}; updated root docs, architecture, AI learning, Inspector/server/UI/testing docs and wiki notes.
+Implementation: one server-owned client movement loop (~42 ms) shares World.SyncRoot; rules/RL still choose at 500 ms. BotClient queues destination intents only after normal RL selection; actual client frames submit PLAYER_MOVE through the normal Controller. TileMotion sweeps one pixel at a time against terrain sides, solids and ceilings, lands on floor/bridge/waterflow, and allows rising through one-way platforms. Grounded jumps use -10 and +1 gravity, fall speed capped at20; normal Speed and configurable MoveStepPx cap horizontal motion. Releasing a policy's input stops horizontal control but continues gravity. Expired intent, corrections, death, map and zone changes cannot keep stale movement alive. No direct coordinate writes, new bypass, save migration or packet format changes.
+Validation: .NET Release host build passed with the pre-existing unused Controller.zoomLevel warning; Python evaluation.py byte-compilation passed. Unity refresh/Console final result is recorded below. No Play, gameplay/synthetic scenario, training, benchmark or save edits were run, per compile-only preference. No performance or full locomotion parity certification is claimed.
+Known limits: conservative base walking/jump collision executor, not a complete navigation graph or full special mount/flight controller. Tall walls/unreachable targets may now stall/fail instead of being crossed. User should check wood/rock both directions, ceiling, low jumpable vs high wall, one-way platform, ledge falling, interrupting movement in air, correction/respawn, loot/NPC/waypoint/zone approaches. Never mark gameplay acceptance complete from compilation. Models need evaluation with motion revision tile-motion-1 and current moveStepPx; both evaluation arms receive --move-step-px. Existing character saves are unchanged.
+Commands: dotnet build Tools/Learning/RlHost/RlHost.csproj -c Release --nologo --verbosity quiet; Tools/Learning/.venv/Scripts/python.exe -m py_compile Tools/Learning/evaluation.py; unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+
+Final compile-only validation (2026-11-13, bot collision executor): Unity current groundTruth at 2026-11-12T20:00:09Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release RlHost build passed (one pre-existing unused Controller.zoomLevel warning); evaluation.py byte-compilation, wiki JSON parsing, new metas and changed-file whitespace checks passed. No gameplay/Play scenario, runtime collision test, training or performance measurement was run. User gameplay acceptance remains pending.
+
+## 2026-11-13 - Double jump + evaluation report on agents.html
+- Files: Assets/Server/Ai/BotMovement.cs, Assets/Server/World/TileMotion.cs (AirJumpVelocity/Threshold, Revision tile-motion-2), Ai/TacticalLayer.cs (comment), StreamingAssets/NsoWiki/agents.js (learningReport renders #learning-report: pass/fail, reasons, rules vs RL per personality).
+- Tests: dotnet build shows no new errors (the existing BasicSkillGrowth errors of the test project remain); node --check agents.js ok. Unity not refreshed (Play mode was running). Not seen in Play mode.
+
+## 2026-11-13 - Path finding, wiki port, LLM leads
+- Files: Assets/Server/Ai/BotNavigation.cs (new), Ai/BotMovement.cs (path executor), Ai/BotClient.cs (CannotReach),
+  Ai/TacticalLayer.cs (WalkTo sends the destination; unreachable monsters / wander points), Ai/AgentModel.cs (AvoidMobs),
+  Ai/AgentConfig.cs (UnreachableRetrySeconds, LlmLeads, LlmReviewSeconds), Ai/AgentManager.cs (LLM plans applied),
+  DevWiki/WikiServer.cs (no handle inheritance), Scripts/Diagnostics/NsoServerControl.cs (_llmLeads, _llmReviewSeconds),
+  Tools/ServerTests (navcheck, NavDebug.cs; BasicSkillGrowth.cs added to the test build, which did not compile without it).
+- Tests: `dotnet run --project Tools/ServerTests/ServerTests.csproj -- navcheck` (optional map id dumps an ASCII grid):
+  9 maps, every planned path replays identically, search <= 2 ms, graph build 0.4-1.9 s on a worker thread. Random spot
+  pairs reachable 8/60 (Vách Ichidai) to 60/60; many random spots are roofs/ledges a player cannot reach either (not verified
+  one by one). Unity NOT refreshed (Play mode was running); NsoServerControl changes not compiled yet. LLM-leading not run.
+
+## 2026-11-13 - Pick broadcast, port reclaim, RL default
+- Files: Net/PlayerService.cs (ITEMMAP_PLAYERPICK), DevWiki/WikiServer.cs (orphan reclaim), Ai/Rl/RlContracts.cs + RlRuntime.cs
+  (defaults, defaultsVersion), Tools/ServerTests/Program.cs (portcheck).
+- Tests: `dotnet run --project Tools/ServerTests/ServerTests.csproj -- portcheck` OK; dotnet build clean. Unity not refreshed
+  (Play mode). The orphan already in the running Unity was made by old code (no handle recorded): restart Unity once.
+
+## 2026-11-13 - Map view, actions, goto, stall
+- Files: Ai/AgentMapView.cs (new), Ai/StrategicLayer.cs (ActionsText, goto, MapView/Activity in the prompt), Ai/LlmReplyFormat.cs,
+  Ai/AgentModel.cs (GoalType.Move, PlanStep.X/Y, LastStallAskAt), Ai/AgentManager.cs (snapshot, stall trigger, validation),
+  Ai/TacticalLayer.cs (MoveTo), Ai/AgentConfig.cs (LlmStallSeconds), Tools/ServerTests/PromptCheck.cs (`promptcheck`).
+- Tests: promptcheck OK; navcheck / portcheck OK; Unity refreshed: compilationFailed false, consoleErrors 0 (this also
+  compiles the earlier NsoServerControl fields). The real LLM was not called. Bots were reset to new characters (nso.db backup
+  nso.db.before-bot-reset-20261113 next to it).
+
+## 2026-11-13 - Terrain grid, NPC memory, wall rules, jump cost
+- Files: Server/World/TileMotion.cs (client wall/ceiling rules, Revision tile-motion-3), Ai/BotNavigation.cs (JumpCost,
+  Reachable, CellKey, Standable without the solid-body check), Ai/BotMovement.cs (no blind jumps with a graph),
+  Ai/AgentMapView.cs (terrain grid), Ai/AgentKnowledge.cs (npcs: facts kept, NpcMaps), Ai/AgentManager.cs (learn NPCs per map,
+  snapshot), Ai/StrategicLayer.cs (NPC memory section, legend), Ai/AgentConfig.cs (NpcMapsInPrompt), Ai/AgentModel.cs (LastNpcMap).
+- Tests: navcheck (results above), promptcheck OK (grid printed, goto 1338 px arrived). Unity not refreshed (Play mode).
+  RL models evaluated with tile-motion-2 need a new evaluation.
+
+## 2026-11-13 - RAG memory (Qdrant + bge-m3), summary, evaluation hash
+- Files: Ai/AgentRag.cs (new), Ai/StrategicLayer.cs (Decide: recall, budget, Summarize, Ask/Chat; BuildPrompt with recalled /
+  terrain flag; IsLocal internal), Ai/AgentMapView.cs (BuildTerrain separate), Ai/AgentKnowledge.cs (Owner, Mirror), Ai/AgentModel.cs
+  (Decision.Summary/SummaryCut, NinjaAgent.Summary, events mirrored), Ai/AgentManager.cs (start/stop, summary applied, saved),
+  Ai/AgentConfig.cs (Rag*, ContextEvents, LlmContextTokens, CharsPerToken, SummaryWords), Scripts/Diagnostics/NsoServerControl.cs
+  (_ragEnabled, _qdrantUrl, _embedModel, _llmContextTokens), Ai/Rl/RlBridge.cs + Tools/Learning/evaluation.py (motionRevision),
+  Tools/ServerTests/PromptCheck.cs (`promptcheck rag`).
+- Tests: `promptcheck rag` with the real Qdrant + bge-m3 + qwen3.5:4b (scratch collection, deleted afterwards): memories stored
+  and recalled, 22 events summarised (cut 12), the LLM answered a goto to Kiriko's coordinates (12 s incl. the summary);
+  Unity refreshed: compilationFailed false, consoleErrors 0. Not seen in Play mode.
+- Dependencies: Ollama (bge-m3, qwen3.5:4b) and Qdrant on 127.0.0.1:6333 (Docker Desktop must be running). Ollama was not
+  running at 13:08 and was started by the agent.
+- Next: watch summaries in the bot log (kind AI, "summary:"); consider OLLAMA_CONTEXT_LENGTH=8192 so the terrain grid is not dropped.

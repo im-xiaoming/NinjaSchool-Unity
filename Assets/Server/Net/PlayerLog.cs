@@ -13,8 +13,9 @@ namespace NsoServer.Net
     /// - OUT   every message the server sends back (optional, <see cref="LogOutgoing"/>);
     /// - LOG   every GameServer.Log line, unfiltered (the Unity Console only shows lines containing "error");
     /// - STATE a full snapshot of each online character every <see cref="SnapshotSeconds"/> seconds.
-    /// One file per Play session; the newest <see cref="KeepFiles"/> files are kept. Thread-safe; buffered and flushed
-    /// from the server tick (at most half a second of lines can be lost on a hard crash).
+    /// Destinations: the log database player_log.db (PlayerLogDb, one session per Play, <see cref="ToDatabase"/>) and/or
+    /// one text file per Play session (<see cref="ToFile"/>); the newest <see cref="KeepFiles"/> sessions / files are kept.
+    /// Thread-safe; buffered and flushed from the server tick (at most half a second of lines can be lost on a hard crash).
     /// </summary>
     public static class PlayerLog
     {
@@ -28,13 +29,31 @@ namespace NsoServer.Net
         public static int MaxPayloadBytes = 48;
         /// <summary>Old log files beyond this count are deleted when a new session starts.</summary>
         public static int KeepFiles = 20;
+        /// <summary>Write the lines to the SQLite log database (Logs/PlayerLog/player_log.db).</summary>
+        public static bool ToDatabase = true;
+        /// <summary>Also write the classic text file player_*.log.</summary>
+        public static bool ToFile = false;
+        public const string DatabaseFile = "player_log.db";
+        /// <summary>AI players (bots) are logged in their own table of the log database (bot_entries), not in the
+        /// player's session; their lines older than this many days are deleted when the server starts.</summary>
+        public static int BotKeepDays = 20;
+        /// <summary>Log the AI players' actions and states at all.</summary>
+        public static bool LogBots = true;
 
         private static readonly object Sync = new object();
         private static StreamWriter writer;
+        private static PlayerLogDb db;
+        private static List<PlayerLogDb.Line> pending = new List<PlayerLogDb.Line>();
+        private static List<PlayerLogDb.BotLine> pendingBots = new List<PlayerLogDb.BotLine>();
+        private static readonly object DbLock = new object();   // one Flush at a time (inserts happen outside Sync)
+        private static bool On { get { return writer != null || db != null; } }
         private static readonly Dictionary<PlayerState, long> LastSnapshot = new Dictionary<PlayerState, long>();
 
         /// <summary>The file being written, or null.</summary>
         public static string FilePath { get; private set; }
+        /// <summary>The log database and the current session id (for display), or null.</summary>
+        public static string DatabasePath { get; private set; }
+        public static long SessionId { get { return db != null ? db.SessionId : 0; } }
 
         /// <summary>Starts a new log file in the folder (called by ServerBootstrap when the server starts).</summary>
         public static void Open(string folder)
@@ -43,6 +62,17 @@ namespace NsoServer.Net
             lock (Sync)
             {
                 CloseLocked();
+                if (ToDatabase)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(folder);
+                        db = new PlayerLogDb(Path.Combine(folder, DatabaseFile), KeepFiles, BotKeepDays);
+                        DatabasePath = db.FilePath;
+                    }
+                    catch (Exception) { db = null; DatabasePath = null; }   // logging must never stop the game
+                }
+                if (!ToFile) return;
                 try
                 {
                     Directory.CreateDirectory(folder);
@@ -58,12 +88,22 @@ namespace NsoServer.Net
         }
 
         /// <summary>Flushes and closes the file (server shutdown).</summary>
-        public static void Close() { lock (Sync) CloseLocked(); }
+        public static void Close() { Flush(); lock (Sync) CloseLocked(); }
 
         private static void CloseLocked()
         {
             if (writer != null) { try { writer.Flush(); writer.Dispose(); } catch (Exception) { } }
             writer = null;
+            if (db != null)
+            {
+                lock (DbLock)
+                {
+                    try { db.Insert(pending); db.InsertBots(pendingBots); db.Dispose(); } catch (Exception) { }
+                    db = null;
+                }
+            }
+            pending.Clear();
+            pendingBots.Clear();
             LastSnapshot.Clear();
         }
 
@@ -79,26 +119,53 @@ namespace NsoServer.Net
 
         private static void Write(string kind, string text)
         {
-            if (writer == null) return;
+            if (!On) return;
+            var now = DateTime.Now;
+            string time = now.ToString("HH:mm:ss.fff");
             lock (Sync)
             {
+                if (db != null && pending.Count < 200000)   // a stuck database must not eat the memory
+                    pending.Add(new PlayerLogDb.Line { Ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), Time = time, Kind = kind.Trim(), Text = text });
                 if (writer == null) return;
-                try { writer.Write(DateTime.Now.ToString("HH:mm:ss.fff")); writer.Write(" | "); writer.Write(kind); writer.Write(" | "); writer.WriteLine(text); }
+                try { writer.Write(time); writer.Write(" | "); writer.Write(kind); writer.Write(" | "); writer.WriteLine(text); }
                 catch (Exception) { }
             }
         }
 
-        /// <summary>Writes buffered lines to disk (server tick).</summary>
+        /// <summary>Writes buffered lines to disk (server tick): the text file, then one database transaction.</summary>
         public static void Flush()
         {
-            if (writer == null) return;
-            lock (Sync) { try { if (writer != null) writer.Flush(); } catch (Exception) { } }
+            if (!On) return;
+            List<PlayerLogDb.Line> batch = null;
+            List<PlayerLogDb.BotLine> bots = null;
+            lock (Sync)
+            {
+                try { if (writer != null) writer.Flush(); } catch (Exception) { }
+                if (db != null && pending.Count > 0) { batch = pending; pending = new List<PlayerLogDb.Line>(); }
+                if (db != null && pendingBots.Count > 0) { bots = pendingBots; pendingBots = new List<PlayerLogDb.BotLine>(); }
+            }
+            if (batch == null && bots == null) return;
+            lock (DbLock)
+            {
+                try { if (db != null && batch != null) db.Insert(batch); } catch (Exception) { }
+                try { if (db != null && bots != null) db.InsertBots(bots); } catch (Exception) { }
+            }
         }
 
         /// <summary>A message from the client: the player's action. <paramref name="me"/> is null before the character enters the game.</summary>
         public static void In(Session s, PlayerState me, Message m)
         {
-            if (writer == null) return;
+            if (!On) return;
+            if (s.IsBot)
+            {
+                if (!LogBots || m.Command == Cmd.PLAYER_MOVE) return;   // every step of 13 walkers would bury the rest
+                var bb = new StringBuilder(120);
+                bb.Append(CmdName(m.Command, m.Data));
+                AppendPayload(bb, m.Data);
+                if (me != null) bb.Append(" @ ").Append(Brief(me));
+                BotLine(s, "IN", bb.ToString());
+                return;
+            }
             var b = new StringBuilder(160);
             b.Append('#').Append(s.Id).Append(' ').Append(CmdName(m.Command, m.Data));
             AppendPayload(b, m.Data);
@@ -109,7 +176,7 @@ namespace NsoServer.Net
         /// <summary>A message to the client (the server's reply).</summary>
         public static void Out(Session s, sbyte command, byte[] data)
         {
-            if (writer == null || !LogOutgoing) return;
+            if (!On || !LogOutgoing || s.IsBot) return;
             var b = new StringBuilder(96);
             b.Append('#').Append(s.Id).Append(' ').Append(CmdName(command, data));
             AppendPayload(b, data);
@@ -120,19 +187,40 @@ namespace NsoServer.Net
         public static void Trace(string text) { Write("LOG", text); }
 
         /// <summary>A named event with the player's state (map change, death, quest step...).</summary>
-        public static void Event(PlayerState me, string text) { Write("EVT", text + (me != null ? " @ " + Brief(me) : "")); }
+        public static void Event(PlayerState me, string text)
+        {
+            if (me != null && me.Session != null && me.Session.IsBot) { BotLine(me.Session, "EVT", text + " @ " + Brief(me)); return; }
+            Write("EVT", text + (me != null ? " @ " + Brief(me) : ""));
+        }
+
+        /// <summary>A line of an AI player (table bot_entries): its client messages (IN), events (EVT), what its screen
+        /// showed (MSG), its AI decisions (AI) and periodic snapshots (STATE).</summary>
+        public static void BotLine(Session s, string kind, string text) { Bot(s != null ? s.BotAccount : "?", kind, text); }
+
+        public static void Bot(string bot, string kind, string text)
+        {
+            if (db == null || !LogBots) return;
+            var now = DateTime.Now;
+            lock (Sync)
+            {
+                if (db != null && pendingBots.Count < 200000)
+                    pendingBots.Add(new PlayerLogDb.BotLine { Ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), Time = now.ToString("MM-dd HH:mm:ss.fff"), Bot = bot ?? "?", Kind = kind, Text = text ?? "" });
+            }
+        }
 
         /// <summary>STATE snapshot of the character when its interval is due (server tick, every half second).</summary>
         public static void Tick(PlayerState me, long now)
         {
-            if (writer == null || SnapshotSeconds <= 0 || me == null || me.Record == null) return;
+            if (!On || SnapshotSeconds <= 0 || me == null || me.Record == null) return;
             long last;
             lock (Sync)
             {
-                if (LastSnapshot.TryGetValue(me, out last) && now - last < SnapshotSeconds * 1000L) return;
+                int every = me.Session != null && me.Session.IsBot ? Math.Max(30, SnapshotSeconds) : SnapshotSeconds;   // AI players: every 30 s
+                if (LastSnapshot.TryGetValue(me, out last) && now - last < every * 1000L) return;
                 LastSnapshot[me] = now;
             }
-            Write("STATE", Full(me));
+            if (me.Session != null && me.Session.IsBot) BotLine(me.Session, "STATE", Full(me));
+            else Write("STATE", Full(me));
         }
 
         /// <summary>Forgets a character that left the game.</summary>

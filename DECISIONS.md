@@ -424,3 +424,220 @@ Corrected corrupted Vietnamese copy-path and missing-sprite labels in NsoWiki/ap
 - The original client advanced a skill animation inside paint (Char.paintCharWithSkill: indexSkill++, effect frames i0..i2, arrow launch), one paint per game tick. Unity paints at the screen rate (60 fps, more with VSync on a high-refresh monitor) while the logic runs at 24 ticks/s, so skills looked 3-6 times too short.
 - Offline fix: Main.LogicTick counts FixedUpdate ticks; only the first paint after a tick (or after a skill restart) runs the original step; later paints in the same tick restore the pre-step state, redraw the same frame without launching an arrow, and put the post-step state back. Hit timing (updateSkillPaint) is unchanged.
 - Changed: Assets/Scripts/Gameplay/Entities/Char.cs, Assets/Scripts/Application/Main.cs. Unity compiled clean; not run in Play mode.
+
+## 2026-11-12 - Hybrid AI for autonomous NPC ninjas (offline addition)
+- User asked for NPCs that behave like independent players: an LLM decides goals (strategic), game AI executes them (tactical). User chose: local LLM only (no cloud), MVP scope first.
+- Strategic layer: `LlmPlanner` calls an OpenAI-compatible chat completions endpoint on this PC (default Ollama `http://127.0.0.1:11434/v1/chat/completions`, model `qwen3.5:4b` (was 2b; user switched 2026-11-13) with reasoning_effort none (thinking off)), JSON decision {reason, say, fleeHp, steps[hunt|collect|rest|explore|travel|idle]}. `LlmLocalOnly` refuses non-loopback endpoints. One shared worker thread (`StrategicService`) serves every agent; the game never waits for it.
+- Fallback: `RulePlanner` (utility AI over HP, level fit, distance, traits) decides when the LLM is off, failing (backoff 60 s), timed out, queue full, throttled for an agent without a plan, or returns no valid step. Every LLM plan is validated against the world (maps reachable through waypoints, monster lives on the map, counts clamped).
+- Decisions are event-driven only: plan done/failed, death/respawn, level up, spawn, a player arriving (very sociable agents while idling), periodic review (300 s). Throttled per agent (15 s). Never per frame or during combat.
+- Tactical layer (`AgentTactics`, every 500 ms tick; every 4th tick in zones without players = background simulation): waypoint routing (BFS), walking on the floor (TileGrid.CollisionY), target choice in the experience window, attack range of Char.attackMonster, damage/miss/critical like a player, Char.addExp formula, yen drops it picks up itself, retreat-and-rest reflex below fleeHp.
+- Agents are fake characters like Java's Bot (PLAYER_ADD/MOVE/REMOVE/DIE, ids -2000000 - index). Monsters notice and hit them (MobBrain, same rules as the escorted Jaian). They never take the player's loot and have no PvP. Agents' stats: gearless ProgressionSample x DamagePercent/HpPercent (200%) because they have no equipment.
+- Offline deviation (client): CHAT_MAP (-23) server->client shows a speech bubble again (MapService.chat: int id, UTF text); the client ignored it before because nobody else spoke offline.
+- Persistence: document `agents` in the save database nso.db (exp, yen, kills, deaths, map, memory), every 60 s and on stop (was agents.json before the SQLite switch; imported once). Not in the dotnet tests (AgentManager.Start is only called by ServerBootstrap).
+- Not in this MVP: shops/trading, quests, crafting, agent-to-agent conversation, PvP, equipment.
+
+## 2026-11-13 - Bot navigation follows the server's bottom-row rule and the waypoint box
+The AI path graph must accept exactly what the server accepts: the last tile row is lethal only when it is not a T_TOP tile (the existing IsCrossMap offline deviation; map tile 4: last two rows), and an exit is reached when the character is inside the server's waypoint box in both directions (TileMap.FindWaypoint: 100 px; the bot uses 90 px of height). Before, bots on map 6's ground bottom row could not plan any move and bots asked for map changes far below the exit.
+
+## 2026-11-13 - Spending style, real death cost, stronger items when needed, fast travel (RL plan steps 2-5)
+- Spending: no new trait; greed is the thrift trait (observation slot unchanged). Thrifty characters carry fewer potions, keep more money and try fewer items; greed 0.5 equals the configured values.
+- Death: a flat penalty taught "never die", but the user wants "dying to get home faster" possible. Monster deaths cost no exp (Java: exp only in PK, Char.java hieuChien), so the reward charges the real cost: revive wait plus the walk back from the save village, nothing extra when the plan needs the village anyway. Exp actually lost is charged through a negative exp reward.
+- Stronger items: the fitting (cheapest sufficient) potion by default, the strongest in danger; RL gets both as separate actions to learn when the expensive one pays.
+- Fast travel: a travel executor judgement (saved map changes vs FastTravelMinSavedHops), using only what players have: teleport scrolls (Char.useItemChangeMap) and the carriage NPCs (Char.npcUmayaki / npcUmayaki_2).
+
+## 2026-11-13 - Item ledger: try, remember, stop buying what does nothing
+User: a player tries an unknown item, stops buying it if it does nothing, but remembers what it does to buy it again later. Each AI character keeps an item ledger (bought, used, useful = any visible effect, wasted, spent) saved with its reward history; the verdict is a knowledge fact (`ledger:<id>`) so the LLM and RAG see it. Rewards come from outcomes, not rules: buying an item already found useless (`ledgerUselessAfter` uses, no effect) costs `wastefulPurchasePenalty`; unknown items keep the one-time purchase reward. "Try item" is an option for rules (curiosity, below the quest), the LLM (shop step with the item id) and RL (strategy slot 5). A try only happens when the item can show its effect (Java Char.useItem refuses an HP potion at full HP). This is step 1 of the user's order: ledger, thrift, death cost, stronger items, fast travel.
+
+## 2026-11-13 - AI players sell junk to keep bag space
+Full bags (loose stones, spare gear) made Char.finishTask and school admission refuse silently for the bots, so they repeated the NPC menu forever. A habit (`AgentTactics.SellJunk`) sells one item per 2.5 s check through the normal Char.saleItem packet while fewer than `AgentConfig.BagReserveSlots` (default 3, Inspector `_aiBagReserveSlots`, 0 = off) slots are free: stones first (the AI never upgrades), then gear it will never wear. Potions, food, quest items (types 24/25), type 12 and "other" items are kept. Not a server deviation: any player can sell like this.
+
+## 2026-11-13 - The LLM sets the rule planner's priorities
+- The user asked that the LLM coordinate and change the rule scores dynamically by context. The LLM cannot answer 13
+  bots fast enough to plan every step, so each answer also sets weights (0..3) for the rule planner's scores; the rules
+  keep making the quick decisions with them until the next answer (or `LlmPriorityMinutes`). The potion restock when
+  none are left is a safety rule and is not weighted. The main quest now outranks training by default.
+
+## 2026-11-13 - AI players eat food; the whole game in RAG; interactions reported
+- Food is a player habit, not a rule change: the AI eats only food it bought through the normal shop and the server
+  applies the effect as for any player. The rules plan a food trip only when there is no food at all, none running and
+  the money above `FoodMoneyReserve` pays for it; potions always come first.
+- The game knowledge is generated from the same joined records as the dev wiki (one source of truth), shared by every
+  AI player (owner "*"), separate from each bot's own memories in recall so it never pushes them out. "Usable offline"
+  is derived from what `PlayerItems.UseItem` and its handlers really implement.
+- "Report every interaction to the LLM" (user, 2026-11-13) means: the interaction and its visible outcome go into the
+  bot's memory and knowledge, which the LLM reads at its next decision. The LLM is not called once per interaction (a
+  local 4B model answers in seconds; 13 bots would queue forever). Repeats of the same interaction are reported at most
+  once per 60 s.
+
+## 2026-11-13 - Training progress and consumables on /agents.html
+- The trainer publishes its progress in `trainer-status.json` (`progress`, `metrics`, `history`; at most once a second)
+  and keeps the last 100 training rounds in `training-history.json`. Behaviour cloning holds out 10 % of the teacher rows
+  (when >= 320) to report validation accuracy; this only reduces the cloned rows by 10 %, nothing else changes.
+- The isolated evaluation reports each finished run's totals (`evaluation.run_score`) through a progress callback.
+- Learning files are replaced with a short retry on both sides (Windows refuses to replace a file the other process is
+  reading); before, one collision left "Unable to remove the file to be replaced" on the page until the next restart.
+- `BotClient` remembers the last consumable used and `/control/agents` lists the running effects; debug only, the game
+  never reads them.
+
+## 2026-11-13 - Save data and log in SQLite
+- User asked for PostgreSQL in Docker, then decided: everything in SQLite (no server to run for an offline game). PostgreSQL / Docker not used.
+- Save database `<persistentDataPath>/NsoData/nso.db` (Store/SqliteSaveDb): tables users, players (character columns + `data` JSON with bag, equipment, quest, skills, as the Java `players.data`), kv (named JSON documents: `agents`), meta (schema_version 1). WAL journal. AccountStore keeps its in-memory lists and writes all rows in one transaction per change (insert or update by id), as the TSV files were rewritten before.
+- Migration: a new empty nso.db imports users.tsv / players.tsv once and renames them *.tsv.migrated; agents.json likewise. The user's save was migrated on 2026-11-13 (1 account, character admin: exp, map, task, data identical) after a full copy to `NsoData_backup_before_sqlite_20261113_000309`.
+- Fallback: if SQLite cannot open (missing native library, locked/corrupt file) the TSV files are used and the reason is logged ("save storage: ... SQLite error"). Inspector `_useSqlite` turns SQLite off. Writes after AccountStore.Close are ignored (a late tick must not recreate TSV files).
+- Log database `Logs/PlayerLog/player_log.db` (Net/PlayerLogDb), separate from the save: sessions + entries(session_id, ts_ms, time, kind, text). PlayerLog buffers lines and inserts one transaction per Flush (500 ms tick). KeepFiles = sessions kept. Text files are off by default (`_playerLogToFile`). The 5 old text logs were imported (sessions 1-5, 10305 lines) and kept on disk.
+- Libraries (NuGet, MIT/Apache): Microsoft.Data.Sqlite.Core 8.0.11, SQLitePCLRaw.core / provider.e_sqlite3 / batteries_v2 / lib.e_sqlite3 2.1.10. Only the Windows x64 native library is included; other platforms need their e_sqlite3 binary.
+
+## 2026-11-13 - AI players are real players (replaces the simulated agents)
+- User: the AI ninjas must follow the player's rules, "like a player, not a machine"; maps unlock by quests; 10 more (13 in all);
+  memory of gameplay, items and experience for the LLM; basic instructions for the LLM; log their activity, deleted after 20 days;
+  no access to the dev terminal. Chosen: real client (each AI = account + character in nso.db), new characters at level 1, quest 0.
+- Each AI player signs in on a bot session (GameServer.ConnectBot; Session without a stream, replies dropped, dialog texts kept
+  as Session.LastNotice) with account `ai<name>`, and sends the game client's messages through Controller.OnMessage (BotClient):
+  move, change map, select skill, attack, pick, buy, use item, NPC menu / confirm, points, return to the village. Every rule is the
+  server's (MapUnlock, cooldown, MP, weapon, shop gate quest 3, prices, bag space, pickup owner, no natural regeneration, death).
+  The old exceptions were removed: x2 HP/damage, free regen, own yen drops, agent hooks in MobBrain / PlayerCombat (files reverted).
+- Offline addition Net/Presence: characters in a zone see each other (PLAYER_ADD/MOVE/REMOVE/DIE, CHAT_MAP to the others). The
+  single-player port never sent these; needed for the AI players and harmless for one player.
+- Game AI habits: potions below fleeHp (default 30 %), MP potions, buy potions at Kiriko (yen shop 7, else xu shop 6), spend
+  potential (strength + some HP by caution) and skill points (main attack skill; quest 9 order kept), wear gear / read books from
+  the bag, pick up own / free / 20 s-old loot, wait for a dead quest monster to respawn, jump over wood/rock tiles (a move into
+  them is refused), stay 30 px from map edges, ME_BACK 8 s after death.
+- Quest play: menus like a player (take + confirm, report, DoTask, "Nói chuyện", quiz answered by trying until NAnswer goes up,
+  the right answer remembered), kill / pick steps hunt the step's monster, NV diệt sên trừ cóc buys and eats Cơm nắm (earning
+  yen first if needed), NV khám phá walks to the 3 maps, school admission (puts the weapon away, "Nhập học", class from the
+  personality), steps it cannot play only via the giver's "Bỏ qua" (offered to every player for unported steps).
+- Memory: Memory (last 20 events) + AgentKnowledge (keyed facts: dangers, hunting grounds, quiz answers, locked maps, NPC places,
+  quests, items, players met; max 80), saved in the save database document `ai_players`. The LLM gets character (level, exp %,
+  HP/MP, yen, xu, bag, equipment, school), quest state, knowledge, events, unlocked hunting grounds; new goals quest / shop.
+  AgentConfig.LlmGuide (Inspector _llmGuide) is a beginner's guide appended to the system prompt.
+- Bot log: table bot_entries of player_log.db (IN without moves, EVT, MSG, AI, SAY, ERR, STATE every 30 s), lines older than
+  BotKeepDays (20) deleted at server start. Bots are left out of the player's sessions and the Workbench player cards.
+- The old agents' document `agents` is left in nso.db unused (the user chose fresh characters).
+
+
+## 2026-11-13 - Hierarchical online RL with retained rules
+User approved RL (not Random Forest), controlling strategy/combat/movement, learning while playing, personality/human likeness as the priority, a 500 ms cadence, guided exploration and optional human demonstrations. Rules are retained as teacher, fallback and baseline. LLM is advisory rather than the main planner. This intentionally supersedes the earlier LLM-primary architecture; no server gameplay privileges change.
+
+Use maintained sb3-contrib MaskablePPO optimisation, 64/64 Tanh actor/critic per domain, shared among personalities. C# performs local masked inference; a hidden separate Python supervisor performs behavioural cloning/PPO on CUDA (user follow-up), with one host CPU thread and FPS budget gating. uv owns the Python 3.11 environment and lock. Dependencies downloaded with explicit user approval; no runtime downloader. Human input recording and long evaluation default off. An evaluator-approved, hashed immutable release is required before model control; retain a previous release for rollback. All character actions still traverse BotClient/Controller, with shared tactical/menu macros. Learning data/checkpoints are separate from character saves. The headless host compiles the shared BasicSkillGrowth; its client-only DisplayMaxPoint is guarded for Unity builds instead of duplicating progression.
+
+Current evidence is compilation, a CUDA tensor and short synthetic contract checks, not a trained policy quality claim. See docs/AI_LEARNING.md for contracts, defaults, gates, lifecycle, retained quest limitations and exact commands.
+
+
+Final validation (2026-11-13): Unity refresh and current Console passed at 2026-11-12T19:01:12Z: compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (only the pre-existing unused Controller.zoomLevel warning). Seven short synthetic CUDA contracts passed; JS syntax, Python byte-compilation, uv lock and changed-file whitespace checks passed. No Play/browser/live training/long evaluation run; production saves unchanged. The earlier dirty NSO Game.prefab has a pre-existing trailing-space warning and was not edited for this change.
+
+
+## 2026-11-13 - Shared ground loot and less competitive AI hunting
+
+User explicitly requires the same gameplay rules for human and bot characters, with no bot exceptions. Shared GroundLootPolicy sets 30 s owner protection and 60 s lifetime (Inspector-configurable, lifetime > protection); this is an intentional deviation from Java ItemMap.isCanPickup/isExpired (20/30 s). Keep the original other-owner message. PlayerItems range/bag predicates and PlayerActions.ZoneCapacity are shared with AI/RL feasibility; no gameplay branch grants bot privileges. Fixed quest nodes retain the same existing rule for everyone.
+
+Foraging and quieter-zone selection are behavioural skills using ordinary BotClient/Controller requests. Bots walk to NPC 13, do not call Join directly, and do not receive extra zones/slots/access. Courtesy claims influence AI choices only and never lock a human out. RL evaluation fingerprints the effective shared ground timings; see HANDOFF and docs/AI_LEARNING.md.
+
+
+Final compile-only validation for this update: Unity at 2026-11-12T19:21:56Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build, Python syntax, wiki JSON and changed-file whitespace checks passed; the host retains its pre-existing unused zoomLevel warning. No post-fix Play/gameplay tests or long training were run. User starts the next Play to apply the shared timing and observe foraging/zone changes.
+
+
+## 2026-11-13 - Reward confirmed item/NPC outcomes
+User requested training rewards for new item use/purchase, needed item use at the right time and discovering/using needed NPC features. This is offline RL shaping metadata, not extra character EXP, money or permissions. Controller takes a detached pre-action receipt and compares post-action state; reward observation/persistence errors cannot abort the actual command or save/logout.
+
+First use/purchase is once per item template; NPC discovery once per NPC template. Persist novelty independently of the bounded 80-fact knowledge cache. Useful uses require actual effects/progress and a configurable cooldown; objective-item and NPC-feature keys prevent reset/menu spam. Useful NPC reward is once per NPC/feature/task-step (quiz answer index included). Old mind/settings fields are optional. Default weights 0.2/0.1/0.3/0.1/0.3; HP 50%, MP 25%, cooldown 30 s, near-full bag 2 slots. Same classification applies to opted-in human demonstrations. No policy observation/action/schema or character save schema change.
+
+
+Final compile-only validation (2026-11-13, action rewards): Unity current Console at 2026-11-12T19:40:48Z reported compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0. Release host build passed (pre-existing unused zoomLevel warning); agents.js syntax, wiki JSON, meta presence and changed-file whitespace checks passed. No gameplay/Play/browser/learning-session tests were run; user validation is pending.
+
+
+## 2026-11-13 - LLM reply contract and remote movement presentation
+Offline presentation/protocol deviations: local LLM requests use an explicit JSON schema requiring executable steps (optional fallback to json_object for other providers). Formatting failures back off 5 seconds independently of service failures; bounded raw failed replies are retained for diagnostics. Remote characters use render-only adaptive packet-cadence interpolation; logical coordinates, server authority and local-player control remain unchanged. This does not resolve bot planner obstacle traversal. Java has no corresponding LLM protocol or high-refresh interpolation; existing movement packets/handlers are retained.
+No RL promotion was authorised by the readiness question. Compilation does not qualify an unevaluated model for primary control.
+
+
+## 2026-11-13 - Headless client movement, not endpoint teleporting
+Offline addition: bots need a client movement executor because they have no running graphical Char controller. BotMovement executes requested destinations in approximately 24 Hz client frames, using TileMotion geometry derived from Char.java/updateCharRun, updateCharJump, updateCharFall and setAutoJump (body 11/32 px, jump -10, gravity +1, terminal fall 20). Pixel sweeps prevent tunnelling; full solid-body checks are conservative. Grounded launch is required; no air-jump or arbitrary vertical lift. No human/bot exemption is added to PlayerActions.Move, server authority, combat or other gameplay rules.
+GameServer owns one background client-frame loop under the existing world lock. Existing 500 ms world/AI ticks and real-time cooldown/effect clocks are unchanged. BotClient remains the only execution gate; motor state is transient, cancelled on correction/death/map/zone changes and never persisted. Frame packets bypass policy interception to avoid recursively creating new decisions; movement actions represent destination intents executed over the interval. Existing MoveStepPx is exposed in the Inspector and also caps execution at normal character speed. The motion revision and move-step setting enter the C#/Python evaluation fingerprint. This supersedes the previous pending endpoint-collision note; runtime verification and difficult-route planning remain pending.
+
+## 2026-11-13 - AI players double jump
+- User: bots did not double jump. BotMovement now presses up once more while still rising (cvy > -4, once per jump, cvy = -7), as GameScr.updateKeyInGame does for the player (canJumpHigh is always true). TileMotion.Revision -> tile-motion-2, so RL models evaluated with the old movement need a new evaluation.
+
+## 2026-11-13 - AI path finding, wiki port, LLM leads
+- User: bots walked one straight line and hung when blocked. BotNavigation (offline addition) builds per map and speed, on a
+  worker thread, a graph of 24 px cells whose edges are simulated client frames (walk one tile, jump, jump + double jump,
+  falling off a ledge); BotMovement walks to the cell centre and replays the edges with the same frame function, so plan and
+  execution agree. WalkTo now sends the destination itself. Unreachable targets: the closest cell is used and CannotReach
+  tells the tactics (a monster is skipped for AgentConfig.UnreachableRetrySeconds = 20, a wander point is replaced).
+- User: the web often lost its port. The RL trainer is started with UseShellExecute = false, so on Windows it inherited the
+  wiki's listening socket and kept 8787 after Play stopped. WikiServer clears HANDLE_FLAG_INHERIT on its sockets and binds
+  with ExclusiveAddressUse.
+- User: the LLM should lead. AgentConfig.LlmLeads (Inspector _llmLeads, default on): a validated LLM plan replaces the
+  interim rules/RL plan; a running plan is kept while the LLM thinks; rules/RL fill gaps (no plan, LLM unavailable/failed).
+  Reviews every LlmReviewSeconds (120). Off = the previous advisory-only behaviour.
+
+## 2026-11-13 - Item pick broadcast, wiki port reclaim, RL by default
+- Bug (user): items taken by an AI player stayed on the human's screen and picking them did nothing, silently. The port lacked
+  MapService.pickItem -> Service.playerPickItem (ITEMMAP_PLAYERPICK -13 to the other characters of the zone); added in
+  PlayerService.PickItem.
+- Port still taken (user): the listener on 8787 was held by the same Unity process (orphaned by an Editor domain reload).
+  WikiServer remembers its listening socket handle in the process environment variable NSO_DEVWIKI_LISTENER and closes it on
+  the next start when it is still a socket bound to 127.0.0.1:<port> (portcheck test). ExclusiveAddressUse was dropped (it threw).
+- User: "rules do nothing, switch to RL"; chosen: RL controls, rule code kept. RlSettings defaults Mode RL, Guidance 0,
+  Stage 3 (a model still acts only up to its own evaluated stage); saved settings without defaultsVersion 2 adopt them once.
+  Without an evaluated model the rule teacher still acts as the fallback and demonstration source.
+
+## 2026-11-13 - LLM sees the map with coordinates, knows the actions, steps in when stuck
+- User: the bot must know its position, the needed coordinates and every object of the map; the key bindings / actions it
+  can do; and the LLM must step in when a long activity gives no result.
+- AgentMapView (prompt section CURRENT MAP): own position, map size, exits (target map, LOCKED by quest), NPCs, monsters by
+  kind (alive count, nearest positions), ground items (yours / free / another player's), other players; exits and NPCs say
+  "no way found from here" when BotNavigation knows no way. LlmPlanner.ActionsText lists what a player can do (with the
+  human keys: arrows, Up/Space jump + double jump...). New LLM step "goto" {map, x, y} (GoalType.Move, PlanStep.X/Y; the
+  JSON schema now requires x and y): travel, then walk/jump there; fails when no way is found (remembered as a note).
+- AgentConfig.LlmStallSeconds (90): a plan without any result for that long asks the LLM with a "NO RESULT ..." event; its
+  answer replaces the plan (LlmLeads). Tested by `promptcheck` (dotnet): prompt printed, goto parsed and walked 1338 px to an NPC.
+
+## 2026-11-13 - Terrain grid for the LLM, NPC memory per map, client wall rules, fewer jumps
+- User: send the whole map with passable / impassable marks. AgentMapView adds a TERRAIN grid (one character per 24 px cell,
+  2x2/3x3 above AgentMapView.MaxGridCells = 4000; rows labelled with y, column ruler): _ floor reachable from here (BotNavigation.
+  Reachable), x floor not reachable, # solid, w wood/rock, . air, and @ E N M i P objects. Legend in AgentMapView.GridLegend.
+- User: remember NPC positions of every map. On entering a map the AI learns "npcs:<map>" (every NPC with coordinates); these
+  facts are never forgotten by the 80-fact limit and AgentConfig.NpcMapsInPrompt (12) other maps are sent to the LLM.
+- Bug: TileMotion blocked a character on solid ground inside its body and under its head; the client (Char.updateCharRun /
+  updateCharJump) only stops on T_LEFT / T_RIGHT walls and a T_BOTTOM ceiling at the head. Fixed (tile-motion-3; the server's
+  wood/rock soft block kept). Reachable random pairs: Làng Tone 24/60 -> 57/60, Vách Ichidai 8/60 -> 60/60; graphs <0.1 s.
+- User: "why do the bots keep jumping". Jump edges now cost +30 frames (double +45) so walking is preferred, and the final
+  approach no longer jumps at a higher target once the map graph exists (it hopped on the spot at unreachable targets).
+- User: with a destination use the shortest path directly: that is what BotMovement does (A* over the precomputed graph).
+
+## 2026-11-13 - AI long-term memory in Qdrant (RAG) and summary when the context is full
+- User: summarise when the context is full; other information is not injected but retrieved when needed (RAG, Qdrant).
+  Chosen: Qdrant via Docker, embeddings bge-m3 (Ollama). The machine already runs Qdrant 1.20 on 127.0.0.1:6333 (the user's
+  rag-agent compose project); the game only uses its own collection nso_agent_memory (AgentConfig.RagCollection).
+- AgentRag: AgentKnowledge facts (except quiz answers), every Memory event and the beginner's guide (shared, agent "*") are
+  embedded on a background worker and upserted (point id = MD5(agent|key), unchanged text not re-embedded). Before each LLM
+  decision the worker thread recalls RagTopK (8) memories for the event + quest step + activity + map; the prompt then carries
+  MEMORIES RELEVANT NOW and only the ContextEvents (8) newest events, without the in-context knowledge, NPC lists or guide.
+  Qdrant/embedding unreachable: the previous in-context prompt.
+- Context budget: LlmContextTokens (4096, Ollama's runtime context for qwen3.5:4b) - LlmMaxTokens - 150, estimated with
+  CharsPerToken 2.5 (measured 2.7). Over budget or Memory full: the LLM writes "YOUR STORY SO FAR" (<= SummaryWords 80) from the
+  previous summary + older events, which replace those events (saved as `summary`); still over: the terrain grid is dropped.
+- Also: Python evaluation used a hard-coded "tile-motion-1" in the balance hash, so no model could ever match the game
+  (TileMotion.Revision). environment.json now carries motionRevision; the stale evaluation context of v1794510524833 was
+  renamed evaluation-context.json.old-motion (0 trials had finished).
+
+## 2026-11-13 - Bot movement as other players see it, rules restock potions, larger RL
+- User: "bots turn left and right", "smooth the bots' movement from the player's point of view". Cause: BotMovement sent a
+  PLAYER_MOVE every 42 ms client frame (about 5 px each); the watching client queues every packet as a MovePoint
+  (Char.moveTo) and walks/turns per point, while a real client reports at most every 250 ms (Char.sendMove). Also the
+  executor stepped 1 px back to the cell centre after each planned walk edge (walk edges end 25 px from their start).
+  Now the bot moves locally every frame and reports at AgentConfig.MoveSendMilliseconds (250), on stop, on landing and
+  right before any other command (BotClient flushes, so attack/pickup/waypoint checks use the real position). Flat walks
+  go straight on without re-centring; a jump/drop edge is re-simulated from the current x and used when it lands in the
+  same cell. Offline deviation (no Java counterpart: the Java server has no bots).
+- User: "make the rules more accurate". Player log, last 36 h: all 82 AI deaths were characters that could shop, had over
+  500 yen and carried 0 HP potions. RulePlanner now restocks first below AgentConfig.MinPotionsToFight (3); without
+  potions it trains only on monsters at most one level above; tactics retreat to buy potions at NoPotionFleeHpPercent (55).
+- User: "strengthen RL learning, resources are fine". trainer.py: 256x256 actor/critic (was 64x64), 65 536 rows per
+  domain, behaviour cloning on 32 768 rows x 8 epochs (batch 256), PPO n_steps 1024 / batch 256 / 10 epochs, a round every
+  20 s, 4 torch threads. A 64-wide checkpoint is replaced by a fresh 256-wide model cloned from the teacher (normal
+  evaluation still gates it). RlPolicy reads the layer widths from the file (limit 64 MB / 1024 wide); verify_export
+  rebuilds RlHost when its sources changed.
+- agents.html: removed the Guided mode, the guidance ratio and the control-tier selector (RL mode ignores guidance and a
+  model is always limited to its evaluated tier, which a new release overwrites anyway); fixed the device labels; the
+  plan chip shows RL plans as "RL" instead of "Luật".

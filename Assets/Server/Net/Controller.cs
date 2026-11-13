@@ -32,6 +32,8 @@ namespace NsoServer.Net
         private readonly Session session;
         private const string LocalAccount = "player";
         private const string LocalPassword = "local";
+        /// <summary>Password of the AI players' accounts (bot sessions sign in with Session.BotAccount).</summary>
+        private const string BotPassword = "local-ai";
         private bool clientInfoSet;
         private int zoomLevel = 1;
         private bool clientOk;
@@ -47,7 +49,10 @@ namespace NsoServer.Net
             lock (Gate)
             {
                 PlayerLog.In(session, actions != null ? actions.State : null, m);   // offline debug log of every player action
+                NsoServer.Ai.Rl.RlRuntime.RecordHuman(session, actions != null ? actions.State : null, m);
+                var rewardReceipt = NsoServer.Ai.Rl.RlRuntime.BeginAction(session, m);
                 Handle(m);
+                NsoServer.Ai.Rl.RlRuntime.EndAction(rewardReceipt);
             }
         }
 
@@ -92,7 +97,7 @@ namespace NsoServer.Net
                     case 21: if (actions != null) PlayerUpgrade.Upgrade(m, actions.State, session.Server.World); break;        // UPGRADE
                     case 22: if (actions != null) PlayerUpgrade.Split(m, actions.State, session.Server.World); break;          // SPLIT
                     case -14: if (actions != null) PlayerItems.PickItem(m, actions.State, session.Server.World); break;      // ITEMMAP_MYPICK
-                    case -23: if (actions != null) DevTerminal.Run(m, actions, session.Server.World); break; // CHAT_MAP: dev terminal (offline)
+                    case -23: if (actions != null && !session.IsBot) DevTerminal.Run(m, actions, session.Server.World); break;   // AI players never reach the dev terminal // CHAT_MAP: dev terminal (offline)
                     case Cmd.SUB_COMMAND: if (actions != null) OnSubCommand(m); break;
                     default: session.Server.Log("Client " + session.Id + ": cmd " + m.Command); break;
                 }
@@ -107,6 +112,7 @@ namespace NsoServer.Net
         {
             lock (Gate)
             {
+                NsoServer.Ai.Rl.RlRuntime.SaveHumanRewardHistory(session);
                 if (actions != null) { actions.SaveAndLeave(); actions = null; }
             }
         }
@@ -136,11 +142,13 @@ namespace NsoServer.Net
         {
             if (user != null) return;
             UserRecord found;
-            var result = session.Server.Accounts.Login(LocalAccount, LocalPassword, out found);
+            // offline AI players sign in with their own account (Session.BotAccount)
+            string account = session.IsBot ? session.BotAccount : LocalAccount;
+            var result = session.Server.Accounts.Login(account, session.IsBot ? BotPassword : LocalPassword, out found);
             if (found == null) { session.Close(); return; }
             user = found;
             if (result == AccountStore.LoginResult.Created)
-                session.Server.Log("Created account " + LocalAccount);
+                session.Server.Log("Created account " + account);
             SendNotMap(Cmd.UPDATE_VERSION, session.Server.Static.Version);
         }
 
@@ -198,6 +206,9 @@ namespace NsoServer.Net
         private PlayerRecord current;
         private PlayerActions actions;
 
+        /// <summary>The character in the game, or null (read by the offline AI players).</summary>
+        public PlayerActions Actions { get { return actions; } }
+
         private void SelectCharacter(Message m)
         {
             if (current != null) return;
@@ -208,6 +219,7 @@ namespace NsoServer.Net
             current = chosen;
             var state = EnterWorld.Send(session, user, chosen, session.Server.World);
             actions = new PlayerActions(session, session.Server.World, state);
+            Presence.Joined(state);   // Zone.join: the other characters of the zone (players and AI players) see each other
             PlayerTasks.OnEnterWorld(state, session.Server.World);   // quest in progress (User.selectChar)
         }
 

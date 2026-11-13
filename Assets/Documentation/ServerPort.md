@@ -257,3 +257,41 @@ GET /sprites/items/{templateId}.png maps item.icon to Img/Small/{zoom}/Small{ico
 - Changed: InventoryGrouping.cs, PlayerItems.cs, PlayerService.cs, PlayerStorage.cs, PlayerUpgrade.cs, server Controller.cs; Char.cs, GameScr.cs, GameCanvas.cs, client Service.cs/Controller.cs; four root docs, architecture/UI/server docs and wiki notes. Offline extensions of Java Char.bagSort/boxSort and existing inputNumSplit. Existing packet namespace extended; no save-schema/scene/package changes.
 - Validation: Unity refreshed and compiled; compilationFailed=false, compiling=false, consoleErrors=0, consoleWarnings=0 (2026-11-12T14:58:33Z); diff check passed. Read-only reflection confirmed CanStack and SplitStack are in the loaded assembly; no Play, sorting/splitting/crafting execution or save mutation per user compile-only preference.
 - Next: user presses Sort on duplicate food/crystals in bag/box; checks one-cell quantities, locked/expiring separation and equipment unchanged. Split e.g. 3 from 10 -> 7+3; reject 0/10/bad input/full container; split one crystal then upgrade/refine, cancel without loss; eat once from a food stack, transfer/sell/reload and compare totals. Commands: unity command script eval --file <refresh.cs> --project-path "C:/My project" --format json; unity command console status --project-path "C:/My project" --format json.
+
+## Autonomous agents (offline addition, no Java counterpart beyond bot/Bot)
+| Part | File | Based on |
+|---|---|---|
+| Fake characters shown to the client | Ai/AgentManager.cs | AbsService.playerAdd + charInfo, MapService.waitToDie, MapService.chat |
+| Monster hit by an agent | Net/PlayerCombat.AgentHit | MapService.setSkillPaint_1 / attackMonster, Mob.die |
+| Agent experience | AgentManager.AddExp | Char.addExp(Mob, int) |
+| Monsters attack agents | Net/MobBrain.cs | Mob.update / Mob.attack (as for bots) |
+| Strategy / tactics | Ai/StrategicLayer.cs, Ai/TacticalLayer.cs | offline (LLM + utility AI) |
+
+## AI players (offline addition, 2026-11-13)
+| C# | Purpose |
+|---|---|
+| Net/Presence.cs | Zone.join/out/move multiplayer messages (AbsService.playerAdd + charInfo, PLAYER_MOVE/REMOVE/DIE, CHAT_MAP) |
+| Net/Session.cs (bot) / GameServer.ConnectBot | stream-less sessions for AI players |
+| Ai/BotClient.cs | client-side Service.java messages built for an AI player |
+| Ai/TacticalLayer.cs, AgentManager.cs | the AI players (no Java counterpart; Java Bot was scripted) |
+
+
+## Guided learning AI players (offline addition, 2026-11-13)
+No Java RL counterpart. Ai/Rl selects plans/primitives, retaining RulePlanner and tactical/menu skills as teacher/fallback. BotClient -> Controller remains the only mutation path. Net/Controller observes supported human input only when opted in. DevWiki GET/POST /control/learning uses existing token/origin protection. ServerBootstrap owns venv trainer wiring; NsoServerControl reports a 5-second render FPS average. No wire/save-schema changes. Tools/Learning/RlHost shares the real server for opt-in scratch evaluation; pure synthetic checks do not start the server. Full contracts, settings and validation boundary: docs/AI_LEARNING.md.
+
+
+## 2026-11-13 - Shared ground loot and less competitive AI hunting
+
+Java Char.pickItem / ItemMap.isCanPickup,isExpired / Zone.updateItemMap: shared GroundLootPolicy defaults to 30 s exclusive ownership and 60 s lifetime (user-requested offline deviation from 20/30 s). PlayerItems range/bag acceptance and PlayerActions.ZoneCapacity are reused by AI/RL checks; all actual requests traverse the same handlers. AgentForaging / AgentZoneSelection are offline behavioural additions, with NPC-mediated OPEN_UI_ZONE / ZONE_CHANGE, no bot bypass or protocol/save schema change. Inspector values and exact files/manual checks: matching HANDOFF entry.
+
+
+## Item/NPC learning rewards (offline addition, 2026-11-13)
+No Java reward-shaping counterpart: ActionRewards observes normal Controller outcomes before/after use, confirmed item menus, purchases, NPC/quiz/admission, storage, upgrading and zone changes. No extra gameplay EXP/currency or human/bot privileges. New optional learning metadata only; no wire/character schema change. See docs/AI_LEARNING.md for criteria, defaults and persistent novelty keys.
+
+
+## 2026-11-13 - AI advice reply contract
+StrategicLayer sends strict response_format json_schema through the existing OpenAI-compatible endpoint when JSON mode and structured outputs are enabled. LlmReplyFormat requires steps with known goals; parser validation remains authoritative. Format failures retain bounded raw output in debug state/logs and back off separately (5 seconds default). No gameplay packet or server movement validation changed. Bot endpoint collision parity is still pending. Compile-only validation.
+
+
+## 2026-11-13 - Bot movement frames
+Headless bots now execute destinations through BotMovement/TileMotion (Char.java updateCharRun/updateCharJump/updateCharFall/setAutoJump geometry), then send ordinary PLAYER_MOVE packets via BotClient to unchanged PlayerActions.Move. Pixel sweeps and grounded jump/gravity replace arbitrary endpoint height lifts. One separate server-owned client loop uses the same world lock; world/AI ticks remain 500 ms. No bot exemption, gameplay packet change or direct PlayerState position write. Compile-only; difficult navigation routes can still stall.
